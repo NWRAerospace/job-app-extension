@@ -1,0 +1,98 @@
+// AI Helper module for handling Gemini API interactions
+export class AIHelper {
+  static async getJobAssessment(jobText, userSkills, apiKey) {
+    const geminiApiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
+    
+    const prompt = `Analyze this job posting and the candidate's skills. Respond ONLY with a JSON object in this exact format:
+{
+  "title": "Job title extracted from posting",
+  "company": "Company/organization name from posting (or null if not found)",
+  "rating": number from 1-10 indicating fit,
+  "keywords": exactly 15 most important skills/requirements from the job posting as an array of strings,
+  "rationale": "Brief assessment focusing on key matches and gaps. Maximum 50 words."
+}
+
+Job Posting:
+${jobText}
+
+Candidate Skills:
+${userSkills.map(s => `${s.skill} (${s.level}${s.yearsExperience ? `, ${s.yearsExperience}yrs` : ''})`).join(', ')}`;
+
+    return await this._makeGeminiRequest(geminiApiUrl, prompt, apiKey);
+  }
+
+  static async analyzeResume(resumeText, apiKey) {
+    const geminiApiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
+    
+    const prompt = `Analyze this resume text and extract skills and education information. Be thorough and try to identify ALL relevant skills. Respond ONLY with a JSON object in this exact format:
+{
+  "skills": [
+    {
+      "skill": "Name of skill",
+      "level": "Beginner" | "Intermediate" | "Expert",
+      "yearsExperience": number | null
+    }
+  ],
+  "education": [
+    {
+      "type": "degree" | "certification" | "course",
+      "title": "Full title/name",
+      "institution": "Institution name",
+      "startDate": "YYYY-MM-DD",
+      "endDate": "YYYY-MM-DD" | null,
+      "inProgress": boolean,
+      "description": "Brief description or relevant coursework",
+      "gpa": "GPA value" | null,
+      "url": "certificate URL" | null,
+      "expiryDate": "YYYY-MM-DD" | null
+    }
+  ]
+}
+
+Resume Text:
+${resumeText}`;
+
+    return await this._makeGeminiRequest(geminiApiUrl, prompt, apiKey);
+  }
+
+  static async _makeGeminiRequest(apiUrl, prompt, apiKey) {
+    try {
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': apiKey,
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{ text: prompt }]
+          }]
+        }),
+      });
+
+      if (!response.ok) {
+        const errorDetails = await response.json();
+        console.error('API Error Details:', errorDetails);
+        throw new Error(`API Error: ${errorDetails.error?.message || response.statusText}`);
+      }
+
+      const data = await response.json();
+      const responseText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      
+      if (!responseText) {
+        throw new Error('Empty response from API');
+      }
+
+      // Extract JSON from response
+      const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        throw new Error('No JSON found in response');
+      }
+      
+      return JSON.parse(jsonMatch[0]);
+    } catch (error) {
+      console.error('Gemini API request error:', error);
+      throw new Error(`API request failed: ${error.message}`);
+    }
+  }
+} 

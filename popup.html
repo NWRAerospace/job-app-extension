@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="popup.css">
+  <!-- Load libraries first -->
+  <script src="mammoth.browser.min.js" defer></script>
+  <script src="js/mammothInit.js" defer></script>
+  <script src="db.js" defer></script>
+  <script type="module" src="popup.js"></script>
+</head>
+<body>
+  <h1>Job App Assistant</h1>
+  
+  <div class="header-controls">
+    <div class="current-resume">
+      <span class="label">Current Resume:</span>
+      <span id="currentResumeName" class="value">None selected</span>
+    </div>
+
+    <div class="current-job">
+      <span class="label">Selected Job:</span>
+      <span id="currentJobName" class="value">None selected</span>
+    </div>
+
+    <div class="keyword-match-controls">
+      <span>Match Keywords Against:</span>
+      <div class="toggle-group">
+        <label class="toggle-option">
+          <input type="radio" name="matchType" value="resume" checked>
+          Resume Text
+        </label>
+        <label class="toggle-option">
+          <input type="radio" name="matchType" value="skills">
+          Skills
+        </label>
+        <label class="toggle-option">
+          <input type="radio" name="matchType" value="both">
+          Both
+        </label>
+      </div>
+    </div>
+  </div>
+  
+  <div class="tabs">
+    <button class="tab-button active" data-tab="assess">Assess Job</button>
+    <button class="tab-button" data-tab="resume">Resume</button>
+    <button class="tab-button" data-tab="cover">Cover Letter</button>
+    <button class="tab-button" data-tab="skills">My Skills</button>
+    <button class="tab-button" data-tab="education">Education</button>
+    <button class="tab-button" data-tab="limitations">Limitations</button>
+    <button class="tab-button" data-tab="saved">Saved Jobs</button>
+    <button class="tab-button" data-tab="settings">Settings</button>
+  </div>
+
+  <div id="assess" class="tab-content active">
+    <div class="instructions">
+      <p>1. Select the job posting text on the webpage</p>
+      <p>2. Click "Assess Job Posting" below</p>
+    </div>
+
+    <button id="assessJobButton" class="primary-button">Assess Job Posting</button>
+
+    <div id="assessmentResults" style="display: none;">
+      <div id="jobRating">
+        <strong>Job Fit Rating:</strong> <span id="ratingValue">--</span> / 10
+      </div>
+      <div id="jobKeywords">
+        <strong>Key Keywords:</strong>
+        <ul id="keywordList"></ul>
+      </div>
+      <button id="saveJobButton" class="primary-button" style="display: none;">Save Job</button>
+    </div>
+
+    <div id="assessmentError" style="display: none;">
+      <strong>Error:</strong> <span id="errorMessage"></span>
+    </div>
+  </div>
+
+  <div id="resume" class="tab-content">
+    <div class="resume-section">
+      <h2>Resume Management</h2>
+      
+      <div class="document-controls">
+        <div class="document-selector">
+          <select id="resumeSelect" class="document-select">
+            <option value="">Select a resume...</option>
+          </select>
+          <button id="uploadResumeButton" class="secondary-button">Upload Resume</button>
+          <button id="removeResumeButton" class="danger-button" style="display: none;">Remove</button>
+        </div>
+      </div>
+
+      <input type="file" id="resumeFileInput" accept=".docx" style="display: none;">
+      
+      <div class="document-preview">
+        <textarea id="resumeContent" class="document-content" readonly placeholder="Select a resume to view its content..."></textarea>
+      </div>
+
+      <div class="action-buttons">
+        <button id="extractSkillsButton" class="secondary-button" style="display: none;">
+          Extract Skills & Education
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="cover" class="tab-content">
+    <div class="cover-letter-section">
+      <h2>Cover Letter Management</h2>
+      
+      <div class="document-controls">
+        <div class="document-selector">
+          <select id="coverLetterSelect" class="document-select">
+            <option value="">Select a cover letter...</option>
+          </select>
+          <button id="uploadCoverLetterButton" class="secondary-button">Upload Cover Letter</button>
+          <button id="removeCoverLetterButton" class="danger-button" style="display: none;">Remove</button>
+        </div>
+      </div>
+
+      <input type="file" id="coverLetterFileInput" accept=".docx" style="display: none;">
+      
+      <div class="document-preview">
+        <textarea id="coverLetterContent" class="document-content" readonly placeholder="Select a cover letter to view its content..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add modal for document upload -->
+  <div id="uploadModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <h2>Upload Document</h2>
+      <div class="upload-form">
+        <div class="form-group">
+          <label for="documentTitle">Document Title:</label>
+          <input type="text" id="documentTitle" class="form-input" placeholder="Enter a title for this document">
+        </div>
+        <div class="selected-file">
+          <span id="selectedFileName">No file selected</span>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button id="cancelUploadButton" class="secondary-button">Cancel</button>
+        <button id="confirmUploadButton" class="primary-button">Upload</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="settings" class="tab-content">
+    <div class="settings-section">
+      <h2>AI Configuration</h2>
+      <div class="api-key-section">
+        <label for="geminiApiKey">Google Gemini API Key:</label>
+        <input type="password" id="geminiApiKey" size="30" placeholder="Enter your Gemini API Key">
+        <button id="saveApiKeyButton" class="primary-button">Save API Key</button>
+        <p class="help-text">
+          The Google Gemini API key is required for job assessment functionality. 
+          <a href="https://makersuite.google.com/app/apikey" target="_blank">Get your API key here</a>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div id="skills" class="tab-content">
+    <div id="skillInputArea">
+      <label for="skillName">Add a Skill:</label>
+      <div class="skill-input-group">
+        <input type="text" id="skillName" placeholder="Skill name (e.g., Python)" class="skill-input">
+        <select id="skillLevel" class="skill-select">
+          <option value="Beginner">Beginner</option>
+          <option value="Intermediate" selected>Intermediate</option>
+          <option value="Expert">Expert</option>
+        </select>
+        <input type="number" id="skillYears" placeholder="Years" class="skill-years" min="0" max="50">
+        <button id="addSkillButton">Add Skill</button>
+      </div>
+      <div id="skillsList" class="skills-list">
+        <!-- Skills will be listed here -->
+      </div>
+    </div>
+  </div>
+
+  <div id="education" class="tab-content">
+    <div class="education-section">
+      <h2>Education & Certifications</h2>
+      
+      <div id="educationList" class="education-list">
+        <!-- Education items will be listed here -->
+      </div>
+
+      <div class="add-education-form">
+        <h3>Add New Education/Certification</h3>
+        <select id="educationType" class="education-select">
+          <option value="degree">Degree</option>
+          <option value="certification">Certification</option>
+          <option value="course">Course</option>
+        </select>
+
+        <input type="text" id="educationTitle" placeholder="Title/Degree Name" class="education-input">
+        <input type="text" id="educationInstitution" placeholder="Institution" class="education-input">
+        
+        <div class="date-group">
+          <div class="date-input">
+            <label>Start Date:</label>
+            <input type="date" id="educationStartDate">
+          </div>
+          <div class="date-input">
+            <label>End Date:</label>
+            <input type="date" id="educationEndDate">
+          </div>
+          <label class="checkbox-label">
+            <input type="checkbox" id="educationInProgress"> In Progress
+          </label>
+        </div>
+
+        <div class="optional-fields">
+          <input type="text" id="educationGPA" placeholder="GPA (optional)" class="education-input">
+          <input type="text" id="educationURL" placeholder="Certificate URL (optional)" class="education-input">
+          <input type="date" id="educationExpiry" placeholder="Expiry Date (optional)">
+        </div>
+
+        <textarea id="educationDescription" placeholder="Description or relevant coursework" class="education-textarea"></textarea>
+        
+        <button id="addEducationButton" class="primary-button">Add Education/Certification</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="limitations" class="tab-content">
+    <div class="limitations-section">
+      <h2>Limitations & Restrictions</h2>
+      
+      <div class="add-limitation-form">
+        <select id="limitationCategory" class="limitation-select">
+          <option value="legal">Legal/Visa</option>
+          <option value="physical">Physical/Health</option>
+          <option value="technical">Technical</option>
+          <option value="other">Other</option>
+        </select>
+
+        <input type="text" id="limitationText" placeholder="Limitation or Restriction" class="limitation-input">
+        <textarea id="limitationDetails" placeholder="Additional details (optional)" class="limitation-textarea"></textarea>
+        
+        <div class="temporary-group">
+          <label class="checkbox-label">
+            <input type="checkbox" id="isTemporary"> Temporary Limitation
+          </label>
+          <div class="end-date-input" style="display: none;">
+            <label>End Date:</label>
+            <input type="date" id="limitationEndDate">
+          </div>
+        </div>
+
+        <button id="addLimitationButton" class="primary-button">Add Limitation</button>
+      </div>
+
+      <div class="limitations-filters">
+        <button class="filter-button active" data-category="all">All</button>
+        <button class="filter-button" data-category="legal">Legal</button>
+        <button class="filter-button" data-category="physical">Physical</button>
+        <button class="filter-button" data-category="technical">Technical</button>
+        <button class="filter-button" data-category="other">Other</button>
+      </div>
+
+      <div id="limitationsList" class="limitations-list">
+        <!-- Limitations will be listed here -->
+      </div>
+    </div>
+  </div>
+
+  <div id="saved" class="tab-content">
+    <div id="savedJobsList">
+      <!-- Saved jobs will be populated here -->
+    </div>
+  </div>
+</body>
+</html>
