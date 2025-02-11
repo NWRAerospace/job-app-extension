@@ -37,6 +37,9 @@ document.addEventListener('DOMContentLoaded', async function() {
   // Load saved documents
   await loadSavedDocuments();
 
+  // Profile Management
+  await initializeProfileUI();
+
   async function refreshAllLists() {
     const savedJobs = await DatabaseManager.getField('savedJobs') || [];
     await uiManager.updateSavedJobsList(savedJobs);
@@ -933,5 +936,145 @@ document.addEventListener('DOMContentLoaded', async function() {
   function extractCompanyName(jobText) {
     // This is a placeholder - you might want to implement more sophisticated company name extraction
     return '';
+  }
+
+  // Profile Management
+  async function initializeProfileUI() {
+    const profileSelect = document.getElementById('profileSelect');
+    const profileName = document.getElementById('profileName');
+    const saveProfileNameButton = document.getElementById('saveProfileNameButton');
+    const currentProfileName = document.getElementById('currentProfileName');
+
+    // Get current profiles
+    const { profiles } = await DatabaseManager.getRawStorage();
+    const activeProfile = await DatabaseManager.getActiveProfile();
+
+    // Populate profile selector
+    profileSelect.innerHTML = profiles.map(p => 
+      `<option value="${p.id}" ${p.isActive ? 'selected' : ''}>${p.name}</option>`
+    ).join('');
+
+    // Set current profile name in header
+    currentProfileName.textContent = activeProfile.name;
+
+    // Set current profile name in input
+    profileName.value = activeProfile.name;
+
+    // Handle profile switching
+    profileSelect.addEventListener('change', async (e) => {
+      const newProfileId = e.target.value;
+      const newActiveProfile = await DatabaseManager.switchProfile(newProfileId);
+      
+      // Update UI
+      currentProfileName.textContent = newActiveProfile.name;
+      profileName.value = newActiveProfile.name;
+      
+      // Clear all current displays
+      clearAllDisplays();
+      
+      // Refresh all data displays
+      await refreshAllData();
+
+      // Show profile switch message
+      const modal = uiManager.showModal(
+        'Profile Switched',
+        `<p>Successfully switched to profile "${newActiveProfile.name}".</p>
+         <p>The extension will now close. Please reopen it to ensure all data is properly loaded.</p>`,
+        `<button class="primary-button confirm-button">OK</button>`
+      );
+
+      // Close extension when user clicks OK
+      modal.querySelector('.confirm-button').addEventListener('click', () => {
+        window.close();
+      });
+    });
+
+    // Handle profile name saving
+    saveProfileNameButton.addEventListener('click', async () => {
+      const newName = profileName.value.trim();
+      if (newName) {
+        await DatabaseManager.updateProfileName(activeProfile.id, newName);
+        
+        // Update UI
+        currentProfileName.textContent = newName;
+        const option = profileSelect.querySelector(`option[value="${activeProfile.id}"]`);
+        if (option) {
+          option.textContent = newName;
+        }
+        uiManager.showFeedbackMessage('Profile name updated successfully!');
+      }
+    });
+  }
+
+  function clearAllDisplays() {
+    // Clear resume displays
+    document.getElementById('resumeContent').value = '';
+    document.getElementById('removeResumeButton').style.display = 'none';
+    document.getElementById('extractSkillsButton').style.display = 'none';
+    document.getElementById('resumeSelect').innerHTML = '<option value="">Select a resume...</option>';
+    
+    // Clear cover letter displays
+    document.getElementById('coverLetterContent').value = '';
+    document.getElementById('removeCoverLetterButton').style.display = 'none';
+    document.getElementById('coverLetterSelect').innerHTML = '<option value="">Select a cover letter...</option>';
+    
+    // Clear skills list
+    document.getElementById('skillsList').innerHTML = '';
+    
+    // Clear education list
+    document.getElementById('educationList').innerHTML = '';
+    
+    // Clear limitations list
+    document.getElementById('limitationsList').innerHTML = '';
+    
+    // Clear saved jobs list
+    document.getElementById('savedJobsList').innerHTML = '';
+    
+    // Clear current selections in header
+    document.getElementById('currentResumeName').textContent = 'None selected';
+    document.getElementById('currentJobName').textContent = 'None selected';
+    
+    // Clear API key
+    document.getElementById('geminiApiKey').value = '';
+    
+    // Clear any assessment results
+    document.getElementById('assessmentResults').style.display = 'none';
+    document.getElementById('keywordList').innerHTML = '';
+  }
+
+  async function refreshAllData() {
+    try {
+      // Refresh all lists
+      const [skills, education, limitations, savedJobs] = await Promise.all([
+        DatabaseManager.getField('skills'),
+        DatabaseManager.getField('education'),
+        DatabaseManager.getField('limitations'),
+        DatabaseManager.getField('savedJobs')
+      ]);
+
+      // Update UI with new data
+      uiManager.updateSkillsList(skills || []);
+      uiManager.updateEducationList(education || []);
+      uiManager.updateLimitationsList(limitations || []);
+      uiManager.updateSavedJobsList(savedJobs || []);
+
+      // Refresh documents
+      await Promise.all([
+        loadResumes(),
+        loadCoverLetters()
+      ]);
+
+      // Update current selections
+      await Promise.all([
+        uiManager.updateCurrentResumeDisplay(),
+        uiManager.updateCurrentJobDisplay()
+      ]);
+
+      // Refresh API key
+      const apiKey = await DatabaseManager.getField('geminiApiKey');
+      document.getElementById('geminiApiKey').value = apiKey || '';
+    } catch (error) {
+      console.error('Error refreshing data:', error);
+    }
   }
 });

@@ -1,66 +1,38 @@
 // Database structure and management
+const DEFAULT_PROFILE = {
+  id: "profile1",
+  name: "Profile 1",
+  isActive: true,
+  data: {
+    personalInfo: {
+      name: "",
+      email: "",
+      phone: ""
+    },
+    skills: [],
+    jobs: [],
+    education: [],
+    certifications: [],
+    cantDos: [],
+    defaultResume: "",
+    defaultCoverLetterTemplate: "",
+    limitations: [],
+    savedJobs: [],
+    resumes: [],
+    coverLetters: [],
+    activeResumeId: null,
+    activeCoverLetterId: null,
+    activeJobId: null,
+    geminiApiKey: null
+  }
+};
+
 const DEFAULT_DB_STRUCTURE = {
-  personalInfo: {
-    name: "",
-    email: "",
-    phone: ""
-  },
-  skills: [],  // Array of {skill, level, yearsExperience}
-  jobs: [],    // Array of {company, title, dates, description, relevantSkills}
-  education: [
-    // Array of {
-    //   type: "degree" | "certification" | "course",
-    //   title: string,
-    //   institution: string,
-    //   startDate: string,
-    //   endDate: string | null,  // null if ongoing
-    //   inProgress: boolean,
-    //   description: string,
-    //   gpa: string | null,
-    //   relevantCoursework: string[] | null,
-    //   url: string | null,  // For certificates/badges
-    //   expiryDate: string | null  // For certificates that expire
-    // }
-  ],
-  certifications: [],
-  cantDos: [],
-  defaultResume: "",
-  defaultCoverLetterTemplate: "",
-  limitations: [
-    // Array of {
-    //   category: "legal" | "physical" | "technical" | "other",
-    //   limitation: string,
-    //   details: string | null,
-    //   isTemporary: boolean,
-    //   endDate: string | null  // For temporary limitations
-    // }
-  ],
-  savedJobs: [],  // Array of {jobTitle, dateSaved, rating, jobLink, jobPostingText, extractedKeywords}
-  resumes: [
-    // Array of {
-    //   id: string,
-    //   name: string,
-    //   type: "text" | "docx",
-    //   content: string, // Base64 string for docx, plain text for text type
-    //   textContent: string, // Converted text content for display/use
-    //   dateAdded: string,
-    //   lastUsed: string
-    // }
-  ],
-  coverLetters: [
-    // Array of {
-    //   id: string,
-    //   name: string,
-    //   type: "text" | "docx",
-    //   content: string, // Base64 string for docx, plain text for text type
-    //   textContent: string, // Converted text content for display/use
-    //   dateAdded: string,
-    //   lastUsed: string
-    // }
-  ],
-  activeResumeId: null,
-  activeCoverLetterId: null,
-  activeJobId: null
+  profiles: [
+    { ...DEFAULT_PROFILE },
+    { ...DEFAULT_PROFILE, id: "profile2", name: "Profile 2", isActive: false },
+    { ...DEFAULT_PROFILE, id: "profile3", name: "Profile 3", isActive: false }
+  ]
 };
 
 class DatabaseManager {
@@ -68,65 +40,105 @@ class DatabaseManager {
     return new Promise((resolve) => {
       chrome.storage.local.get(null, (result) => {
         console.log('Current storage state:', result);
-        if (Object.keys(result).length === 0) {
-          // First time initialization
+        if (!result.profiles) {
+          // First time initialization or migration
           console.log('Initializing database with default structure');
-          chrome.storage.local.set(DEFAULT_DB_STRUCTURE, () => {
-            resolve(DEFAULT_DB_STRUCTURE);
-          });
+          if (Object.keys(result).length === 0) {
+            // Brand new installation
+            chrome.storage.local.set(DEFAULT_DB_STRUCTURE, () => {
+              resolve(DEFAULT_DB_STRUCTURE);
+            });
+          } else {
+            // Migrate existing data to profile1
+            const profile1 = {
+              ...DEFAULT_PROFILE,
+              data: { ...DEFAULT_PROFILE.data, ...result }
+            };
+            const newState = {
+              profiles: [
+                profile1,
+                { ...DEFAULT_PROFILE, id: "profile2", name: "Profile 2", isActive: false },
+                { ...DEFAULT_PROFILE, id: "profile3", name: "Profile 3", isActive: false }
+              ]
+            };
+            chrome.storage.local.set(newState, () => {
+              resolve(newState);
+            });
+          }
         } else {
-          // Ensure all required fields exist
-          const newState = { ...DEFAULT_DB_STRUCTURE, ...result };
-          chrome.storage.local.set(newState, () => {
-            resolve(newState);
-          });
+          resolve(result);
         }
+      });
+    });
+  }
+
+  static async getActiveProfile() {
+    const { profiles } = await this.getRawStorage();
+    return profiles.find(p => p.isActive) || profiles[0];
+  }
+
+  static async switchProfile(profileId) {
+    const { profiles } = await this.getRawStorage();
+    const updatedProfiles = profiles.map(p => ({
+      ...p,
+      isActive: p.id === profileId
+    }));
+    await this.updateRawStorage({ profiles: updatedProfiles });
+    return this.getActiveProfile();
+  }
+
+  static async updateProfileName(profileId, newName) {
+    const { profiles } = await this.getRawStorage();
+    const updatedProfiles = profiles.map(p => 
+      p.id === profileId ? { ...p, name: newName } : p
+    );
+    await this.updateRawStorage({ profiles: updatedProfiles });
+  }
+
+  static async getRawStorage() {
+    return new Promise((resolve) => {
+      chrome.storage.local.get(null, (result) => {
+        resolve(result);
+      });
+    });
+  }
+
+  static async updateRawStorage(newState) {
+    return new Promise((resolve) => {
+      chrome.storage.local.set(newState, () => {
+        resolve();
       });
     });
   }
 
   static async getField(field) {
-    return new Promise((resolve) => {
-      chrome.storage.local.get(null, (result) => {
-        console.log('Full storage state:', result);
-        console.log(`Retrieved ${field}:`, result[field]);
-        
-        // Initialize arrays if undefined
-        if ((field === 'resumes' || field === 'coverLetters') && !result[field]) {
-          resolve([]);
-        } else {
-          resolve(result[field]);
-        }
-      });
-    });
+    const activeProfile = await this.getActiveProfile();
+    return activeProfile.data[field];
   }
 
   static async updateField(field, value) {
-    return new Promise((resolve, reject) => {
-      // Validate arrays
-      if ((field === 'resumes' || field === 'coverLetters') && !Array.isArray(value)) {
-        console.error(`Attempting to save non-array value to ${field}:`, value);
-        value = [];
-      }
-      
-      console.log(`Updating ${field}:`, value);
-      
-      // First get the current state
-      chrome.storage.local.get(null, (currentState) => {
-        // Create new state with updated field
-        const newState = { ...currentState, [field]: value };
-        
-        // Save entire state
-        chrome.storage.local.set(newState, () => {
-          if (chrome.runtime.lastError) {
-            console.error('Error updating field:', chrome.runtime.lastError);
-            reject(chrome.runtime.lastError);
-          } else {
-            console.log(`${field} updated successfully. New state:`, newState);
-            resolve();
+    return new Promise(async (resolve, reject) => {
+      try {
+        const { profiles } = await this.getRawStorage();
+        const updatedProfiles = profiles.map(p => {
+          if (p.isActive) {
+            return {
+              ...p,
+              data: {
+                ...p.data,
+                [field]: value
+              }
+            };
           }
+          return p;
         });
-      });
+        
+        await this.updateRawStorage({ profiles: updatedProfiles });
+        resolve();
+      } catch (error) {
+        console.error('Error updating field:', error);
+        reject(error);
+      }
     });
   }
 

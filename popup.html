@@ -12,6 +12,11 @@
   <h1>Job App Assistant</h1>
   
   <div class="header-controls">
+    <div class="current-profile">
+      <span class="label">Profile:</span>
+      <span id="currentProfileName" class="value">Profile 1</span>
+    </div>
+
     <div class="current-resume">
       <span class="label">Current Resume:</span>
       <span id="currentResumeName" class="value">None selected</span>
@@ -148,6 +153,21 @@
 
   <div id="settings" class="tab-content">
     <div class="settings-section">
+      <h2>Profile Management</h2>
+      <div class="profile-section">
+        <div class="profile-selector">
+          <label for="profileSelect">Active Profile:</label>
+          <select id="profileSelect" class="profile-select">
+            <!-- Profiles will be populated here -->
+          </select>
+        </div>
+        <div class="profile-name-editor">
+          <label for="profileName">Profile Name:</label>
+          <input type="text" id="profileName" class="profile-name-input" placeholder="Enter profile name">
+          <button id="saveProfileNameButton" class="secondary-button">Save Name</button>
+        </div>
+      </div>
+
       <h2>AI Configuration</h2>
       <div class="api-key-section">
         <label for="geminiApiKey">Google Gemini API Key:</label>

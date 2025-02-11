@@ -1276,6 +1276,35 @@ button:disabled {
   background: #f8f9fa;
   border-radius: 6px;
   border: 1px solid #e9ecef;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.current-profile {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background-color: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 0.9em;
+  margin-bottom: 5px;
+}
+
+.current-profile .label {
+  font-weight: 500;
+  color: #666;
+  margin-right: 4px;
+}
+
+.current-profile .value {
+  color: #2c3e50;
+  font-weight: 600;
+  padding: 2px 8px;
+  background: #f0f0f0;
+  border-radius: 4px;
 }
 
 .current-resume {
@@ -1312,4 +1341,36 @@ button:disabled {
 .current-job .value {
   color: #2c3e50;
   font-weight: 600;
+}
+
+.profile-section {
+  margin-bottom: 24px;
+  padding: 16px;
+  background-color: #f8f8f8;
+  border-radius: 8px;
+}
+
+.profile-selector {
+  margin-bottom: 16px;
+}
+
+.profile-select {
+  width: 200px;
+  padding: 8px;
+  margin-left: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.profile-name-editor {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.profile-name-input {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
 }
