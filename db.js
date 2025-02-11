@@ -23,7 +23,8 @@ const DEFAULT_PROFILE = {
     activeResumeId: null,
     activeCoverLetterId: null,
     activeJobId: null,
-    geminiApiKey: null
+    geminiApiKey: null,
+    qaPairs: [] // Add Q&A pairs storage
   }
 };
 
@@ -492,6 +493,103 @@ class DatabaseManager {
     
     const savedJobs = await this.getField('savedJobs') || [];
     return savedJobs.find(job => job.id === activeJobId) || null;
+  }
+
+  static async addQAPair(qaPair) {
+    const qaPairs = await this.getField('qaPairs') || [];
+    
+    // Add unique ID and timestamp
+    const newQAPair = {
+      ...qaPair,
+      id: crypto.randomUUID(),
+      dateAdded: new Date().toISOString(),
+      lastModified: new Date().toISOString()
+    };
+    
+    qaPairs.push(newQAPair);
+    await this.updateField('qaPairs', qaPairs);
+    return newQAPair;
+  }
+
+  static async updateQAPair(id, updatedQAPair) {
+    const qaPairs = await this.getField('qaPairs') || [];
+    const index = qaPairs.findIndex(qa => qa.id === id);
+    
+    if (index !== -1) {
+      qaPairs[index] = {
+        ...qaPairs[index],
+        ...updatedQAPair,
+        lastModified: new Date().toISOString()
+      };
+      await this.updateField('qaPairs', qaPairs);
+      return qaPairs[index];
+    }
+    return null;
+  }
+
+  static async removeQAPair(id) {
+    const qaPairs = await this.getField('qaPairs') || [];
+    const filteredPairs = qaPairs.filter(qa => qa.id !== id);
+    if (filteredPairs.length !== qaPairs.length) {
+      await this.updateField('qaPairs', filteredPairs);
+      return true;
+    }
+    return false;
+  }
+
+  static async searchQAPairs(query) {
+    const qaPairs = await this.getField('qaPairs') || [];
+    if (!query) return [];
+    
+    // Convert query to lowercase for case-insensitive search
+    const lowerQuery = query.toLowerCase();
+    
+    // Search using various matching techniques
+    return qaPairs.map(qa => {
+      const questionScore = this.getMatchScore(qa.question, lowerQuery);
+      return {
+        ...qa,
+        score: questionScore
+      };
+    })
+    .filter(qa => qa.score > 0)
+    .sort((a, b) => b.score - a.score);
+  }
+
+  static getMatchScore(text, query) {
+    if (!text || !query) return 0;
+    
+    const lowerText = text.toLowerCase();
+    let score = 0;
+    
+    // Exact match
+    if (lowerText === query) {
+      score += 100;
+    }
+    
+    // Contains full query
+    if (lowerText.includes(query)) {
+      score += 50;
+    }
+    
+    // Word matching
+    const queryWords = query.split(/\s+/);
+    const textWords = lowerText.split(/\s+/);
+    
+    queryWords.forEach(qWord => {
+      if (textWords.some(tWord => tWord === qWord)) {
+        score += 10;
+      }
+      if (textWords.some(tWord => tWord.includes(qWord))) {
+        score += 5;
+      }
+    });
+    
+    return score;
+  }
+
+  static async getAllQAPairs() {
+    return await this.getField('qaPairs') || [];
   }
 }
 

@@ -6,6 +6,7 @@ import { EducationManager } from './js/modules/educationManager.js';
 import { LimitationsManager } from './js/modules/limitationsManager.js';
 import { UIManager } from './js/modules/uiManager.js';
 import { EventHandlers } from './js/utils/eventHandlers.js';
+import { QAManager } from './js/modules/qaManager.js';
 
 document.addEventListener('DOMContentLoaded', async function() {
   // Initialize database first
@@ -17,6 +18,9 @@ document.addEventListener('DOMContentLoaded', async function() {
   const educationManager = new EducationManager(DatabaseManager);
   const limitationsManager = new LimitationsManager(DatabaseManager);
   const uiManager = new UIManager(DatabaseManager);
+
+  // Initialize Q&A Manager
+  const qaManager = new QAManager();
 
   // Load API Key
   const apiKey = await DatabaseManager.getField('geminiApiKey');

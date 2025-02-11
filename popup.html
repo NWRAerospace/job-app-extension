@@ -54,6 +54,7 @@
     <button class="tab-button" data-tab="education">Education</button>
     <button class="tab-button" data-tab="limitations">Limitations</button>
     <button class="tab-button" data-tab="saved">Saved Jobs</button>
+    <button class="tab-button" data-tab="qa">Q&A</button>
     <button class="tab-button" data-tab="settings">Settings</button>
   </div>
 
@@ -291,6 +292,44 @@
   <div id="saved" class="tab-content">
     <div id="savedJobsList">
       <!-- Saved jobs will be populated here -->
+    </div>
+  </div>
+
+  <div id="qa" class="tab-content">
+    <div class="qa-section">
+      <div class="qa-header">
+        <h2>Questions & Answers</h2>
+        <div class="qa-stats">
+          <span>Total Q&A Pairs: </span>
+          <span id="qaPairCount">0</span>
+        </div>
+      </div>
+
+      <div class="qa-search">
+        <input type="text" id="qaSearchInput" placeholder="Search questions..." class="qa-search-input">
+        <div id="qaSearchResults" class="qa-search-results"></div>
+      </div>
+
+      <div class="qa-display">
+        <div id="selectedQuestion" class="selected-question"></div>
+        <div id="selectedAnswer" class="selected-answer"></div>
+        <div class="qa-actions">
+          <button id="copyAnswerButton" class="secondary-button" style="display: none;">Copy Answer</button>
+          <button id="editAnswerButton" class="secondary-button" style="display: none;">Edit</button>
+        </div>
+      </div>
+
+      <div class="qa-editor" style="display: none;">
+        <h3>Add/Edit Q&A Pair</h3>
+        <input type="text" id="questionInput" placeholder="Enter question" class="qa-input">
+        <textarea id="answerInput" placeholder="Enter answer" class="qa-textarea"></textarea>
+        <div class="qa-editor-actions">
+          <button id="saveQAButton" class="primary-button">Save</button>
+          <button id="cancelQAButton" class="secondary-button">Cancel</button>
+        </div>
+      </div>
+
+      <button id="addNewQAButton" class="primary-button">Add New Q&A Pair</button>
     </div>
   </div>
 </body>
