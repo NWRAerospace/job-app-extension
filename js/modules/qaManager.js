@@ -5,6 +5,7 @@ export class QAManager {
     this.setupEventListeners();
     this.currentQAPair = null;
     this.updateQACount();
+    this.setupMessageListener();
   }
 
   initializeElements() {
@@ -46,6 +47,59 @@ export class QAManager {
     document.addEventListener('mouseup', this.handleTextSelection.bind(this));
   }
 
+  setupMessageListener() {
+    // Listen for messages from background script
+    chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+      if (request.action === 'searchQA') {
+        this.handleExternalSearch(request.text);
+      } else if (request.action === 'addNewQA') {
+        this.handleExternalAdd(request.text);
+      }
+    });
+  }
+
+  async handleExternalSearch(text) {
+    // Switch to Q&A tab
+    document.querySelector('[data-tab="qa"]').click();
+    
+    // Set search text and perform search
+    this.searchInput.value = text;
+    await this.handleSearch();
+
+    // If no results found, show "Add as New" option
+    const results = await DatabaseManager.searchQAPairs(text);
+    if (results.length === 0) {
+      this.displayNoResultsWithAdd(text);
+    }
+  }
+
+  handleExternalAdd(text) {
+    // Switch to Q&A tab
+    document.querySelector('[data-tab="qa"]').click();
+    
+    // Start new Q&A with the selected text as question
+    this.startNewQAPair();
+    this.questionInput.value = text;
+  }
+
+  displayNoResultsWithAdd(searchText) {
+    this.searchResults.innerHTML = `
+      <div class="qa-search-item no-results">
+        No matching questions found
+        <button class="add-as-new-button">Add as New Question</button>
+      </div>
+    `;
+    
+    const addButton = this.searchResults.querySelector('.add-as-new-button');
+    addButton.addEventListener('click', () => {
+      this.startNewQAPair();
+      this.questionInput.value = searchText;
+      this.searchResults.classList.remove('active');
+    });
+    
+    this.searchResults.classList.add('active');
+  }
+
   async handleSearch() {
     const query = this.searchInput.value.trim();
     if (!query) {
@@ -55,23 +109,23 @@ export class QAManager {
     }
 
     const results = await DatabaseManager.searchQAPairs(query);
-    this.displaySearchResults(results);
+    if (results.length === 0) {
+      this.displayNoResultsWithAdd(query);
+    } else {
+      this.displaySearchResults(results);
+    }
   }
 
   displaySearchResults(results) {
     this.searchResults.innerHTML = '';
     
-    if (results.length === 0) {
-      this.searchResults.innerHTML = '<div class="qa-search-item">No matching questions found</div>';
-    } else {
-      results.forEach(result => {
-        const div = document.createElement('div');
-        div.className = 'qa-search-item';
-        div.textContent = result.question;
-        div.dataset.qaId = result.id;
-        this.searchResults.appendChild(div);
-      });
-    }
+    results.forEach(result => {
+      const div = document.createElement('div');
+      div.className = 'qa-search-item';
+      div.textContent = result.question;
+      div.dataset.qaId = result.id;
+      this.searchResults.appendChild(div);
+    });
     
     this.searchResults.classList.add('active');
   }

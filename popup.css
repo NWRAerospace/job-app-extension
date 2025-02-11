@@ -1499,3 +1499,50 @@ button:disabled {
   margin-top: 15px;
   width: 100%;
 }
+
+/* Q&A Search Results Styles */
+.qa-search-item.no-results {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  color: #666;
+}
+
+.add-as-new-button {
+  background-color: #2ecc71;
+  color: white;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 12px;
+  margin-left: 10px;
+}
+
+.add-as-new-button:hover {
+  background-color: #27ae60;
+}
+
+/* Floating Q&A Button (injected by content script) */
+.job-app-qa-button {
+  transition: background-color 0.2s ease;
+  user-select: none;
+}
+
+.job-app-qa-button:hover {
+  background-color: #2980b9;
+}
+
+/* Q&A Search Results Score */
+.qa-search-item .match-score {
+  font-size: 0.8em;
+  color: #666;
+  margin-left: 8px;
+}
+
+.qa-search-item .highlight {
+  background-color: #fff3cd;
+  padding: 0 2px;
+  border-radius: 2px;
+}

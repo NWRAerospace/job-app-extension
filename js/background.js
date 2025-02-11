@@ -113,4 +113,43 @@ ${text}`
     console.error('Skills extraction error:', error);
     throw error;
   }
-} 
+}
+
+// Create context menu items
+chrome.runtime.onInstalled.addListener(() => {
+  // Create Q&A search context menu
+  chrome.contextMenus.create({
+    id: 'searchQA',
+    title: 'Search Q&A for "%s"',
+    contexts: ['selection']
+  });
+
+  // Create add new Q&A context menu
+  chrome.contextMenus.create({
+    id: 'addNewQA',
+    title: 'Add as New Q&A',
+    contexts: ['selection']
+  });
+});
+
+// Handle context menu clicks
+chrome.contextMenus.onClicked.addListener((info, tab) => {
+  if (info.menuItemId === 'searchQA' || info.menuItemId === 'addNewQA') {
+    // Get the selected text
+    const selectedText = info.selectionText;
+    
+    // Send message to popup to either search or add new Q&A
+    chrome.runtime.sendMessage({
+      action: info.menuItemId,
+      text: selectedText
+    });
+  }
+});
+
+// Listen for messages from content script or popup
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.action === 'searchQA' || request.action === 'addNewQA') {
+    // Forward the message to the popup if it's open
+    chrome.runtime.sendMessage(request);
+  }
+}); 
