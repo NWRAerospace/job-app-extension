@@ -634,26 +634,16 @@ document.addEventListener('DOMContentLoaded', async function() {
           throw new Error(response.error);
         }
 
-        // Update the skills and education in the database
-        if (response.skills && response.skills.length > 0) {
-          await DatabaseManager.updateField('skills', response.skills);
-          console.log('Skills updated:', response.skills);
-        }
+        // Show modal with extracted items
+        const modal = uiManager.showModal(
+          'Extracted Skills & Education',
+          uiManager.createAnalysisModalContent(response),
+          uiManager.createAnalysisModalActions()
+        );
 
-        if (response.education && response.education.length > 0) {
-          await DatabaseManager.updateField('education', response.education);
-          console.log('Education updated:', response.education);
-        }
+        // Setup handlers for the modal
+        uiManager.setupAnalysisModalHandlers(modal, response);
 
-        // Refresh the skills and education displays if they exist
-        if (typeof loadSkills === 'function') {
-          await loadSkills();
-        }
-        if (typeof loadEducation === 'function') {
-          await loadEducation();
-        }
-
-        alert('Skills and education extracted successfully!');
       } catch (error) {
         console.error('Error extracting skills and education:', error);
         alert('Error extracting skills and education: ' + error.message);

@@ -261,42 +261,222 @@ export class UIManager {
 
   updateSkillsList(skills) {
     const skillsList = document.getElementById('skillsList');
-    skillsList.innerHTML = skills.map(skill => `
-      <div class="skill-item">
+    skillsList.innerHTML = skills.map((skill, index) => `
+      <div class="skill-item" data-index="${index}">
         <div class="skill-info">
-          <span class="skill-name">${skill.skill}</span>
-          <span class="skill-details">
-            ${skill.level}${skill.yearsExperience ? ` • ${skill.yearsExperience} years` : ''}
-          </span>
+          <div class="skill-content">
+            <span class="skill-name">${skill.skill}</span>
+            <span class="skill-details">
+              ${skill.level}${skill.yearsExperience ? ` • ${skill.yearsExperience} years` : ''}
+            </span>
+          </div>
+          <div class="skill-edit-form" style="display: none;">
+            <input type="text" class="edit-skill-name" value="${skill.skill}">
+            <select class="edit-skill-level">
+              <option value="Beginner" ${skill.level === 'Beginner' ? 'selected' : ''}>Beginner</option>
+              <option value="Intermediate" ${skill.level === 'Intermediate' ? 'selected' : ''}>Intermediate</option>
+              <option value="Expert" ${skill.level === 'Expert' ? 'selected' : ''}>Expert</option>
+            </select>
+            <input type="number" class="edit-skill-years" value="${skill.yearsExperience || ''}" placeholder="Years" min="0" max="50">
+            <div class="edit-actions">
+              <button class="save-edit">Save</button>
+              <button class="cancel-edit">Cancel</button>
+            </div>
+          </div>
         </div>
-        <button class="remove-skill" data-skill="${skill.skill}">Remove</button>
+        <div class="skill-actions">
+          <button class="edit-skill">Edit</button>
+          <button class="remove-skill" data-skill="${skill.skill}">Remove</button>
+        </div>
       </div>
     `).join('');
+
+    // Add event listeners for edit buttons
+    skillsList.querySelectorAll('.edit-skill').forEach(button => {
+      button.addEventListener('click', (e) => {
+        const skillItem = e.target.closest('.skill-item');
+        const content = skillItem.querySelector('.skill-content');
+        const editForm = skillItem.querySelector('.skill-edit-form');
+        content.style.display = 'none';
+        editForm.style.display = 'block';
+      });
+    });
+
+    // Add event listeners for cancel buttons
+    skillsList.querySelectorAll('.cancel-edit').forEach(button => {
+      button.addEventListener('click', (e) => {
+        const skillItem = e.target.closest('.skill-item');
+        const content = skillItem.querySelector('.skill-content');
+        const editForm = skillItem.querySelector('.skill-edit-form');
+        content.style.display = 'block';
+        editForm.style.display = 'none';
+      });
+    });
+
+    // Add event listeners for save buttons
+    skillsList.querySelectorAll('.save-edit').forEach(button => {
+      button.addEventListener('click', async (e) => {
+        const skillItem = e.target.closest('.skill-item');
+        const index = parseInt(skillItem.dataset.index);
+        const newName = skillItem.querySelector('.edit-skill-name').value.trim();
+        const newLevel = skillItem.querySelector('.edit-skill-level').value;
+        const newYears = skillItem.querySelector('.edit-skill-years').value;
+
+        if (!newName) {
+          this.showFeedbackMessage('Skill name cannot be empty', 'error');
+          return;
+        }
+
+        try {
+          const currentSkills = await this.databaseManager.getField('skills') || [];
+          currentSkills[index] = {
+            skill: newName,
+            level: newLevel,
+            yearsExperience: newYears ? parseInt(newYears) : null
+          };
+
+          await this.databaseManager.updateField('skills', currentSkills);
+          this.updateSkillsList(currentSkills);
+          this.showFeedbackMessage('Skill updated successfully!');
+        } catch (error) {
+          this.showFeedbackMessage('Failed to update skill', 'error');
+        }
+      });
+    });
   }
 
   updateEducationList(education) {
     const educationList = document.getElementById('educationList');
     educationList.innerHTML = education.map((item, index) => `
-      <div class="education-item">
-        <div class="education-item-header">
-          <div>
-            <h3 class="education-item-title">${item.title}</h3>
-            <div class="education-item-institution">${item.institution}</div>
-            <div class="education-item-dates">
-              ${new Date(item.startDate).toLocaleDateString()} - 
-              ${item.inProgress ? 'Present' : item.endDate ? new Date(item.endDate).toLocaleDateString() : 'N/A'}
+      <div class="education-item" data-index="${index}">
+        <div class="education-content">
+          <div class="education-item-header">
+            <div>
+              <h3 class="education-item-title">${item.title}</h3>
+              <div class="education-item-institution">${item.institution}</div>
+              <div class="education-item-dates">
+                ${new Date(item.startDate).toLocaleDateString()} - 
+                ${item.inProgress ? 'Present' : item.endDate ? new Date(item.endDate).toLocaleDateString() : 'N/A'}
+              </div>
+            </div>
+            <div class="education-actions">
+              <button class="edit-education">Edit</button>
+              <button class="remove-button" data-index="${index}">Remove</button>
             </div>
           </div>
-          <button class="remove-button" data-index="${index}">Remove</button>
+          ${item.description ? `<div class="education-item-description">${item.description}</div>` : ''}
+          <div class="education-item-meta">
+            ${item.gpa ? `<span>GPA: ${item.gpa}</span>` : ''}
+            ${item.url ? `<a href="${item.url}" target="_blank">View Certificate</a>` : ''}
+            ${item.expiryDate ? `<span>Expires: ${new Date(item.expiryDate).toLocaleDateString()}</span>` : ''}
+          </div>
         </div>
-        ${item.description ? `<div class="education-item-description">${item.description}</div>` : ''}
-        <div class="education-item-meta">
-          ${item.gpa ? `<span>GPA: ${item.gpa}</span>` : ''}
-          ${item.url ? `<a href="${item.url}" target="_blank">View Certificate</a>` : ''}
-          ${item.expiryDate ? `<span>Expires: ${new Date(item.expiryDate).toLocaleDateString()}</span>` : ''}
+
+        <div class="education-edit-form" style="display: none;">
+          <select class="edit-education-type">
+            <option value="degree" ${item.type === 'degree' ? 'selected' : ''}>Degree</option>
+            <option value="certification" ${item.type === 'certification' ? 'selected' : ''}>Certification</option>
+            <option value="course" ${item.type === 'course' ? 'selected' : ''}>Course</option>
+          </select>
+          <input type="text" class="edit-education-title" value="${item.title}" placeholder="Title/Degree Name">
+          <input type="text" class="edit-education-institution" value="${item.institution}" placeholder="Institution">
+          <div class="date-group">
+            <div class="date-input">
+              <label>Start Date:</label>
+              <input type="date" class="edit-education-start-date" value="${item.startDate}">
+            </div>
+            <div class="date-input">
+              <label>End Date:</label>
+              <input type="date" class="edit-education-end-date" value="${item.endDate || ''}" ${item.inProgress ? 'disabled' : ''}>
+            </div>
+          </div>
+          <label class="checkbox-label">
+            <input type="checkbox" class="edit-education-in-progress" ${item.inProgress ? 'checked' : ''}>
+            Currently In Progress
+          </label>
+          <div class="optional-fields">
+            <input type="text" class="edit-education-gpa" value="${item.gpa || ''}" placeholder="GPA (optional)">
+            <input type="url" class="edit-education-url" value="${item.url || ''}" placeholder="Certificate URL (optional)">
+            <input type="date" class="edit-education-expiry" value="${item.expiryDate || ''}" placeholder="Expiry Date (optional)">
+            <textarea class="edit-education-description" placeholder="Description or relevant coursework (optional)">${item.description || ''}</textarea>
+          </div>
+          <div class="edit-actions">
+            <button class="save-education-edit">Save</button>
+            <button class="cancel-education-edit">Cancel</button>
+          </div>
         </div>
       </div>
     `).join('');
+
+    // Add event listeners for edit buttons
+    educationList.querySelectorAll('.edit-education').forEach(button => {
+      button.addEventListener('click', (e) => {
+        const educationItem = e.target.closest('.education-item');
+        const content = educationItem.querySelector('.education-content');
+        const editForm = educationItem.querySelector('.education-edit-form');
+        content.style.display = 'none';
+        editForm.style.display = 'block';
+      });
+    });
+
+    // Add event listeners for cancel buttons
+    educationList.querySelectorAll('.cancel-education-edit').forEach(button => {
+      button.addEventListener('click', (e) => {
+        const educationItem = e.target.closest('.education-item');
+        const content = educationItem.querySelector('.education-content');
+        const editForm = educationItem.querySelector('.education-edit-form');
+        content.style.display = 'block';
+        editForm.style.display = 'none';
+      });
+    });
+
+    // Add event listeners for in-progress checkboxes
+    educationList.querySelectorAll('.edit-education-in-progress').forEach(checkbox => {
+      checkbox.addEventListener('change', (e) => {
+        const endDateInput = e.target.closest('.education-edit-form').querySelector('.edit-education-end-date');
+        endDateInput.disabled = e.target.checked;
+        if (e.target.checked) {
+          endDateInput.value = '';
+        }
+      });
+    });
+
+    // Add event listeners for save buttons
+    educationList.querySelectorAll('.save-education-edit').forEach(button => {
+      button.addEventListener('click', async (e) => {
+        const educationItem = e.target.closest('.education-item');
+        const index = parseInt(educationItem.dataset.index);
+        const form = educationItem.querySelector('.education-edit-form');
+
+        const newEducation = {
+          type: form.querySelector('.edit-education-type').value,
+          title: form.querySelector('.edit-education-title').value.trim(),
+          institution: form.querySelector('.edit-education-institution').value.trim(),
+          startDate: form.querySelector('.edit-education-start-date').value,
+          inProgress: form.querySelector('.edit-education-in-progress').checked,
+          endDate: form.querySelector('.edit-education-in-progress').checked ? null : form.querySelector('.edit-education-end-date').value,
+          description: form.querySelector('.edit-education-description').value.trim(),
+          gpa: form.querySelector('.edit-education-gpa').value.trim(),
+          url: form.querySelector('.edit-education-url').value.trim(),
+          expiryDate: form.querySelector('.edit-education-expiry').value
+        };
+
+        if (!newEducation.title || !newEducation.institution || !newEducation.startDate) {
+          this.showFeedbackMessage('Title, institution, and start date are required', 'error');
+          return;
+        }
+
+        try {
+          const currentEducation = await this.databaseManager.getField('education') || [];
+          currentEducation[index] = newEducation;
+          await this.databaseManager.updateField('education', currentEducation);
+          this.updateEducationList(currentEducation);
+          this.showFeedbackMessage('Education updated successfully!');
+        } catch (error) {
+          this.showFeedbackMessage('Failed to update education', 'error');
+        }
+      });
+    });
   }
 
   updateLimitationsList(limitations, filterCategory = 'all') {
@@ -607,7 +787,8 @@ export class UIManager {
           ${analysis.skills?.map((skill, i) => `
             <div class="skill-toggle">
               <label>
-                <input type="checkbox" class="skill-checkbox" data-index="${i}" checked>
+                <input type="radio" name="skill_${i}" value="add" checked> Add
+                <input type="radio" name="skill_${i}" value="skip"> Skip
                 <span class="skill-name">${skill.skill}</span>
                 <span class="skill-details">
                   ${skill.level}${skill.yearsExperience ? ' · ' + skill.yearsExperience + 'yrs' : ''}
@@ -624,7 +805,8 @@ export class UIManager {
           ${analysis.education?.map((edu, i) => `
             <div class="education-toggle">
               <label>
-                <input type="checkbox" class="education-checkbox" data-index="${i}" checked>
+                <input type="radio" name="edu_${i}" value="add" checked> Add
+                <input type="radio" name="edu_${i}" value="skip"> Skip
                 <div class="education-details">
                   <strong>${edu.title}</strong>
                   <div>${edu.institution}</div>
@@ -638,18 +820,19 @@ export class UIManager {
           `).join('') || 'No education found'}
         </div>
       </div>
+
+      <div class="replace-toggle">
+        <label>
+          <input type="checkbox" id="replaceExisting"> Replace existing items instead of adding
+        </label>
+      </div>
     `;
   }
 
   createAnalysisModalActions() {
     return `
-      <label class="replace-toggle">
-        <input type="checkbox" id="replaceExisting"> Replace existing items
-      </label>
-      <div class="button-group">
-        <button class="secondary-button cancel-button">Cancel</button>
-        <button class="primary-button confirm-button">Apply Selected</button>
-      </div>
+      <button class="secondary-button cancel-button">Cancel</button>
+      <button class="primary-button confirm-button">Apply Selected</button>
     `;
   }
 
@@ -662,59 +845,33 @@ export class UIManager {
       const restoreButton = this.showLoadingState(confirmButton, 'Applying...');
 
       try {
-        const selectedSkills = [...modal.querySelectorAll('.skill-checkbox:checked')]
-          .map(checkbox => analysis.skills[parseInt(checkbox.dataset.index)])
-          .filter(skill => skill);
+        const selectedSkills = analysis.skills?.filter((_, i) => 
+          modal.querySelector(`input[name="skill_${i}"][value="add"]`).checked
+        ) || [];
 
-        const selectedEducation = [...modal.querySelectorAll('.education-checkbox:checked')]
-          .map(checkbox => analysis.education[parseInt(checkbox.dataset.index)])
-          .filter(edu => edu);
+        const selectedEducation = analysis.education?.filter((_, i) => 
+          modal.querySelector(`input[name="edu_${i}"][value="add"]`).checked
+        ) || [];
 
-        // Update the database with selected items
-        if (replaceCheckbox.checked) {
-          await Promise.all([
-            this.databaseManager.updateField('skills', selectedSkills),
-            this.databaseManager.updateField('education', selectedEducation)
-          ]);
+        const shouldReplace = replaceCheckbox.checked;
+
+        if (shouldReplace) {
+          await this.databaseManager.updateField('skills', selectedSkills);
+          await this.databaseManager.updateField('education', selectedEducation);
         } else {
-          // Add items without replacing existing ones
-          const currentSkills = await this.databaseManager.getField('skills') || [];
-          const currentEducation = await this.databaseManager.getField('education') || [];
+          // Add to existing items
+          const existingSkills = await this.databaseManager.getField('skills') || [];
+          const existingEducation = await this.databaseManager.getField('education') || [];
 
-          const newSkills = [...currentSkills];
-          const newEducation = [...currentEducation];
-
-          // Add new skills if they don't exist
-          for (const skill of selectedSkills) {
-            if (!newSkills.some(s => s.skill.toLowerCase() === skill.skill.toLowerCase())) {
-              newSkills.push(skill);
-            }
-          }
-
-          // Add new education if it doesn't exist
-          for (const edu of selectedEducation) {
-            if (!newEducation.some(e => 
-              e.title.toLowerCase() === edu.title.toLowerCase() && 
-              e.institution.toLowerCase() === edu.institution.toLowerCase()
-            )) {
-              newEducation.push(edu);
-            }
-          }
-
-          await Promise.all([
-            this.databaseManager.updateField('skills', newSkills),
-            this.databaseManager.updateField('education', newEducation)
-          ]);
+          await this.databaseManager.updateField('skills', [...existingSkills, ...selectedSkills]);
+          await this.databaseManager.updateField('education', [...existingEducation, ...selectedEducation]);
         }
 
-        // Update the UI
-        this.updateSkillsList(await this.databaseManager.getField('skills') || []);
-        this.updateEducationList(await this.databaseManager.getField('education') || []);
-
+        this.updateSkillsList(await this.databaseManager.getField('skills'));
+        this.updateEducationList(await this.databaseManager.getField('education'));
         this.showFeedbackMessage('Skills and education updated successfully!');
         modal.remove();
       } catch (error) {
-        console.error('Error applying analysis:', error);
         this.showFeedbackMessage(error.message, 'error');
       } finally {
         restoreButton();

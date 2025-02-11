@@ -339,8 +339,8 @@ button:disabled {
 .skill-item {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  padding: 8px 12px;
+  align-items: flex-start;
+  padding: 12px;
   margin-bottom: 8px;
   background-color: #f8f9fa;
   border-radius: 4px;
@@ -349,6 +349,122 @@ button:disabled {
 
 .skill-info {
   flex: 1;
+  margin-right: 10px;
+}
+
+.skill-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.skill-edit-form {
+  padding: 10px;
+  background-color: #fff;
+  border-radius: 4px;
+  margin-top: 8px;
+}
+
+.skill-edit-form input,
+.skill-edit-form select {
+  margin-bottom: 8px;
+  padding: 6px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  width: 100%;
+}
+
+.skill-edit-form .edit-skill-years {
+  width: 100px;
+}
+
+.skill-actions,
+.education-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.edit-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.edit-skill,
+.edit-education {
+  background-color: #3498db;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 3px;
+  font-size: 12px;
+}
+
+.save-edit,
+.save-education-edit {
+  background-color: #2ecc71;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 3px;
+  font-size: 12px;
+}
+
+.cancel-edit,
+.cancel-education-edit {
+  background-color: #95a5a6;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 3px;
+  font-size: 12px;
+}
+
+.education-edit-form {
+  padding: 15px;
+  background-color: #fff;
+  border-radius: 4px;
+  margin-top: 10px;
+  border: 1px solid #eee;
+}
+
+.education-edit-form input,
+.education-edit-form select,
+.education-edit-form textarea {
+  margin-bottom: 10px;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  width: 100%;
+}
+
+.education-edit-form textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.education-edit-form .checkbox-label {
+  margin: 10px 0;
+}
+
+.education-edit-form .optional-fields {
+  margin-top: 15px;
+  padding: 15px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+}
+
+.education-edit-form .date-group {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 10px;
+}
+
+.education-edit-form .date-input {
+  flex: 1;
+}
+
+.education-edit-form .date-input label {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 12px;
+  color: #666;
 }
 
 .skill-name {
@@ -780,33 +896,64 @@ button:disabled {
   align-items: center;
   gap: 10px;
   cursor: pointer;
+  padding: 8px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
 }
 
-.skill-name {
+.skill-toggle label:hover,
+.education-toggle label:hover {
+  background-color: #e9ecef;
+}
+
+.skill-toggle input[type="radio"],
+.education-toggle input[type="radio"] {
+  margin: 0;
+  cursor: pointer;
+}
+
+.skill-toggle .skill-name,
+.education-toggle .education-details strong {
+  flex: 1;
   font-weight: 500;
   color: #2c3e50;
 }
 
-.skill-details {
-  color: #666;
-  font-size: 0.9em;
-}
-
-.education-details {
-  flex: 1;
-}
-
+.skill-details,
 .education-dates {
-  font-size: 0.9em;
   color: #666;
+  font-size: 0.9em;
 }
 
 .replace-toggle {
+  margin: 15px 0;
+  padding: 12px;
+  background-color: #f8f9fa;
+  border: 1px solid #eee;
+  border-radius: 4px;
+}
+
+.replace-toggle label {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.9em;
-  color: #666;
+  cursor: pointer;
+  color: #2c3e50;
+}
+
+.replace-toggle input[type="checkbox"] {
+  margin: 0;
+  cursor: pointer;
+}
+
+.analysis-section {
+  margin-bottom: 20px;
+}
+
+.analysis-section h3 {
+  margin: 0 0 10px 0;
+  color: #2c3e50;
+  font-size: 1.1em;
 }
 
 /* Document Management Styles */
