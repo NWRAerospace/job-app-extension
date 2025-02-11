@@ -3,12 +3,12 @@ export class AIHelper {
   static async getJobAssessment(jobText, userSkills, apiKey) {
     const geminiApiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
     
-    const prompt = `Analyze this job posting and the candidate's skills. Respond ONLY with a JSON object in this exact format:
+    const prompt = `Analyze this job posting and the candidate's skills. Extract ONLY concise keywords that an employer's ATS (Applicant Tracking System) would scan for. Each keyword must be 1-3 words maximum. Respond ONLY with a JSON object in this exact format:
 {
   "title": "Job title extracted from posting",
   "company": "Company/organization name from posting (or null if not found)",
   "rating": number from 1-10 indicating fit,
-  "keywords": exactly 15 most important skills/requirements from the job posting as an array of strings,
+  "keywords": exactly 15 most important skills/requirements from the job posting as an array of strings. Each keyword MUST be 1-3 words maximum and represent a specific skill, technology, qualification, or requirement. Do not include full sentences or long phrases.,
   "rationale": "Brief assessment focusing on key matches and gaps. Maximum 50 words."
 }
 
