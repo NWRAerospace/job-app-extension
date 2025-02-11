@@ -1578,3 +1578,19 @@ button:disabled {
 .qa-search-item .add-as-new-button:hover {
   background-color: #45a049;
 }
+
+.model-select {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: white;
+  font-size: 14px;
+}
+
+.model-select:focus {
+  outline: none;
+  border-color: #4a90e2;
+  box-shadow: 0 0 5px rgba(74, 144, 226, 0.3);
+}

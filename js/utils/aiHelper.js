@@ -1,7 +1,8 @@
 // AI Helper module for handling Gemini API interactions
 export class AIHelper {
   static async getJobAssessment(jobText, userSkills, apiKey) {
-    const geminiApiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
+    const model = await this._getSelectedModel();
+    const geminiApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
     
     const prompt = `Analyze this job posting and the candidate's skills. Extract ONLY concise keywords that an employer's ATS (Applicant Tracking System) would scan for. Each keyword must be 1-3 words maximum. Respond ONLY with a JSON object in this exact format:
 {
@@ -22,7 +23,8 @@ ${userSkills.map(s => `${s.skill} (${s.level}${s.yearsExperience ? `, ${s.yearsE
   }
 
   static async analyzeResume(resumeText, apiKey) {
-    const geminiApiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
+    const model = await this._getSelectedModel();
+    const geminiApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
     
     const prompt = `Analyze this resume text and extract skills and education information. Be thorough and try to identify ALL relevant skills. Respond ONLY with a JSON object in this exact format:
 {
@@ -53,6 +55,16 @@ Resume Text:
 ${resumeText}`;
 
     return await this._makeGeminiRequest(geminiApiUrl, prompt, apiKey);
+  }
+
+  static async _getSelectedModel() {
+    try {
+      const model = await DatabaseManager.getField('geminiModel');
+      return model || 'gemini-pro'; // Default to gemini-pro if not set
+    } catch (error) {
+      console.warn('Error getting model from database, using default:', error);
+      return 'gemini-pro';
+    }
   }
 
   static async _makeGeminiRequest(apiUrl, prompt, apiKey) {

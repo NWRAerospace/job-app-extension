@@ -22,10 +22,18 @@ document.addEventListener('DOMContentLoaded', async function() {
   // Initialize Q&A Manager
   const qaManager = new QAManager();
 
-  // Load API Key
-  const apiKey = await DatabaseManager.getField('geminiApiKey');
+  // Load saved settings
+  const [apiKey, model] = await Promise.all([
+    DatabaseManager.getField('geminiApiKey'),
+    DatabaseManager.getField('geminiModel')
+  ]);
+
   if (apiKey) {
     document.getElementById('geminiApiKey').value = apiKey;
+  }
+  
+  if (model) {
+    document.getElementById('geminiModel').value = model;
   }
 
   // Initial UI updates
@@ -214,6 +222,18 @@ document.addEventListener('DOMContentLoaded', async function() {
         uiManager.showFeedbackMessage('API Key Saved!');
       }
     );
+
+    // Model selection handler
+    const modelSelect = document.getElementById('geminiModel');
+    modelSelect.addEventListener('change', async () => {
+      try {
+        await DatabaseManager.updateField('geminiModel', modelSelect.value);
+        uiManager.showFeedbackMessage('Model preference saved!');
+      } catch (error) {
+        console.error('Error saving model preference:', error);
+        uiManager.showError('Failed to save model preference');
+      }
+    });
 
     // Skills management handlers
     setupSkillsHandlers();
