@@ -59,18 +59,18 @@ export class QAManager {
   }
 
   async handleExternalSearch(text) {
-    // Switch to Q&A tab
-    document.querySelector('[data-tab="qa"]').click();
+    // Switch to Q&A tab if openQATab is true
+    const qaTab = document.querySelector('[data-tab="qa"]');
+    if (qaTab) {
+      qaTab.click();
+    }
     
     // Set search text and perform search
     this.searchInput.value = text;
     await this.handleSearch();
-
-    // If no results found, show "Add as New" option
-    const results = await DatabaseManager.searchQAPairs(text);
-    if (results.length === 0) {
-      this.displayNoResultsWithAdd(text);
-    }
+    
+    // Ensure the search results are visible
+    this.searchResults.classList.add('active');
   }
 
   handleExternalAdd(text) {
@@ -119,6 +119,7 @@ export class QAManager {
   displaySearchResults(results) {
     this.searchResults.innerHTML = '';
     
+    // Add search results
     results.forEach(result => {
       const div = document.createElement('div');
       div.className = 'qa-search-item';
@@ -127,6 +128,23 @@ export class QAManager {
       this.searchResults.appendChild(div);
     });
     
+    // Always add the "Add as New Question" option
+    const addNewDiv = document.createElement('div');
+    addNewDiv.className = 'qa-search-item add-new-option';
+    addNewDiv.innerHTML = `
+      <span>Add as New Question:</span>
+      <span class="new-question-text">"${this.searchInput.value.trim()}"</span>
+      <button class="add-as-new-button">Add New</button>
+    `;
+    
+    const addButton = addNewDiv.querySelector('.add-as-new-button');
+    addButton.addEventListener('click', () => {
+      this.startNewQAPair();
+      this.questionInput.value = this.searchInput.value.trim();
+      this.searchResults.classList.remove('active');
+    });
+    
+    this.searchResults.appendChild(addNewDiv);
     this.searchResults.classList.add('active');
   }
 

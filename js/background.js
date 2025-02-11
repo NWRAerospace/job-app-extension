@@ -123,25 +123,22 @@ chrome.runtime.onInstalled.addListener(() => {
     title: 'Search Q&A for "%s"',
     contexts: ['selection']
   });
-
-  // Create add new Q&A context menu
-  chrome.contextMenus.create({
-    id: 'addNewQA',
-    title: 'Add as New Q&A',
-    contexts: ['selection']
-  });
 });
 
 // Handle context menu clicks
-chrome.contextMenus.onClicked.addListener((info, tab) => {
-  if (info.menuItemId === 'searchQA' || info.menuItemId === 'addNewQA') {
+chrome.contextMenus.onClicked.addListener(async (info, tab) => {
+  if (info.menuItemId === 'searchQA') {
     // Get the selected text
     const selectedText = info.selectionText;
     
-    // Send message to popup to either search or add new Q&A
+    // Open the extension popup if not already open
+    const popup = await chrome.action.openPopup();
+    
+    // Send message to popup to search Q&A
     chrome.runtime.sendMessage({
-      action: info.menuItemId,
-      text: selectedText
+      action: 'searchQA',
+      text: selectedText,
+      openQATab: true // Signal to open Q&A tab
     });
   }
 });

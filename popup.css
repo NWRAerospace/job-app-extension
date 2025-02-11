@@ -1546,3 +1546,35 @@ button:disabled {
   padding: 0 2px;
   border-radius: 2px;
 }
+
+.qa-search-item.add-new-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border-top: 1px solid #eee;
+  margin-top: 8px;
+}
+
+.qa-search-item .new-question-text {
+  color: #666;
+  font-style: italic;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.qa-search-item .add-as-new-button {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.qa-search-item .add-as-new-button:hover {
+  background-color: #45a049;
+}
