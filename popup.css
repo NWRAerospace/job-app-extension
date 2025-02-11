@@ -199,21 +199,73 @@ button:disabled {
 }
 
 .job-keywords .keyword {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
   margin: 2px;
-  padding: 2px 8px;
-  border-radius: 12px;
-  font-size: 12px;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 13px;
+  background-color: #e9ecef;
+  color: #495057;
+  transition: all 0.2s ease;
 }
 
 .job-keywords .keyword.match {
   background-color: #d4edda;
   color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.job-keywords .keyword.partial-match {
+  background-color: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeeba;
 }
 
 .job-keywords .keyword.missing {
   background-color: #f8d7da;
   color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.job-keywords .keyword:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.job-keywords .keyword .add-skill-button {
+  opacity: 0;
+  margin-left: 6px;
+  transition: opacity 0.2s ease;
+}
+
+.job-keywords .keyword:hover .add-skill-button {
+  opacity: 1;
+}
+
+.job-keywords .keyword.missing .add-skill-button {
+  color: #721c24;
+}
+
+.job-keywords .keyword.partial-match .add-skill-button {
+  color: #856404;
+}
+
+.job-keywords .keyword .add-skill-button.added {
+  opacity: 1;
+  background-color: transparent;
+}
+
+.job-keywords .keyword.match .add-skill-button.added svg {
+  fill: #155724;
+}
+
+.job-keywords .keyword.partial-match .add-skill-button.added svg {
+  fill: #856404;
+}
+
+.job-keywords .keyword.missing .add-skill-button.added svg {
+  fill: #721c24;
 }
 
 .job-actions {
@@ -280,13 +332,17 @@ button:disabled {
   gap: 6px;
 }
 
-#keywordList li {
+#keywordList li,
+.job-keywords .keyword {
+  position: relative;
   margin: 0;
   padding: 4px 12px;
   border-radius: 16px;
-  background: #e0e0e0;
   font-size: 13px;
   transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 #keywordList li.match {
@@ -302,6 +358,56 @@ button:disabled {
 #keywordList li.partial-match {
   background: #ff9800;
   color: white;
+}
+
+.add-skill-button {
+  opacity: 0;
+  width: 16px;
+  height: 16px;
+  padding: 2px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.9);
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.2s ease;
+  margin-left: 2px;
+}
+
+.add-skill-button:hover {
+  background-color: white;
+}
+
+.add-skill-button svg {
+  width: 12px;
+  height: 12px;
+  fill: currentColor;
+}
+
+#keywordList li:hover .add-skill-button,
+.job-keywords .keyword:hover .add-skill-button {
+  opacity: 1;
+}
+
+#keywordList li.no-match .add-skill-button,
+.job-keywords .keyword.missing .add-skill-button {
+  color: #721c24;
+}
+
+#keywordList li.partial-match .add-skill-button {
+  color: #856404;
+}
+
+.add-skill-button.added {
+  opacity: 1;
+  background-color: transparent;
+  cursor: default;
+}
+
+.add-skill-button.added svg {
+  fill: white;
 }
 
 /* Skills Input */

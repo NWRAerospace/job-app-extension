@@ -62,6 +62,21 @@ export class UIManager {
       this.activeTab = tabId;
       console.log('Added active class to tab button:', tabId); // Added log
       console.log('Added active class to tab content:', tabId); // Added log
+
+      // Refresh data when switching to specific tabs
+      if (tabId === 'skills') {
+        this.refreshSkillsList();
+      }
+    }
+  }
+
+  // Add new method to refresh skills list
+  async refreshSkillsList() {
+    try {
+      const skills = await this.databaseManager.getField('skills') || [];
+      this.updateSkillsList(skills);
+    } catch (error) {
+      console.error('Error refreshing skills list:', error);
     }
   }
 
@@ -186,7 +201,7 @@ export class UIManager {
     }
   }
 
-  updateAssessmentResults(assessment) {
+  async updateAssessmentResults(assessment) {
     try {
       const resultsDiv = document.getElementById('assessmentResults');
       const ratingSpan = document.getElementById('ratingValue');
@@ -218,10 +233,32 @@ export class UIManager {
         resultsDiv.appendChild(rationaleDiv);
       }
       
-      // Update keywords
-      keywordList.innerHTML = assessment.keywords.map(keyword => 
-        `<li>${keyword}</li>`
-      ).join('');
+      // Get current skills to check against
+      const currentSkills = await this.databaseManager.getField('skills') || [];
+      const currentSkillNames = new Set(currentSkills.map(s => s.skill.toLowerCase()));
+      
+      // Update keywords with add button for missing skills
+      keywordList.innerHTML = assessment.keywords.map(keyword => {
+        const isInSkills = currentSkillNames.has(keyword.toLowerCase());
+        return `
+          <li>
+            ${keyword}
+            ${!isInSkills ? `
+              <button class="add-skill-button" title="Add to my skills" data-skill="${keyword}">
+                <svg viewBox="0 0 24 24">
+                  <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                </svg>
+              </button>
+            ` : `
+              <button class="add-skill-button added" title="Already in skills" disabled>
+                <svg viewBox="0 0 24 24">
+                  <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+                </svg>
+              </button>
+            `}
+          </li>
+        `;
+      }).join('');
       
       // Show results
       resultsDiv.style.display = 'block';
@@ -237,6 +274,9 @@ export class UIManager {
       }
       saveButton.style.display = 'block';
 
+      // Add event listeners for add skill buttons
+      this.setupAddSkillButtons(keywordList);
+      
       // Update keyword matches
       this.updateKeywordMatches();
       
@@ -548,12 +588,14 @@ export class UIManager {
         return;
       }
 
+      // Get current skills to check against
+      const currentSkills = await this.databaseManager.getField('skills') || [];
+      const currentSkillNames = new Set(currentSkills.map(s => s.skill.toLowerCase()));
+
       // Get current active job ID
       const activeJobId = await this.databaseManager.getField('activeJobId');
-      console.log('Current active job ID:', activeJobId);
       
       savedJobsList.innerHTML = jobs.map(job => {
-        // Ensure all required properties exist with default values
         const {
           id = '',
           title = 'Untitled Job',
@@ -566,7 +608,28 @@ export class UIManager {
         } = job;
 
         const isActive = id === activeJobId;
-        console.log('Job active state:', { jobId: id, isActive });
+
+        const keywordsHtml = keywords.map(keyword => {
+          const isInSkills = currentSkillNames.has(keyword.toLowerCase());
+          return `
+            <span class="keyword">
+              ${keyword}
+              ${!isInSkills ? `
+                <button class="add-skill-button" title="Add to my skills" data-skill="${keyword}">
+                  <svg viewBox="0 0 24 24">
+                    <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                  </svg>
+                </button>
+              ` : `
+                <button class="add-skill-button added" title="Already in skills" disabled>
+                  <svg viewBox="0 0 24 24">
+                    <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+                  </svg>
+                </button>
+              `}
+            </span>
+          `;
+        }).join('');
 
         return `
           <div class="saved-job${isActive ? ' active' : ''}" data-job-id="${id}">
@@ -579,9 +642,7 @@ export class UIManager {
               ${rationale}
             </div>
             <div class="job-keywords">
-              ${Array.isArray(keywords) ? keywords.map(keyword => 
-                `<span class="keyword">${keyword}</span>`
-              ).join('') : ''}
+              ${keywordsHtml}
             </div>
             <div class="job-actions">
               <button class="open-job" data-job-link="${jobLink}">Open Job</button>
@@ -594,73 +655,9 @@ export class UIManager {
         `;
       }).join('');
 
-      // Add event listeners for job actions
-      savedJobsList.querySelectorAll('.select-job').forEach(button => {
-        button.addEventListener('click', async () => {
-          const jobId = button.dataset.jobId;
-          const currentActiveId = await this.databaseManager.getField('activeJobId');
-          
-          console.log('Job selection clicked:', { jobId, currentActiveId });
-          
-          // If clicking the already active job, deselect it
-          if (currentActiveId === jobId) {
-            console.log('Deselecting current job');
-            await this.databaseManager.updateField('activeJobId', null);
-          } else {
-            console.log('Selecting new job:', jobId);
-            await this.databaseManager.updateField('activeJobId', jobId);
-          }
-          
-          // Get fresh jobs data from database
-          const updatedJobs = await this.databaseManager.getField('savedJobs') || [];
-          console.log('Updated jobs data:', updatedJobs);
-          
-          await this.updateCurrentJobDisplay();
-          await this.updateSavedJobsList(updatedJobs); // Pass the fresh jobs data
-        });
-      });
-
-      savedJobsList.querySelectorAll('.open-job').forEach(button => {
-        button.addEventListener('click', () => {
-          const jobLink = button.dataset.jobLink;
-          if (jobLink && jobLink !== '#') {
-            window.open(jobLink, '_blank');
-          }
-        });
-      });
-
-      // Add event listeners for delete buttons
-      savedJobsList.querySelectorAll('.delete-job').forEach(button => {
-        button.addEventListener('click', async () => {
-          const jobId = button.dataset.jobId;
-          const savedJobs = await this.databaseManager.getField('savedJobs') || [];
-          const jobToDelete = savedJobs.find(job => job.id === jobId);
-          
-          if (jobToDelete) {
-            if (confirm('Are you sure you want to delete this job?')) {
-              console.log('Deleting job:', jobId);
-              
-              // Remove the job from saved jobs
-              const updatedJobs = savedJobs.filter(job => job.id !== jobId);
-              await this.databaseManager.updateField('savedJobs', updatedJobs);
-              
-              // If this was the active job, clear the active job
-              const activeJobId = await this.databaseManager.getField('activeJobId');
-              if (activeJobId === jobId) {
-                await this.databaseManager.updateField('activeJobId', null);
-                await this.updateCurrentJobDisplay();
-              }
-              
-              // Update the UI
-              await this.updateSavedJobsList(updatedJobs);
-              this.showFeedbackMessage('Job deleted successfully');
-            }
-          } else {
-            console.error('Job not found:', jobId);
-            this.showFeedbackMessage('Error deleting job', 'error');
-          }
-        });
-      });
+      // Add event listeners
+      this.setupSavedJobsEventListeners(savedJobsList);
+      this.setupAddSkillButtons(savedJobsList);
 
       // Update keyword matches
       this.updateKeywordMatches();
@@ -668,6 +665,127 @@ export class UIManager {
       console.error('Error updating saved jobs list:', error);
       savedJobsList.innerHTML = '<p class="error">Error loading saved jobs</p>';
     }
+  }
+
+  setupSavedJobsEventListeners(container) {
+    container.querySelectorAll('.select-job').forEach(button => {
+      button.addEventListener('click', async () => {
+        const jobId = button.dataset.jobId;
+        const currentActiveId = await this.databaseManager.getField('activeJobId');
+        
+        console.log('Job selection clicked:', { jobId, currentActiveId });
+        
+        // If clicking the already active job, deselect it
+        if (currentActiveId === jobId) {
+          console.log('Deselecting current job');
+          await this.databaseManager.updateField('activeJobId', null);
+        } else {
+          console.log('Selecting new job:', jobId);
+          await this.databaseManager.updateField('activeJobId', jobId);
+        }
+        
+        // Get fresh jobs data from database
+        const updatedJobs = await this.databaseManager.getField('savedJobs') || [];
+        console.log('Updated jobs data:', updatedJobs);
+        
+        await this.updateCurrentJobDisplay();
+        await this.updateSavedJobsList(updatedJobs); // Pass the fresh jobs data
+      });
+    });
+
+    container.querySelectorAll('.open-job').forEach(button => {
+      button.addEventListener('click', () => {
+        const jobLink = button.dataset.jobLink;
+        if (jobLink && jobLink !== '#') {
+          window.open(jobLink, '_blank');
+        }
+      });
+    });
+
+    // Add event listeners for delete buttons
+    container.querySelectorAll('.delete-job').forEach(button => {
+      button.addEventListener('click', async () => {
+        const jobId = button.dataset.jobId;
+        const savedJobs = await this.databaseManager.getField('savedJobs') || [];
+        const jobToDelete = savedJobs.find(job => job.id === jobId);
+        
+        if (jobToDelete) {
+          if (confirm('Are you sure you want to delete this job?')) {
+            console.log('Deleting job:', jobId);
+            
+            // Remove the job from saved jobs
+            const updatedJobs = savedJobs.filter(job => job.id !== jobId);
+            await this.databaseManager.updateField('savedJobs', updatedJobs);
+            
+            // If this was the active job, clear the active job
+            const activeJobId = await this.databaseManager.getField('activeJobId');
+            if (activeJobId === jobId) {
+              await this.databaseManager.updateField('activeJobId', null);
+              await this.updateCurrentJobDisplay();
+            }
+            
+            // Update the UI
+            await this.updateSavedJobsList(updatedJobs);
+            this.showFeedbackMessage('Job deleted successfully');
+          }
+        } else {
+          console.error('Job not found:', jobId);
+          this.showFeedbackMessage('Error deleting job', 'error');
+        }
+      });
+    });
+  }
+
+  setupAddSkillButtons(container) {
+    container.querySelectorAll('.add-skill-button:not([disabled])').forEach(button => {
+      button.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const skillName = button.dataset.skill;
+        
+        try {
+          const currentSkills = await this.databaseManager.getField('skills') || [];
+          
+          // Check if skill already exists
+          if (currentSkills.some(s => s.skill.toLowerCase() === skillName.toLowerCase())) {
+            this.showFeedbackMessage('Skill already exists', 'error');
+            return;
+          }
+
+          // Add the new skill
+          currentSkills.push({
+            skill: skillName,
+            level: 'Beginner',
+            yearsExperience: null
+          });
+
+          await this.databaseManager.updateField('skills', currentSkills);
+          
+          // Update the button to show added state
+          button.classList.add('added');
+          button.disabled = true;
+          button.title = 'Already in skills';
+          button.innerHTML = `
+            <svg viewBox="0 0 24 24">
+              <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+            </svg>
+          `;
+
+          this.showFeedbackMessage('Skill added successfully!');
+          
+          // Update skills list if visible
+          const skillsList = document.getElementById('skillsList');
+          if (skillsList && skillsList.offsetParent !== null) {
+            this.updateSkillsList(currentSkills);
+          }
+
+          // Update keyword matches
+          this.updateKeywordMatches();
+        } catch (error) {
+          console.error('Error adding skill:', error);
+          this.showFeedbackMessage('Failed to add skill', 'error');
+        }
+      });
+    });
   }
 
   clearInputs(inputIds) {
