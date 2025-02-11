@@ -59,7 +59,8 @@ const DEFAULT_DB_STRUCTURE = {
     // }
   ],
   activeResumeId: null,
-  activeCoverLetterId: null
+  activeCoverLetterId: null,
+  activeJobId: null
 };
 
 class DatabaseManager {
@@ -108,10 +109,7 @@ class DatabaseManager {
         value = [];
       }
       
-      console.log(`Updating ${field}:`, field === 'resumes' ? 
-        value.map(r => ({ id: r.id, name: r.name })) : 
-        value
-      );
+      console.log(`Updating ${field}:`, value);
       
       // First get the current state
       chrome.storage.local.get(null, (currentState) => {
@@ -464,6 +462,24 @@ class DatabaseManager {
       return true;
     }
     return false;
+  }
+
+  static async setActiveJob(id) {
+    console.log('Setting active job:', id);
+    const savedJobs = await this.getField('savedJobs') || [];
+    if (id === null || savedJobs.some(j => j.id === id)) {
+      await this.updateField('activeJobId', id);
+      return true;
+    }
+    return false;
+  }
+
+  static async getActiveJob() {
+    const activeJobId = await this.getField('activeJobId');
+    if (!activeJobId) return null;
+    
+    const savedJobs = await this.getField('savedJobs') || [];
+    return savedJobs.find(job => job.id === activeJobId) || null;
   }
 }
 

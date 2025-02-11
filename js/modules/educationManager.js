@@ -5,27 +5,13 @@ export class EducationManager {
   }
 
   async addEducation(educationData) {
-    // Validate required fields
-    if (!educationData.type || !educationData.title || !educationData.institution) {
-      throw new Error('Missing required education fields');
+    if (!this.validateEducation(educationData)) {
+      throw new Error('Invalid education data');
     }
 
-    // Add dates if not provided
-    if (!educationData.startDate) {
-      educationData.startDate = new Date().toISOString();
-    }
-
-    // Handle end date based on in-progress status
-    if (educationData.inProgress) {
-      educationData.endDate = null;
-    }
-
-    try {
-      await this.databaseManager.addEducationItem(educationData);
-      return true;
-    } catch (error) {
-      console.error('Error adding education:', error);
-      throw new Error(`Failed to add education: ${error.message}`);
+    const success = await this.databaseManager.addEducationItem(educationData);
+    if (!success) {
+      throw new Error('Failed to add education item');
     }
   }
 
@@ -43,15 +29,9 @@ export class EducationManager {
   }
 
   async removeEducation(index) {
-    try {
-      const success = await this.databaseManager.removeEducationItem(index);
-      if (!success) {
-        throw new Error('Education item not found');
-      }
-      return true;
-    } catch (error) {
-      console.error('Error removing education:', error);
-      throw new Error(`Failed to remove education: ${error.message}`);
+    const success = await this.databaseManager.removeEducationItem(index);
+    if (!success) {
+      throw new Error('Failed to remove education item');
     }
   }
 
@@ -64,54 +44,21 @@ export class EducationManager {
   }
 
   validateEducation(education) {
-    const errors = [];
-
     if (!education.type || !['degree', 'certification', 'course'].includes(education.type)) {
-      errors.push('Invalid education type');
+      throw new Error('Invalid education type');
     }
-
-    if (!education.title || education.title.trim().length === 0) {
-      errors.push('Title is required');
+    if (!education.title) {
+      throw new Error('Title is required');
     }
-
-    if (!education.institution || education.institution.trim().length === 0) {
-      errors.push('Institution is required');
+    if (!education.institution) {
+      throw new Error('Institution is required');
     }
-
     if (!education.startDate) {
-      errors.push('Start date is required');
+      throw new Error('Start date is required');
     }
-
     if (!education.inProgress && !education.endDate) {
-      errors.push('End date is required for completed education');
+      throw new Error('End date is required for completed education');
     }
-
-    // Additional validation for certifications
-    if (education.type === 'certification') {
-      if (education.expiryDate) {
-        const expiry = new Date(education.expiryDate);
-        if (isNaN(expiry.getTime())) {
-          errors.push('Invalid expiry date');
-        }
-      }
-      
-      if (education.url && !this.isValidUrl(education.url)) {
-        errors.push('Invalid certificate URL');
-      }
-    }
-
-    // Additional validation for degrees
-    if (education.type === 'degree' && education.gpa) {
-      const gpa = parseFloat(education.gpa);
-      if (isNaN(gpa) || gpa < 0 || gpa > 4.0) {
-        errors.push('Invalid GPA value');
-      }
-    }
-
-    if (errors.length > 0) {
-      throw new Error(errors.join(', '));
-    }
-
     return true;
   }
 
@@ -129,16 +76,27 @@ export class EducationManager {
       if (replaceExisting) {
         await this.databaseManager.updateField('education', selectedEducation);
       } else {
-        for (const education of selectedEducation) {
-          try {
-            await this.databaseManager.addEducationItem(education);
-          } catch (error) {
-            console.warn(`Skipping invalid education item: ${education.title}`, error);
+        const currentEducation = await this.getAllEducation();
+        const newEducation = [...currentEducation];
+        
+        for (const edu of selectedEducation) {
+          if (!this.isDuplicateEducation(edu, currentEducation)) {
+            newEducation.push(edu);
           }
         }
+        
+        await this.databaseManager.updateField('education', newEducation);
       }
     } catch (error) {
-      throw new Error(`Failed to add education items: ${error.message}`);
+      throw new Error(`Failed to add education: ${error.message}`);
     }
+  }
+
+  isDuplicateEducation(newEdu, existingEducation) {
+    return existingEducation.some(edu => 
+      edu.type === newEdu.type &&
+      edu.title.toLowerCase() === newEdu.title.toLowerCase() &&
+      edu.institution.toLowerCase() === newEdu.institution.toLowerCase()
+    );
   }
 } 

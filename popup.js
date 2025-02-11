@@ -8,15 +8,15 @@ import { UIManager } from './js/modules/uiManager.js';
 import { EventHandlers } from './js/utils/eventHandlers.js';
 
 document.addEventListener('DOMContentLoaded', async function() {
+  // Initialize database first
+  await DatabaseManager.initializeDB();
+
   // Initialize managers
-  const uiManager = new UIManager();
   const jobAssessor = new JobAssessor(DatabaseManager);
   const skillsManager = new SkillsManager(DatabaseManager);
   const educationManager = new EducationManager(DatabaseManager);
   const limitationsManager = new LimitationsManager(DatabaseManager);
-
-  // Initialize database
-  await DatabaseManager.initializeDB();
+  const uiManager = new UIManager(DatabaseManager);
 
   // Load API Key
   const apiKey = await DatabaseManager.getField('geminiApiKey');
@@ -24,8 +24,12 @@ document.addEventListener('DOMContentLoaded', async function() {
     document.getElementById('geminiApiKey').value = apiKey;
   }
 
-  // Initialize lists
-  await refreshAllLists();
+  // Initial UI updates
+  await Promise.all([
+    uiManager.updateCurrentJobDisplay(),
+    uiManager.updateCurrentResumeDisplay(),
+    refreshAllLists()
+  ]);
 
   // Setup event handlers
   setupEventHandlers();
@@ -34,17 +38,17 @@ document.addEventListener('DOMContentLoaded', async function() {
   await loadSavedDocuments();
 
   async function refreshAllLists() {
-    const [skills, education, limitations, savedJobs] = await Promise.all([
-      skillsManager.getAllSkills(),
-      educationManager.getAllEducation(),
-      limitationsManager.getAllLimitations(),
-      jobAssessor.getSavedJobs()
+    const savedJobs = await DatabaseManager.getField('savedJobs') || [];
+    await uiManager.updateSavedJobsList(savedJobs);
+    const [skills, education, limitations] = await Promise.all([
+      DatabaseManager.getField('skills') || [],
+      DatabaseManager.getField('education') || [],
+      DatabaseManager.getField('limitations') || []
     ]);
 
     uiManager.updateSkillsList(skills);
     uiManager.updateEducationList(education);
     uiManager.updateLimitationsList(limitations);
-    uiManager.updateSavedJobsList(savedJobs);
   }
 
   async function loadSavedDocuments() {

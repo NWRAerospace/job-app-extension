@@ -53,7 +53,6 @@ export class JobAssessor {
     if (!success) {
       throw new Error('Failed to remove saved job');
     }
-    return { status: 'removed', message: 'Job removed successfully!' };
   }
 
   async getSavedJobs() {
