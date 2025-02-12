@@ -246,6 +246,102 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // Document management handlers
     setupDocumentHandlers();
+
+    // Q&A document import handlers
+    const importQAButton = document.getElementById('importQAButton');
+    const qaImportModal = document.getElementById('qaImportModal');
+    const selectQAFileButton = document.getElementById('selectQAFileButton');
+    const qaFileInput = document.getElementById('qaFileInput');
+    const confirmQAImportButton = document.getElementById('confirmQAImportButton');
+    const cancelQAImportButton = document.getElementById('cancelQAImportButton');
+    const qaSelectedFileName = document.getElementById('qaSelectedFileName');
+
+    importQAButton.addEventListener('click', () => {
+      qaImportModal.style.display = 'block';
+      qaFileInput.value = '';
+      qaSelectedFileName.textContent = 'No file selected';
+      confirmQAImportButton.disabled = true;
+    });
+
+    selectQAFileButton.addEventListener('click', () => {
+      qaFileInput.click();
+    });
+
+    qaFileInput.addEventListener('change', async (event) => {
+      const file = event.target.files[0];
+      if (file) {
+        qaSelectedFileName.textContent = file.name;
+        confirmQAImportButton.disabled = false;
+      } else {
+        qaSelectedFileName.textContent = 'No file selected';
+        confirmQAImportButton.disabled = true;
+      }
+    });
+
+    confirmQAImportButton.addEventListener('click', async () => {
+      const file = qaFileInput.files[0];
+      if (!file) return;
+
+      const restoreButton = uiManager.showLoadingState(confirmQAImportButton);
+      
+      try {
+        // Get API key
+        const apiKey = await DatabaseManager.getField('geminiApiKey');
+        if (!apiKey) {
+          throw new Error('API Key is required. Please add it in the Settings tab.');
+        }
+
+        // Convert DOCX to text using mammoth
+        const arrayBuffer = await file.arrayBuffer();
+        const result = await mammoth.extractRawText({ arrayBuffer });
+        const text = result.value;
+
+        if (!text || text.trim().length === 0) {
+          throw new Error('No text could be extracted from the document');
+        }
+
+        console.log('Starting QA document processing...');
+        
+        // Process the document text
+        const processedQA = await DocumentProcessor.processQADocument(text, apiKey);
+        
+        console.log('Document processed successfully:', processedQA);
+        
+        if (!processedQA.qa_pairs || processedQA.qa_pairs.length === 0) {
+          throw new Error('No question-answer pairs were found in the document');
+        }
+
+        // Add each QA pair to the database
+        for (const pair of processedQA.qa_pairs) {
+          await DatabaseManager.addQAPair(pair);
+        }
+        
+        // Close the modal
+        qaImportModal.style.display = 'none';
+        
+        // Show success message
+        uiManager.showFeedbackMessage(`Successfully imported ${processedQA.qa_pairs.length} Q&A pairs!`);
+        
+        // Update the QA count display
+        qaManager.updateQACount();
+      } catch (error) {
+        console.error('Error processing document:', error);
+        uiManager.showError(error.message || 'Failed to process document. Please try again.');
+      } finally {
+        restoreButton();
+      }
+    });
+
+    cancelQAImportButton.addEventListener('click', () => {
+      qaImportModal.style.display = 'none';
+    });
+
+    // Close modal when clicking outside
+    window.addEventListener('click', (event) => {
+      if (event.target === qaImportModal) {
+        qaImportModal.style.display = 'none';
+      }
+    });
   }
 
   function setupSkillsHandlers() {

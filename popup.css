@@ -1594,3 +1594,81 @@ button:disabled {
   border-color: #4a90e2;
   box-shadow: 0 0 5px rgba(74, 144, 226, 0.3);
 }
+
+.qa-bottom-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+  justify-content: space-between;
+}
+
+.qa-bottom-actions button {
+  flex: 1;
+}
+
+#qaImportModal .help-text {
+  margin-bottom: 20px;
+  color: #666;
+  font-size: 13px;
+}
+
+#qaImportModal .selected-file {
+  margin: 15px 0;
+  padding: 10px;
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 4px;
+  font-size: 14px;
+  color: #495057;
+}
+
+#qaImportModal .modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+#qaImportModal .modal-actions button {
+  min-width: 100px;
+}
+
+#confirmQAImportButton:disabled {
+  background-color: #bdc3c7;
+  cursor: not-allowed;
+}
+
+.qa-import-section {
+  margin-top: 30px;
+}
+
+.qa-separator {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 15px 0;
+}
+
+.qa-separator::before,
+.qa-separator::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid #ddd;
+}
+
+.qa-separator span {
+  padding: 0 10px;
+  color: #666;
+  font-size: 13px;
+  background: white;
+}
+
+#importQAButton {
+  width: 100%;
+  margin-top: 10px;
+  background-color: #2ecc71;
+}
+
+#importQAButton:hover {
+  background-color: #27ae60;
+}

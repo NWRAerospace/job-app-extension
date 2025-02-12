@@ -340,6 +340,32 @@
       </div>
 
       <button id="addNewQAButton" class="primary-button">Add New Q&A Pair</button>
+
+      <div class="qa-import-section">
+        <div class="qa-separator">
+          <span>Or Import From Document</span>
+        </div>
+        <button id="importQAButton" class="secondary-button">Import Q&A Document</button>
+      </div>
+    </div>
+
+    <!-- Modal for Q&A Document Import -->
+    <div id="qaImportModal" class="modal" style="display: none;">
+      <div class="modal-content">
+        <h2>Import Q&A Document</h2>
+        <div class="upload-form">
+          <p class="help-text">Upload a document containing questions and answers. Supported format: .docx</p>
+          <div class="selected-file">
+            <span id="qaSelectedFileName">No file selected</span>
+          </div>
+          <input type="file" id="qaFileInput" accept=".docx" style="display: none;">
+        </div>
+        <div class="modal-actions">
+          <button id="selectQAFileButton" class="secondary-button">Select File</button>
+          <button id="confirmQAImportButton" class="primary-button" disabled>Import</button>
+          <button id="cancelQAImportButton" class="secondary-button">Cancel</button>
+        </div>
+      </div>
     </div>
   </div>
 </body>
