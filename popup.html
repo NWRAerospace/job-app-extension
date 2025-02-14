@@ -112,6 +112,37 @@
 
   <div id="cover" class="tab-content">
     <div class="cover-letter-section">
+      <h2>AI Cover Letter Generator</h2>
+      
+      <div class="ai-cover-letter-controls">
+        <div class="warning-message" id="noCoverLetterWarning" style="display: none;">
+          Please select a job posting first to generate a cover letter.
+        </div>
+        
+        <div class="generation-controls">
+          <button id="generateFreshCoverLetter" class="primary-button">Generate Fresh Cover Letter</button>
+          <button id="modifyCurrentCoverLetter" class="secondary-button" style="display: none;">
+            Modify Current Cover Letter
+          </button>
+        </div>
+
+        <div class="generated-cover-letter" style="display: none;">
+          <h3>Generated Cover Letter</h3>
+          <div class="explanation-box">
+            <strong>AI Explanation:</strong>
+            <p id="aiExplanation"></p>
+          </div>
+          <div class="document-preview">
+            <textarea id="generatedCoverLetterContent" class="document-content" readonly></textarea>
+          </div>
+          <div class="action-buttons">
+            <button id="copyToClipboard" class="secondary-button">Copy to Clipboard</button>
+          </div>
+        </div>
+      </div>
+
+      <hr class="section-divider">
+
       <h2>Cover Letter Management</h2>
       
       <div class="document-controls">

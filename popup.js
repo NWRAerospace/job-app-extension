@@ -7,6 +7,7 @@ import { LimitationsManager } from './js/modules/limitationsManager.js';
 import { UIManager } from './js/modules/uiManager.js';
 import { EventHandlers } from './js/utils/eventHandlers.js';
 import { QAManager } from './js/modules/qaManager.js';
+import { CoverLetterManager } from './js/modules/coverLetterManager.js';
 
 document.addEventListener('DOMContentLoaded', async function() {
   // Initialize database first
@@ -18,6 +19,7 @@ document.addEventListener('DOMContentLoaded', async function() {
   const educationManager = new EducationManager(DatabaseManager);
   const limitationsManager = new LimitationsManager(DatabaseManager);
   const uiManager = new UIManager(DatabaseManager);
+  const coverLetterManager = new CoverLetterManager(DatabaseManager);
 
   // Initialize Q&A Manager
   const qaManager = new QAManager();
@@ -102,6 +104,7 @@ document.addEventListener('DOMContentLoaded', async function() {
       if (coverLetterText && coverLetterContent) {
         coverLetterContent.textContent = coverLetterText;
         if (clearCoverLetterButton) clearCoverLetterButton.style.display = 'block';
+        updateModifyButtonVisibility();
       }
     } catch (error) {
       console.error('Error loading saved documents:', error);
@@ -369,6 +372,154 @@ document.addEventListener('DOMContentLoaded', async function() {
     window.addEventListener('click', (event) => {
       if (event.target === qaImportModal) {
         qaImportModal.style.display = 'none';
+      }
+    });
+
+    // Cover Letter Generation Handlers
+    const generateFreshCoverLetterBtn = document.getElementById('generateFreshCoverLetter');
+    const modifyCurrentCoverLetterBtn = document.getElementById('modifyCurrentCoverLetter');
+    const copyToClipboardBtn = document.getElementById('copyToClipboard');
+    const generatedCoverLetterContent = document.getElementById('generatedCoverLetterContent');
+    const noCoverLetterWarning = document.getElementById('noCoverLetterWarning');
+    const coverLetterContent = document.getElementById('coverLetterContent');
+
+    // Function to update modify button visibility
+    function updateModifyButtonVisibility() {
+      if (coverLetterContent.value.trim()) {
+        modifyCurrentCoverLetterBtn.style.display = 'block';
+      } else {
+        modifyCurrentCoverLetterBtn.style.display = 'none';
+      }
+    }
+
+    // Check for cover letter content when tab is shown
+    document.querySelector('[data-tab="cover"]').addEventListener('click', updateModifyButtonVisibility);
+
+    // Check after document load
+    updateModifyButtonVisibility();
+
+    generateFreshCoverLetterBtn.addEventListener('click', async function() {
+      const restoreButton = uiManager.showLoadingState(this);
+      
+      try {
+        // Check if we have a job selected - first try current assessment, then fall back to saved job
+        let currentJob = window.currentAssessment;
+        if (!currentJob) {
+          const savedJobs = await DatabaseManager.getField('savedJobs') || [];
+          const activeJobId = await DatabaseManager.getField('activeJobId');
+          currentJob = savedJobs.find(job => job.id === activeJobId);
+        }
+        
+        if (!currentJob) {
+          noCoverLetterWarning.style.display = 'block';
+          return;
+        }
+
+        // Get current skills and resume
+        const skills = await DatabaseManager.getField('skills') || [];
+        const currentResume = await DatabaseManager.getField('currentResume');
+        const resumeText = currentResume ? await DatabaseManager.getField('resumeText') : null;
+
+        // Generate cover letter
+        const result = await coverLetterManager.generateCoverLetter(
+          currentJob.jobText,
+          skills,
+          resumeText
+        );
+
+        // Display results
+        document.querySelector('.generated-cover-letter').style.display = 'block';
+        document.getElementById('aiExplanation').textContent = result.explanation;
+        generatedCoverLetterContent.value = result.coverLetterText;
+
+        noCoverLetterWarning.style.display = 'none';
+      } catch (error) {
+        console.error('Error generating cover letter:', error);
+        uiManager.showError(error.message || 'Failed to generate cover letter. Please try again.');
+      } finally {
+        restoreButton();
+      }
+    });
+
+    modifyCurrentCoverLetterBtn.addEventListener('click', async function() {
+      const restoreButton = uiManager.showLoadingState(this);
+      
+      try {
+        // Check if we have a job selected - first try current assessment, then fall back to saved job
+        let currentJob = window.currentAssessment;
+        if (!currentJob) {
+          const savedJobs = await DatabaseManager.getField('savedJobs') || [];
+          const activeJobId = await DatabaseManager.getField('activeJobId');
+          currentJob = savedJobs.find(job => job.id === activeJobId);
+        }
+        
+        if (!currentJob) {
+          noCoverLetterWarning.style.display = 'block';
+          return;
+        }
+
+        // Get current skills, resume, and cover letter
+        const skills = await DatabaseManager.getField('skills') || [];
+        const currentResume = await DatabaseManager.getField('currentResume');
+        const resumeText = currentResume ? await DatabaseManager.getField('resumeText') : null;
+        const existingCoverLetter = coverLetterContent.value;
+
+        if (!existingCoverLetter) {
+          throw new Error('Please select a cover letter to modify first.');
+        }
+
+        // Generate modified cover letter
+        const result = await coverLetterManager.generateCoverLetter(
+          currentJob.jobText,
+          skills,
+          resumeText,
+          existingCoverLetter
+        );
+
+        // Display results
+        document.querySelector('.generated-cover-letter').style.display = 'block';
+        document.getElementById('aiExplanation').textContent = result.explanation;
+        generatedCoverLetterContent.value = result.coverLetterText;
+
+        noCoverLetterWarning.style.display = 'none';
+      } catch (error) {
+        console.error('Error modifying cover letter:', error);
+        uiManager.showError(error.message || 'Failed to modify cover letter. Please try again.');
+      } finally {
+        restoreButton();
+      }
+    });
+
+    copyToClipboardBtn.addEventListener('click', function() {
+      const textToCopy = generatedCoverLetterContent.value;
+      if (textToCopy) {
+        navigator.clipboard.writeText(textToCopy)
+          .then(() => {
+            uiManager.showFeedbackMessage('Cover letter copied to clipboard!');
+          })
+          .catch(err => {
+            console.error('Failed to copy text:', err);
+            uiManager.showError('Failed to copy to clipboard. Please try again.');
+          });
+      }
+    });
+
+    // Update cover letter UI when job changes
+    document.addEventListener('jobSelected', function() {
+      const currentJob = window.currentAssessment;
+      if (currentJob) {
+        noCoverLetterWarning.style.display = 'none';
+      } else {
+        noCoverLetterWarning.style.display = 'block';
+      }
+    });
+
+    // Show modify button only when a cover letter is selected
+    document.getElementById('coverLetterSelect').addEventListener('change', function() {
+      if (coverLetterContent.value) {
+        modifyCurrentCoverLetterBtn.style.display = 'block';
+      } else {
+        modifyCurrentCoverLetterBtn.style.display = 'none';
       }
     });
   }
@@ -728,6 +879,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             coverLetterContent.value = result.value;
             removeCoverLetterButton.style.display = 'block';
             await DatabaseManager.setActiveCoverLetter(id);
+            updateModifyButtonVisibility();
             console.log('New cover letter set as active:', id);
           }
           
