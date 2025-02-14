@@ -1,7 +1,7 @@
 // Background script for handling message passing
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'extractSkillsAndEducation') {
-    handleSkillsExtraction(request.text)
+    handleSkillsExtraction(request.text, request.apiKey)
       .then(sendResponse)
       .catch(error => sendResponse({ error: error.message }));
     return true; // Will respond asynchronously
@@ -27,11 +27,10 @@ chrome.runtime.onConnect.addListener((port) => {
   }
 });
 
-async function handleSkillsExtraction(text) {
+async function handleSkillsExtraction(text, apiKey) {
   try {
-    // Get API key from storage
-    const { geminiApiKey } = await chrome.storage.local.get('geminiApiKey');
-    if (!geminiApiKey) {
+    // Check API key
+    if (!apiKey) {
       throw new Error('API key not found. Please add your API key in settings.');
     }
 
@@ -40,7 +39,7 @@ async function handleSkillsExtraction(text) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-goog-api-key': geminiApiKey,
+        'x-goog-api-key': apiKey,
       },
       body: JSON.stringify({
         contents: [{

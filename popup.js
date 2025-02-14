@@ -756,10 +756,17 @@ document.addEventListener('DOMContentLoaded', async function() {
         extractSkillsButton.disabled = true;
         extractSkillsButton.textContent = 'Extracting...';
 
+        // Get API key
+        const apiKey = await DatabaseManager.getField('geminiApiKey');
+        if (!apiKey) {
+          throw new Error('API Key is required. Please add it in the Settings tab.');
+        }
+
         // Extract skills and education
         const response = await chrome.runtime.sendMessage({
           action: 'extractSkillsAndEducation',
-          text: resume.textContent
+          text: resume.textContent,
+          apiKey: apiKey
         });
 
         console.log('Extraction response:', response);
