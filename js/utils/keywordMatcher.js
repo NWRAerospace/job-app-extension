@@ -1,60 +1,51 @@
 // Utility class for keyword matching functionality
 export class KeywordMatcher {
-  static NGRAM_SIZE = 3; // Size of ngrams for fuzzy matching
-  
-  // Generate ngrams from a string
-  static generateNgrams(text) {
-    if (!text) return new Set();
-    const normalized = text.toLowerCase().replace(/[^a-z0-9\s]/g, '');
-    const words = normalized.split(/\s+/);
-    const ngrams = new Set();
-    
-    words.forEach(word => {
-      if (word.length < this.NGRAM_SIZE) {
-        ngrams.add(word);
-      } else {
-        for (let i = 0; i <= word.length - this.NGRAM_SIZE; i++) {
-          ngrams.add(word.slice(i, i + this.NGRAM_SIZE));
-        }
-      }
-    });
-    
-    return ngrams;
-  }
-
-  // Calculate similarity between two sets of ngrams
-  static calculateSimilarity(ngrams1, ngrams2) {
-    const intersection = new Set([...ngrams1].filter(x => ngrams2.has(x)));
-    const union = new Set([...ngrams1, ...ngrams2]);
-    return intersection.size / union.size;
-  }
-
-  // Check if two strings are similar enough
-  static isSimilar(str1, str2, threshold = 0.3) {
-    const ngrams1 = this.generateNgrams(str1);
-    const ngrams2 = this.generateNgrams(str2);
-    return this.calculateSimilarity(ngrams1, ngrams2) >= threshold;
+  // Normalize text for comparison
+  static normalizeText(text) {
+    return text.toLowerCase().trim();
   }
 
   // Find matches in resume text
   static findResumeMatches(keywords, resumeText) {
+    console.log('findResumeMatches called with:', { 
+      keywordsCount: keywords.length,
+      resumeTextLength: resumeText?.length || 0
+    });
+    
     if (!resumeText) return new Map();
-    const resumeNgrams = this.generateNgrams(resumeText);
     const matches = new Map();
+    const normalizedResume = this.normalizeText(resumeText);
+    console.log('Normalized resume length:', normalizedResume.length);
 
     keywords.forEach(keyword => {
-      const keywordNgrams = this.generateNgrams(keyword);
-      const similarity = this.calculateSimilarity(keywordNgrams, resumeNgrams);
+      const normalizedKeyword = this.normalizeText(keyword);
+      console.log(`Checking keyword: "${keyword}" (normalized: "${normalizedKeyword}")`);
       
-      if (similarity >= 0.7) {
+      // Check for exact match first
+      if (normalizedResume.includes(normalizedKeyword)) {
+        console.log(`Found exact match for: ${keyword}`);
         matches.set(keyword, 'match');
-      } else if (similarity >= 0.3) {
+        return;
+      }
+
+      // Check for word boundary matches
+      const keywordParts = normalizedKeyword.split(/\s+/);
+      const allPartsMatch = keywordParts.every(part => {
+        const hasMatch = normalizedResume.includes(part);
+        console.log(`Checking part "${part}" of "${keyword}": ${hasMatch ? 'found' : 'not found'}`);
+        return hasMatch;
+      });
+      
+      if (allPartsMatch) {
+        console.log(`Found partial match for: ${keyword}`);
         matches.set(keyword, 'partial-match');
       } else {
+        console.log(`No match found for: ${keyword}`);
         matches.set(keyword, 'no-match');
       }
     });
 
+    console.log('Final matches:', Object.fromEntries(matches));
     return matches;
   }
 
@@ -62,13 +53,16 @@ export class KeywordMatcher {
   static findSkillMatches(keywords, skills) {
     if (!skills || !Array.isArray(skills)) return new Map();
     const matches = new Map();
-    const skillNames = skills.map(s => s.skill.toLowerCase());
+    const skillNames = skills.map(s => this.normalizeText(s.skill));
 
     keywords.forEach(keyword => {
-      const keywordLower = keyword.toLowerCase();
-      if (skillNames.some(skill => this.isSimilar(skill, keywordLower, 0.7))) {
+      const normalizedKeyword = this.normalizeText(keyword);
+      
+      if (skillNames.some(skill => skill === normalizedKeyword)) {
         matches.set(keyword, 'match');
-      } else if (skillNames.some(skill => this.isSimilar(skill, keywordLower, 0.3))) {
+      } else if (skillNames.some(skill => 
+        skill.includes(normalizedKeyword) || normalizedKeyword.includes(skill)
+      )) {
         matches.set(keyword, 'partial-match');
       } else {
         matches.set(keyword, 'no-match');

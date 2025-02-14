@@ -138,23 +138,33 @@ export class UIManager {
 
   async updateKeywordMatches() {
     try {
+      console.log('updateKeywordMatches called');
       const resumeText = await this.databaseManager.getField('resumeText');
+      console.log('Retrieved resume text length:', resumeText?.length || 0);
+      
       const skills = await this.databaseManager.getField('skills');
+      console.log('Retrieved skills:', skills?.length || 0);
+      
       const keywords = this.getAllKeywords();
+      console.log('Retrieved keywords:', keywords);
 
       let matches;
       switch (this.currentMatchType) {
         case 'resume':
+          console.log('Using resume matching');
           matches = KeywordMatcher.findResumeMatches(keywords, resumeText);
           break;
         case 'skills':
+          console.log('Using skills matching');
           matches = KeywordMatcher.findSkillMatches(keywords, skills);
           break;
         case 'both':
+          console.log('Using combined matching');
           matches = KeywordMatcher.findCombinedMatches(keywords, resumeText, skills);
           break;
       }
 
+      console.log('Matches before UI update:', Object.fromEntries(matches));
       this.updateKeywordClasses(matches);
     } catch (error) {
       console.error('Error updating keyword matches:', error);
@@ -180,12 +190,15 @@ export class UIManager {
   }
 
   updateKeywordClasses(matches) {
+    console.log('updateKeywordClasses called with matches:', Object.fromEntries(matches));
+    
     // Update assessment results keywords
     const keywordList = document.getElementById('keywordList');
     if (keywordList) {
       keywordList.querySelectorAll('li').forEach(li => {
         const keyword = li.textContent;
         const matchType = matches.get(keyword) || 'no-match';
+        console.log(`Updating keyword "${keyword}" with class "${matchType}"`);
         li.className = matchType;
       });
     }
@@ -196,6 +209,7 @@ export class UIManager {
       savedJobsList.querySelectorAll('.keyword').forEach(span => {
         const keyword = span.textContent;
         const matchType = matches.get(keyword) || 'no-match';
+        console.log(`Updating saved job keyword "${keyword}" with class "${matchType}"`);
         span.className = `keyword ${matchType}`;
       });
     }

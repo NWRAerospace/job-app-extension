@@ -488,8 +488,41 @@ document.addEventListener('DOMContentLoaded', async function() {
   }
 
   function setupDocumentHandlers() {
-    // Resume handlers
     const resumeSelect = document.getElementById('resumeSelect');
+    resumeSelect.addEventListener('change', async (e) => {
+      const id = e.target.value;
+      try {
+        if (id) {
+          const resumes = await DatabaseManager.getField('resumes');
+          const resume = resumes.find(r => r.id === id);
+          if (resume) {
+            document.getElementById('resumeContent').value = resume.textContent;
+            document.getElementById('removeResumeButton').style.display = 'block';
+            document.getElementById('extractSkillsButton').style.display = 'block';
+            await DatabaseManager.updateField('activeResumeId', id);
+            // Update resumeText in database for keyword matching
+            await DatabaseManager.updateField('resumeText', resume.textContent);
+            // Trigger keyword matching update
+            uiManager.updateKeywordMatches();
+            await uiManager.updateCurrentResumeDisplay();
+          }
+        } else {
+          document.getElementById('resumeContent').value = '';
+          document.getElementById('removeResumeButton').style.display = 'none';
+          document.getElementById('extractSkillsButton').style.display = 'none';
+          await DatabaseManager.updateField('activeResumeId', null);
+          // Clear resumeText when no resume is selected
+          await DatabaseManager.updateField('resumeText', '');
+          // Trigger keyword matching update
+          uiManager.updateKeywordMatches();
+          await uiManager.updateCurrentResumeDisplay();
+        }
+      } catch (error) {
+        console.error('Error handling resume selection:', error);
+      }
+    });
+
+    // Resume handlers
     const resumeContent = document.getElementById('resumeContent');
     const uploadResumeButton = document.getElementById('uploadResumeButton');
     const resumeFileInput = document.getElementById('resumeFileInput');
@@ -516,28 +549,6 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     let currentUploadType = null;
     let currentFile = null;
-
-    // Resume event handlers
-    resumeSelect.addEventListener('change', async () => {
-      const id = resumeSelect.value;
-      if (id) {
-        const resumes = await DatabaseManager.getField('resumes') || [];
-        const resume = resumes.find(r => r.id === id);
-        if (resume) {
-          resumeContent.value = resume.textContent;
-          removeResumeButton.style.display = 'block';
-          document.getElementById('extractSkillsButton').style.display = 'block';
-          await DatabaseManager.setActiveResume(id);
-          await uiManager.updateCurrentResumeDisplay();
-        }
-      } else {
-        resumeContent.value = '';
-        removeResumeButton.style.display = 'none';
-        document.getElementById('extractSkillsButton').style.display = 'none';
-        await DatabaseManager.setActiveResume(null);
-        await uiManager.updateCurrentResumeDisplay();
-      }
-    });
 
     uploadResumeButton.addEventListener('click', () => {
       currentUploadType = 'resume';
@@ -837,6 +848,10 @@ document.addEventListener('DOMContentLoaded', async function() {
           document.getElementById('resumeContent').value = resume.textContent;
           document.getElementById('removeResumeButton').style.display = 'block';
           document.getElementById('extractSkillsButton').style.display = 'block';
+          // Update resumeText in database for keyword matching
+          await DatabaseManager.updateField('resumeText', resume.textContent);
+          // Trigger keyword matching update
+          uiManager.updateKeywordMatches();
         }
       }
       
