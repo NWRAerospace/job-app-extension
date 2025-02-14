@@ -20,6 +20,9 @@ function initialize() {
         sendResponse({ text: selectedText });
       } else if (request.action === 'isContentScriptReady') {
         sendResponse({ ready: true });
+      } else if (request.action === 'extractJobContent') {
+        const jobContent = extractJobContent();
+        sendResponse(jobContent);
       }
     } catch (error) {
       console.error('Content script error:', error);
@@ -54,4 +57,41 @@ chrome.runtime.onConnect.addListener((port) => {
       }
     });
   }
-}); 
+});
+
+// Function to extract job posting content
+function extractJobContent() {
+  // Get the main content of the page
+  const body = document.body.innerText;
+  
+  // Try to find the job title - look for common heading elements
+  const possibleTitleElements = document.querySelectorAll('h1, [class*="title" i], [class*="position" i]');
+  let title = '';
+  for (const element of possibleTitleElements) {
+    if (element.innerText.length > 0 && element.innerText.length < 200) {
+      title = element.innerText.trim();
+      break;
+    }
+  }
+
+  // Try to find the job description - look for common job description containers
+  const possibleDescElements = document.querySelectorAll('[class*="description" i], [class*="details" i], [class*="content" i], article, main');
+  let description = '';
+  for (const element of possibleDescElements) {
+    const text = element.innerText.trim();
+    if (text.length > 200) { // Assuming job descriptions are usually longer
+      description = text;
+      break;
+    }
+  }
+
+  // If no specific container found, use the body text
+  if (!description) {
+    description = body;
+  }
+
+  return {
+    title,
+    description
+  };
+} 

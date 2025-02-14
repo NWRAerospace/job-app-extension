@@ -122,6 +122,13 @@ chrome.runtime.onInstalled.addListener(() => {
     title: 'Search Q&A for "%s"',
     contexts: ['selection']
   });
+
+  // Create job assessment context menu
+  chrome.contextMenus.create({
+    id: 'assessJob',
+    title: 'Assess Job Posting',
+    contexts: ['page']
+  });
 });
 
 // Handle context menu clicks
@@ -131,7 +138,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     const selectedText = info.selectionText;
     
     // Open the extension popup if not already open
-    const popup = await chrome.action.openPopup();
+    await chrome.action.openPopup();
     
     // Send message to popup to search Q&A
     chrome.runtime.sendMessage({
@@ -139,6 +146,37 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
       text: selectedText,
       openQATab: true // Signal to open Q&A tab
     });
+  } else if (info.menuItemId === 'assessJob') {
+    try {
+      // Get job content from the page
+      const response = await chrome.tabs.sendMessage(tab.id, { action: 'extractJobContent' });
+      
+      if (response.error) {
+        throw new Error(response.error);
+      }
+
+      // Open the popup
+      await chrome.action.openPopup();
+
+      // Wait a short moment for the popup to initialize
+      setTimeout(() => {
+        // Send the job content to the popup for assessment
+        chrome.runtime.sendMessage({
+          action: 'assessJobPosting',
+          text: `${response.title ? response.title + '\n\n' : ''}${response.description}`
+        });
+      }, 500); // Give the popup time to initialize
+
+    } catch (error) {
+      console.error('Error assessing job:', error);
+      // Show an error notification
+      chrome.notifications.create({
+        type: 'basic',
+        iconUrl: 'images/icon128.png',
+        title: 'Job Assessment Error',
+        message: 'Failed to extract job content. Please try refreshing the page.'
+      });
+    }
   }
 });
 

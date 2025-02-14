@@ -52,6 +52,20 @@ document.addEventListener('DOMContentLoaded', async function() {
   // Profile Management
   await initializeProfileUI();
 
+  // Listen for messages from background script
+  chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.action === 'assessJobPosting' && request.text) {
+      // Trigger the job assessment with the received text
+      const assessJobButton = document.getElementById('assessJobButton');
+      if (assessJobButton) {
+        // Store the text to be assessed
+        window.jobTextToAssess = request.text;
+        // Programmatically trigger assessment
+        assessJobButton.click();
+      }
+    }
+  });
+
   async function refreshAllLists() {
     const savedJobs = await DatabaseManager.getField('savedJobs') || [];
     await uiManager.updateSavedJobsList(savedJobs);
@@ -102,30 +116,45 @@ document.addEventListener('DOMContentLoaded', async function() {
       const restoreButton = uiManager.showLoadingState(this);
 
       try {
-        // Get the active tab
-        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-        if (!tab) {
-          throw new Error('No active tab found');
-        }
-
-        // Check if content script is ready
+        let selectedText = '';
+        let currentTab = null;
+        
+        // Get the current tab regardless of assessment method
         try {
-          const response = await chrome.tabs.sendMessage(tab.id, { action: 'isContentScriptReady' });
-          if (!response?.ready) {
-            throw new Error('Content script not ready');
-          }
+          [currentTab] = await chrome.tabs.query({ active: true, currentWindow: true });
         } catch (error) {
-          console.error('Content script check failed:', error);
-          throw new Error('Please refresh the page and try again.');
+          console.warn('Could not get current tab:', error);
+        }
+        
+        // If we have text from context menu, use that
+        if (window.jobTextToAssess) {
+          selectedText = window.jobTextToAssess;
+          window.jobTextToAssess = null; // Clear it after use
+        } else {
+          // Otherwise get selected text from the page
+          if (!currentTab) {
+            throw new Error('No active tab found');
+          }
+
+          // Check if content script is ready
+          try {
+            const response = await chrome.tabs.sendMessage(currentTab.id, { action: 'isContentScriptReady' });
+            if (!response?.ready) {
+              throw new Error('Content script not ready');
+            }
+          } catch (error) {
+            console.error('Content script check failed:', error);
+            throw new Error('Please refresh the page and try again.');
+          }
+
+          // Get selected text using messaging
+          const response = await chrome.tabs.sendMessage(currentTab.id, { action: 'getSelectedText' });
+          if (!response || !response.text) {
+            throw new Error('Please select some text from the job posting first.');
+          }
+          selectedText = response.text;
         }
 
-        // Get selected text using messaging
-        const response = await chrome.tabs.sendMessage(tab.id, { action: 'getSelectedText' });
-        if (!response || !response.text) {
-          throw new Error('Please select some text from the job posting first.');
-        }
-
-        const selectedText = response.text;
         const apiKey = await DatabaseManager.getField('geminiApiKey');
         if (!apiKey) {
           throw new Error('Please enter your API key in the Settings tab first.');
@@ -142,7 +171,7 @@ document.addEventListener('DOMContentLoaded', async function() {
           rationale: assessment.rationale || '',
           keywords: assessment.keywords || [],
           jobText: selectedText,
-          jobLink: tab.url,
+          jobLink: currentTab?.url || '',
           dateSaved: new Date().toISOString()
         };
         
