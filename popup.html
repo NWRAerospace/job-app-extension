@@ -377,25 +377,31 @@
       </div>
 
       <div class="qa-display">
-        <div id="selectedQuestion" class="selected-question"></div>
-        <div id="selectedAnswer" class="selected-answer"></div>
+        <div class="qa-content">
+          <div id="selectedQuestion" class="selected-question"></div>
+          <div id="selectedAnswer" class="selected-answer"></div>
+        </div>
         <div class="qa-actions">
           <button id="copyAnswerButton" class="secondary-button" style="display: none;">Copy Answer</button>
           <button id="editAnswerButton" class="secondary-button" style="display: none;">Edit</button>
+          <button id="generateAIAnswerButton" class="primary-button" style="display: none;">Generate AI Answer</button>
         </div>
       </div>
 
       <div class="qa-editor" style="display: none;">
-        <h3>Add/Edit Q&A Pair</h3>
-        <input type="text" id="questionInput" placeholder="Enter question" class="qa-input">
-        <textarea id="answerInput" placeholder="Enter answer" class="qa-textarea"></textarea>
-        <div class="qa-editor-actions">
-          <button id="saveQAButton" class="primary-button">Save</button>
+        <textarea id="questionInput" placeholder="Enter question..."></textarea>
+        <textarea id="answerInput" placeholder="Enter answer..."></textarea>
+        <div class="editor-actions">
+          <button id="generateAIAnswerEditorButton" class="primary-button">Generate AI Answer</button>
+          <button id="saveQAButton" class="secondary-button">Save</button>
           <button id="cancelQAButton" class="secondary-button">Cancel</button>
         </div>
       </div>
 
-      <button id="addNewQAButton" class="primary-button">Add New Q&A Pair</button>
+      <div class="qa-stats">
+        <span>Total Q&A Pairs: <span id="qaPairCount">0</span></span>
+        <button id="addNewQAButton" class="primary-button">Add New Q&A</button>
+      </div>
 
       <div class="qa-import-section">
         <div class="qa-separator">

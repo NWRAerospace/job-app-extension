@@ -1,4 +1,6 @@
 // Q&A Manager Module
+import { AIHelper } from '../utils/aiHelper.js';
+
 export class QAManager {
   constructor() {
     this.initializeElements();
@@ -18,6 +20,7 @@ export class QAManager {
     this.selectedAnswer = document.getElementById('selectedAnswer');
     this.copyButton = document.getElementById('copyAnswerButton');
     this.editButton = document.getElementById('editAnswerButton');
+    this.generateAIButton = document.getElementById('generateAIAnswerButton');
     
     // Editor elements
     this.qaEditor = document.querySelector('.qa-editor');
@@ -26,6 +29,7 @@ export class QAManager {
     this.saveButton = document.getElementById('saveQAButton');
     this.cancelButton = document.getElementById('cancelQAButton');
     this.addNewButton = document.getElementById('addNewQAButton');
+    this.generateAIEditorButton = document.getElementById('generateAIAnswerEditorButton');
     
     // Stats
     this.qaPairCount = document.getElementById('qaPairCount');
@@ -42,6 +46,8 @@ export class QAManager {
     this.saveButton.addEventListener('click', this.saveQAPair.bind(this));
     this.cancelButton.addEventListener('click', this.cancelEditing.bind(this));
     this.addNewButton.addEventListener('click', this.startNewQAPair.bind(this));
+    this.generateAIButton.addEventListener('click', () => this.generateAIAnswer(false));
+    this.generateAIEditorButton.addEventListener('click', () => this.generateAIAnswer(true));
 
     // Listen for text selection on the page
     document.addEventListener('mouseup', this.handleTextSelection.bind(this));
@@ -171,6 +177,7 @@ export class QAManager {
     this.selectedAnswer.textContent = qaPair.answer;
     this.copyButton.style.display = 'inline-block';
     this.editButton.style.display = 'inline-block';
+    this.generateAIButton.style.display = 'inline-block';
     this.qaEditor.style.display = 'none';
   }
 
@@ -194,8 +201,13 @@ export class QAManager {
     if (this.currentQAPair) {
       this.questionInput.value = this.currentQAPair.question;
       this.answerInput.value = this.currentQAPair.answer;
-      this.qaEditor.style.display = 'block';
     }
+    this.qaEditor.style.display = 'block';
+    this.selectedQuestion.textContent = '';
+    this.selectedAnswer.textContent = '';
+    this.copyButton.style.display = 'none';
+    this.editButton.style.display = 'none';
+    this.generateAIButton.style.display = 'none';
   }
 
   startNewQAPair() {
@@ -207,6 +219,7 @@ export class QAManager {
     this.selectedAnswer.textContent = '';
     this.copyButton.style.display = 'none';
     this.editButton.style.display = 'none';
+    this.generateAIButton.style.display = 'none';
   }
 
   async saveQAPair() {
@@ -252,6 +265,7 @@ export class QAManager {
       this.selectedAnswer.textContent = '';
       this.copyButton.style.display = 'none';
       this.editButton.style.display = 'none';
+      this.generateAIButton.style.display = 'none';
     }
   }
 
@@ -269,5 +283,75 @@ export class QAManager {
   async updateQACount() {
     const qaPairs = await DatabaseManager.getAllQAPairs();
     this.qaPairCount.textContent = qaPairs.length;
+  }
+
+  setButtonLoadingState(button, isLoading) {
+    if (isLoading) {
+      button.disabled = true;
+      button.originalText = button.textContent;
+      button.innerHTML = `
+        <span class="loading-spinner"></span>
+        Generating Answer...
+      `;
+    } else {
+      button.disabled = false;
+      button.textContent = button.originalText;
+    }
+  }
+
+  async generateAIAnswer(isEditing) {
+    const button = isEditing ? this.generateAIEditorButton : this.generateAIButton;
+    
+    try {
+      this.setButtonLoadingState(button, true);
+      
+      const apiKey = await DatabaseManager.getField('geminiApiKey');
+      if (!apiKey) {
+        alert('Please set your Gemini API key in the settings tab first.');
+        return;
+      }
+
+      const question = isEditing ? this.questionInput.value : this.selectedQuestion.textContent;
+      if (!question.trim()) {
+        alert('Please enter a question first.');
+        return;
+      }
+
+      // Get user's resume, skills, and education
+      const resumeText = await DatabaseManager.getField('resumeText');
+      const skills = await DatabaseManager.getField('skills') || [];
+      const education = await DatabaseManager.getField('education') || [];
+
+      if (!resumeText) {
+        alert('Please upload a resume first.');
+        return;
+      }
+
+      const response = await AIHelper.generateQAResponse(
+        question,
+        resumeText,
+        skills,
+        education,
+        apiKey
+      );
+
+      if (response && response.answer) {
+        if (isEditing) {
+          this.answerInput.value = response.answer;
+        } else {
+          // Open editor with AI response
+          this.startEditing();
+          this.questionInput.value = question;
+          this.answerInput.value = response.answer;
+        }
+      } else {
+        throw new Error('Invalid response from AI');
+      }
+    } catch (error) {
+      console.error('Failed to generate AI answer:', error);
+      alert('Failed to generate AI answer. Please try again.');
+    } finally {
+      this.setButtonLoadingState(button, false);
+    }
   }
 } 

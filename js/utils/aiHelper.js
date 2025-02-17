@@ -57,6 +57,29 @@ ${resumeText}`;
     return await this._makeGeminiRequest(geminiApiUrl, prompt, apiKey);
   }
 
+  static async generateQAResponse(question, resume, skills, education, apiKey) {
+    const model = await this._getSelectedModel();
+    const geminiApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
+    
+    const prompt = `Given the following job application question and candidate information, generate a concise, professional answer. Unless the question specifically asks for multiple paragraphs or specifies a word/paragraph count, provide only one short paragraph.
+
+Question: ${question}
+
+Candidate Information:
+Resume: ${resume}
+Skills: ${skills.map(s => `${s.skill} (${s.level}${s.yearsExperience ? `, ${s.yearsExperience}yrs` : ''})`).join(', ')}
+Education: ${education.map(e => `${e.title} from ${e.institution}`).join(', ')}
+
+Respond ONLY with a JSON object in this exact format:
+{
+  "answer": "The generated answer text",
+  "wordCount": number,
+  "confidence": number from 0-1 indicating how well the answer matches the candidate's background
+}`;
+
+    return await this._makeGeminiRequest(geminiApiUrl, prompt, apiKey);
+  }
+
   static async _getSelectedModel() {
     try {
       const model = await DatabaseManager.getField('geminiModel');
