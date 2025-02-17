@@ -45,8 +45,17 @@ document.addEventListener('DOMContentLoaded', async function() {
     refreshAllLists()
   ]);
 
-  // Setup event handlers
-  setupEventHandlers();
+  // Setup event handlers - pass necessary managers as parameters
+  setupEventHandlers({
+    jobAssessor,
+    skillsManager,
+    educationManager,
+    limitationsManager,
+    uiManager,
+    coverLetterManager,
+    qaManager,
+    DatabaseManager
+  });
 
   // Load saved documents
   await loadSavedDocuments();
@@ -57,15 +66,16 @@ document.addEventListener('DOMContentLoaded', async function() {
   // Listen for messages from background script
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === 'assessJobPosting' && request.text) {
-      // Trigger the job assessment with the received text
+      // Store the text to be assessed
+      window.jobTextToAssess = request.text;
+      // Trigger assessment
       const assessJobButton = document.getElementById('assessJobButton');
       if (assessJobButton) {
-        // Store the text to be assessed
-        window.jobTextToAssess = request.text;
-        // Programmatically trigger assessment
         assessJobButton.click();
       }
     }
+    // Always return true to indicate we'll respond asynchronously
+    return true;
   });
 
   async function refreshAllLists() {
@@ -111,7 +121,18 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
   }
 
-  function setupEventHandlers() {
+  function setupEventHandlers(managers) {
+    const {
+      jobAssessor,
+      skillsManager,
+      educationManager,
+      limitationsManager,
+      uiManager,
+      coverLetterManager,
+      qaManager,
+      DatabaseManager
+    } = managers;
+
     // Assess job button handler
     const assessJobButton = document.getElementById('assessJobButton');
     assessJobButton.addEventListener('click', async function() {
@@ -268,16 +289,30 @@ document.addEventListener('DOMContentLoaded', async function() {
     });
 
     // Skills management handlers
-    setupSkillsHandlers();
+    setupSkillsHandlers({
+      skillsManager,
+      uiManager
+    });
 
     // Education management handlers
-    setupEducationHandlers();
+    setupEducationHandlers({
+      educationManager,
+      uiManager
+    });
 
     // Limitations management handlers
-    setupLimitationsHandlers();
+    setupLimitationsHandlers({
+      limitationsManager,
+      uiManager
+    });
 
     // Document management handlers
-    setupDocumentHandlers();
+    setupDocumentHandlers({
+      skillsManager,
+      educationManager,
+      uiManager,
+      DatabaseManager
+    });
 
     // Q&A document import handlers
     const importQAButton = document.getElementById('importQAButton');
@@ -398,93 +433,82 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Check after document load
     updateModifyButtonVisibility();
 
-    generateFreshCoverLetterBtn.addEventListener('click', async function() {
-      const restoreButton = uiManager.showLoadingState(this);
-      
+    generateFreshCoverLetterBtn.addEventListener('click', async () => {
+      const restoreButton = uiManager.showLoadingState(generateFreshCoverLetterBtn, 'Generating...');
       try {
-        // Check if we have a job selected - first try current assessment, then fall back to saved job
-        let currentJob = window.currentAssessment;
-        if (!currentJob) {
-          const savedJobs = await DatabaseManager.getField('savedJobs') || [];
-          const activeJobId = await DatabaseManager.getField('activeJobId');
-          currentJob = savedJobs.find(job => job.id === activeJobId);
-        }
-        
-        if (!currentJob) {
-          noCoverLetterWarning.style.display = 'block';
+        // First check if we have a current assessment
+        const currentJob = window.currentAssessment;
+        if (!currentJob || !currentJob.jobText) {
+          uiManager.showError('Please assess a job posting first.');
           return;
         }
 
-        // Get current skills and resume
         const skills = await DatabaseManager.getField('skills') || [];
-        const currentResume = await DatabaseManager.getField('currentResume');
-        const resumeText = currentResume ? await DatabaseManager.getField('resumeText') : null;
+        const resumeText = await DatabaseManager.getField('resumeText');
+        
+        if (!resumeText) {
+          uiManager.showError('Please select a resume first. The AI needs your resume to create a targeted letter.');
+          return;
+        }
 
-        // Generate cover letter
-        const result = await coverLetterManager.generateCoverLetter(
-          currentJob.jobText,
-          skills,
-          resumeText
-        );
+        // Get selected options
+        const paragraphCount = document.querySelector('input[name="paragraphCount"]:checked').value;
+        const tone = document.querySelector('input[name="letterTone"]:checked').value;
 
-        // Display results
-        document.querySelector('.generated-cover-letter').style.display = 'block';
+        const options = {
+          paragraphCount: parseInt(paragraphCount),
+          tone: tone
+        };
+
+        const result = await coverLetterManager.generateCoverLetter(currentJob.jobText, skills, options, resumeText);
+        
+        document.getElementById('generatedCoverLetterContent').value = result.coverLetterText;
         document.getElementById('aiExplanation').textContent = result.explanation;
-        generatedCoverLetterContent.value = result.coverLetterText;
-
-        noCoverLetterWarning.style.display = 'none';
+        document.querySelector('.generated-cover-letter').style.display = 'block';
+        document.getElementById('modifyCurrentCoverLetter').style.display = 'block';
       } catch (error) {
-        console.error('Error generating cover letter:', error);
-        uiManager.showError(error.message || 'Failed to generate cover letter. Please try again.');
+        uiManager.showError(error.message);
       } finally {
         restoreButton();
       }
     });
 
-    modifyCurrentCoverLetterBtn.addEventListener('click', async function() {
-      const restoreButton = uiManager.showLoadingState(this);
-      
+    modifyCurrentCoverLetterBtn.addEventListener('click', async () => {
+      const restoreButton = uiManager.showLoadingState(modifyCurrentCoverLetterBtn, 'Modifying...');
       try {
-        // Check if we have a job selected - first try current assessment, then fall back to saved job
-        let currentJob = window.currentAssessment;
-        if (!currentJob) {
-          const savedJobs = await DatabaseManager.getField('savedJobs') || [];
-          const activeJobId = await DatabaseManager.getField('activeJobId');
-          currentJob = savedJobs.find(job => job.id === activeJobId);
-        }
-        
-        if (!currentJob) {
-          noCoverLetterWarning.style.display = 'block';
+        // First check if we have a current assessment
+        const currentJob = window.currentAssessment;
+        if (!currentJob || !currentJob.jobText) {
+          uiManager.showError('Please assess a job posting first.');
           return;
         }
 
-        // Get current skills, resume, and cover letter
         const skills = await DatabaseManager.getField('skills') || [];
-        const currentResume = await DatabaseManager.getField('currentResume');
-        const resumeText = currentResume ? await DatabaseManager.getField('resumeText') : null;
-        const existingCoverLetter = coverLetterContent.value;
+        const resumeText = await DatabaseManager.getField('resumeText');
+        const currentCoverLetter = document.getElementById('generatedCoverLetterContent').value;
 
-        if (!existingCoverLetter) {
-          throw new Error('Please select a cover letter to modify first.');
-        }
+        // Get selected options
+        const paragraphCount = document.querySelector('input[name="paragraphCount"]:checked').value;
+        const tone = document.querySelector('input[name="letterTone"]:checked').value;
 
-        // Generate modified cover letter
+        const options = {
+          paragraphCount: parseInt(paragraphCount),
+          tone: tone
+        };
+
         const result = await coverLetterManager.generateCoverLetter(
-          currentJob.jobText,
-          skills,
+          currentJob.jobText, 
+          skills, 
+          options,
           resumeText,
-          existingCoverLetter
+          currentCoverLetter
         );
-
-        // Display results
-        document.querySelector('.generated-cover-letter').style.display = 'block';
+        
+        document.getElementById('generatedCoverLetterContent').value = result.coverLetterText;
         document.getElementById('aiExplanation').textContent = result.explanation;
-        generatedCoverLetterContent.value = result.coverLetterText;
-
-        noCoverLetterWarning.style.display = 'none';
+        document.querySelector('.generated-cover-letter').style.display = 'block';
       } catch (error) {
-        console.error('Error modifying cover letter:', error);
-        uiManager.showError(error.message || 'Failed to modify cover letter. Please try again.');
+        uiManager.showError(error.message);
       } finally {
         restoreButton();
       }
@@ -524,7 +548,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     });
   }
 
-  function setupSkillsHandlers() {
+  function setupSkillsHandlers({ skillsManager, uiManager }) {
     const skillNameInput = document.getElementById('skillName');
     const skillLevelSelect = document.getElementById('skillLevel');
     const skillYearsInput = document.getElementById('skillYears');
@@ -563,7 +587,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     });
   }
 
-  function setupEducationHandlers() {
+  function setupEducationHandlers({ educationManager, uiManager }) {
     const addEducationButton = document.getElementById('addEducationButton');
     const educationType = document.getElementById('educationType');
     const educationInProgress = document.getElementById('educationInProgress');
@@ -617,7 +641,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     });
   }
 
-  function setupLimitationsHandlers() {
+  function setupLimitationsHandlers({ limitationsManager, uiManager }) {
     const addLimitationButton = document.getElementById('addLimitationButton');
     const isTemporary = document.getElementById('isTemporary');
     const limitationEndDate = document.getElementById('limitationEndDate');
@@ -667,7 +691,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     });
   }
 
-  function setupDocumentHandlers() {
+  function setupDocumentHandlers({ skillsManager, educationManager, uiManager, DatabaseManager }) {
     const resumeSelect = document.getElementById('resumeSelect');
     resumeSelect.addEventListener('change', async (e) => {
       const id = e.target.value;
@@ -724,8 +748,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     const cancelUploadButton = document.getElementById('cancelUploadButton');
 
     // Load initial documents
-    loadResumes();
-    loadCoverLetters();
+    loadResumes({ DatabaseManager });
+    loadCoverLetters({ DatabaseManager });
 
     let currentUploadType = null;
     let currentFile = null;
@@ -749,7 +773,7 @@ document.addEventListener('DOMContentLoaded', async function() {
       const id = resumeSelect.value;
       if (id && confirm('Are you sure you want to remove this resume?')) {
         await DatabaseManager.removeResume(id);
-        await loadResumes();
+        await loadResumes({ DatabaseManager });
         resumeContent.value = '';
         removeResumeButton.style.display = 'none';
         document.getElementById('extractSkillsButton').style.display = 'none';
@@ -793,7 +817,7 @@ document.addEventListener('DOMContentLoaded', async function() {
       const id = coverLetterSelect.value;
       if (id && confirm('Are you sure you want to remove this cover letter?')) {
         await DatabaseManager.removeCoverLetter(id);
-        await loadCoverLetters();
+        await loadCoverLetters({ DatabaseManager });
         coverLetterContent.value = '';
         removeCoverLetterButton.style.display = 'none';
       }
@@ -853,7 +877,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             console.log('Resume text updated');
             
             // Refresh the resumes list
-            await loadResumes();
+            await loadResumes({ DatabaseManager });
             console.log('Resumes list refreshed');
             
             // Set the new resume as active
@@ -871,7 +895,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             console.log('Cover letter text updated');
             
             // Refresh the cover letters list
-            await loadCoverLetters();
+            await loadCoverLetters({ DatabaseManager });
             console.log('Cover letters list refreshed');
             
             // Set the new cover letter as active
@@ -977,7 +1001,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     });
   }
 
-  async function loadResumes() {
+  async function loadResumes({ DatabaseManager }) {
     console.log('Loading resumes...');
     try {
       // Initialize DB if needed
@@ -1053,7 +1077,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
   }
 
-  async function loadCoverLetters() {
+  async function loadCoverLetters({ DatabaseManager }) {
     console.log('Loading cover letters...');
     const coverLetters = await DatabaseManager.getField('coverLetters') || [];
     const activeId = await DatabaseManager.getField('activeCoverLetterId');
@@ -1383,8 +1407,8 @@ document.addEventListener('DOMContentLoaded', async function() {
 
       // Refresh documents
       await Promise.all([
-        loadResumes(),
-        loadCoverLetters()
+        loadResumes({ DatabaseManager }),
+        loadCoverLetters({ DatabaseManager })
       ]);
 
       // Update current selections

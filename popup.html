@@ -120,6 +120,24 @@
         </div>
         
         <div class="generation-controls">
+          <div class="cover-letter-options">
+            <div class="option-group">
+              <label>Number of Body Paragraphs:</label>
+              <div class="radio-group">
+                <label><input type="radio" name="paragraphCount" value="2" checked> 2</label>
+                <label><input type="radio" name="paragraphCount" value="3"> 3</label>
+                <label><input type="radio" name="paragraphCount" value="4"> 4</label>
+              </div>
+            </div>
+            <div class="option-group">
+              <label>Tone:</label>
+              <div class="radio-group">
+                <label><input type="radio" name="letterTone" value="eager" checked> Eager</label>
+                <label><input type="radio" name="letterTone" value="professional"> Seasoned Professional</label>
+                <label><input type="radio" name="letterTone" value="expressive"> Expressive</label>
+              </div>
+            </div>
+          </div>
           <button id="generateFreshCoverLetter" class="primary-button">Generate Fresh Cover Letter</button>
           <button id="modifyCurrentCoverLetter" class="secondary-button" style="display: none;">
             Modify Current Cover Letter
