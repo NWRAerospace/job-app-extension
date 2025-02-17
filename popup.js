@@ -454,10 +454,14 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Get selected options
         const paragraphCount = document.querySelector('input[name="paragraphCount"]:checked').value;
         const tone = document.querySelector('input[name="letterTone"]:checked').value;
+        const includeEducation = document.querySelector('input[name="includeEducation"]').checked;
+        const includeSkills = document.querySelector('input[name="includeSkills"]').checked;
 
         const options = {
           paragraphCount: parseInt(paragraphCount),
-          tone: tone
+          tone: tone,
+          includeEducation: includeEducation,
+          includeSkills: includeSkills
         };
 
         const result = await coverLetterManager.generateCoverLetter(currentJob.jobText, skills, options, resumeText);
@@ -490,10 +494,14 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Get selected options
         const paragraphCount = document.querySelector('input[name="paragraphCount"]:checked').value;
         const tone = document.querySelector('input[name="letterTone"]:checked').value;
+        const includeEducation = document.querySelector('input[name="includeEducation"]').checked;
+        const includeSkills = document.querySelector('input[name="includeSkills"]').checked;
 
         const options = {
           paragraphCount: parseInt(paragraphCount),
-          tone: tone
+          tone: tone,
+          includeEducation: includeEducation,
+          includeSkills: includeSkills
         };
 
         const result = await coverLetterManager.generateCoverLetter(

@@ -11,27 +11,32 @@ export class CoverLetterManager {
 
         this.basePrompt = `You are a professional cover letter writer. Create a cover letter that demonstrates the candidate's qualifications and fit for the role.
 
-CRITICAL REQUIREMENTS:
+CRITICAL REQUIREMENTS (ALWAYS FOLLOW THESE):
 1. NEVER make up or assume ANY details about the candidate's:
-   - Education (only mention education that is explicitly provided)
+   - Education
    - Work experience
    - Skills
    - Certifications
    - Personal characteristics
    - Or any other qualifications
 2. Do not make claims about security clearances or clearance eligibility
-3. Prioritize information in this order:
-   a. Skills and experience DIRECTLY mentioned in the resume
-   b. Education provided in candidate_education
-   c. Additional skills from candidate_skills that aren't in the resume
-4. When mentioning skills:
-   - ALWAYS connect them to specific experience or projects from the resume when possible
-   - Only mention skills from candidate_skills without context if they're relevant but not found in the resume
-5. Structure the letter with EXACTLY:
+3. Structure the letter with EXACTLY:
    - A greeting (e.g., "Dear Hiring Manager,")
    - The specified number of body paragraphs between the greeting and sign-off
    - A professional sign-off (e.g., "Best regards," or "Sincerely,")
-6. If information about certain qualifications is not provided, do NOT mention them or make assumptions
+4. First paragraph MUST:
+   - Begin with a strong introduction
+   - State the position being applied for
+   - If education is included, mention it here
+   - If no education is included, lead with the most relevant work experience
+5. Remaining paragraphs should:
+   - Focus on connecting experience from the resume to job requirements
+   - If skills list is included, incorporate relevant skills naturally
+   - Never mention skills or qualifications not explicitly provided
+6. Prioritize information in this order:
+   a. Education (if included, always in first paragraph)
+   b. Direct experience from resume matching job requirements
+   c. Skills from skills list (if included) that aren't mentioned in resume
 7. Write a compelling letter using ONLY the information explicitly provided
 
 The response must be a valid JSON object with exactly these fields:
@@ -52,18 +57,22 @@ Do not include any markdown formatting or code blocks in your response. The resp
                 throw new Error('Please select a resume before generating a cover letter. The AI needs your resume to create a targeted letter.');
             }
 
-            // Get education data
-            const education = await this.db.getField('education') || [];
-            
-            // Format education into a concise string
-            const educationString = education.map(edu => 
-                `${edu.type}: ${edu.title} from ${edu.institution}${edu.inProgress ? ' (In Progress)' : edu.endDate ? ` (Completed ${new Date(edu.endDate).getFullYear()})` : ''}`
-            ).join('; ');
+            // Get education data only if it should be included
+            let educationString = '';
+            if (options.includeEducation) {
+                const education = await this.db.getField('education') || [];
+                educationString = education.map(edu => 
+                    `${edu.type}: ${edu.title} from ${edu.institution}${edu.inProgress ? ' (In Progress)' : edu.endDate ? ` (Completed ${new Date(edu.endDate).getFullYear()})` : ''}`
+                ).join('; ');
+            }
 
-            // Format skills into a concise string
-            const skillsString = skills.map(s => 
-                `${s.skill} (${s.level}${s.yearsExperience ? `, ${s.yearsExperience} years` : ''})`
-            ).join('; ');
+            // Format skills into a concise string only if they should be included
+            let skillsString = '';
+            if (options.includeSkills) {
+                skillsString = skills.map(s => 
+                    `${s.skill} (${s.level}${s.yearsExperience ? `, ${s.yearsExperience} years` : ''})`
+                ).join('; ');
+            }
 
             // Get tone-specific instructions
             const toneInstructions = this.tonePrompts[options.tone || 'eager'];
@@ -75,6 +84,11 @@ Do not include any markdown formatting or code blocks in your response. The resp
 2. Exactly ${paragraphCount} body paragraphs
 3. Sign-off line ("Sincerely..." etc)`;
 
+            // Add data inclusion instructions
+            const dataInclusion = `CONTENT INCLUSION INSTRUCTIONS:
+${options.includeEducation ? '- Include education information in the first paragraph' : '- Lead with most relevant work experience'}
+${options.includeSkills ? '- Incorporate provided skills list where relevant' : '- Focus solely on experience from resume'}`;
+
             // Prepare the prompt for the AI
             let prompt = {
                 task: existingCoverLetter ? 'modify_cover_letter' : 'generate_cover_letter',
@@ -83,6 +97,8 @@ Do not include any markdown formatting or code blocks in your response. The resp
 ${toneInstructions}
 
 ${paragraphInstruction}
+
+${dataInclusion}
 
 ${existingCoverLetter ? 'Modify the existing cover letter to better match the job requirements while maintaining the exact paragraph structure specified above.' : ''}`,
                 job_posting: jobPosting,
