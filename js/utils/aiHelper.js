@@ -137,7 +137,7 @@ Respond ONLY with a JSON object in this exact format:
     return await this._makeGeminiRequest(geminiApiUrl, prompt, apiKey);
   }
 
-  static async generateQAResponse(question, resume, skills, education, apiKey) {
+  static async generateQAResponse(question, resume, skills, education, apiKey, jobContext = null) {
     const model = await this._getSelectedModel();
     const geminiApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
     
@@ -145,7 +145,7 @@ Respond ONLY with a JSON object in this exact format:
 
 Question: ${question}
 
-Candidate Information:
+${jobContext ? `Job Context:\n${jobContext}\n\n` : ''}Candidate Information:
 Resume: ${resume}
 Skills: ${skills.map(s => `${s.skill} (${s.level}${s.yearsExperience ? `, ${s.yearsExperience}yrs` : ''})`).join(', ')}
 Education: ${education.map(e => `${e.title} from ${e.institution}`).join(', ')}

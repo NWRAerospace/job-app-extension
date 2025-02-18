@@ -327,12 +327,30 @@ export class QAManager {
         return;
       }
 
+      // Get current job context
+      let jobContext = null;
+      const currentAssessment = window.currentAssessment;
+      if (currentAssessment && currentAssessment.jobText) {
+        jobContext = currentAssessment.jobText;
+      } else {
+        // Try to get selected job from saved jobs
+        const activeJobId = await DatabaseManager.getField('activeJobId');
+        if (activeJobId) {
+          const savedJobs = await DatabaseManager.getField('savedJobs') || [];
+          const selectedJob = savedJobs.find(j => j.id === activeJobId);
+          if (selectedJob && selectedJob.jobText) {
+            jobContext = selectedJob.jobText;
+          }
+        }
+      }
+
       const response = await AIHelper.generateQAResponse(
         question,
         resumeText,
         skills,
         education,
-        apiKey
+        apiKey,
+        jobContext
       );
 
       if (response && response.answer) {
