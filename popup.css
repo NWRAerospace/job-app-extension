@@ -2735,3 +2735,35 @@ button:disabled .loading-spinner {
   background-color: #bd2130;
   border-color: #b21f2d;
 }
+
+.select-job {
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  color: #495057;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.select-job:hover {
+  background-color: #e9ecef;
+  border-color: #ced4da;
+}
+
+.select-job.active {
+  background-color: #28a745;
+  border-color: #28a745;
+  color: white;
+}
+
+.select-job.active:hover {
+  background-color: #218838;
+  border-color: #1e7e34;
+}
+
+.saved-job-item.active {
+  border-left: 3px solid #28a745;
+  padding-left: 7px;
+}

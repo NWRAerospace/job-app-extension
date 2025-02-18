@@ -1013,20 +1013,24 @@ export class UIManager {
           break;
 
         case 'select':
-          const currentActiveId = await this.databaseManager.getField('activeJobId');
-          const newActiveId = currentActiveId === jobId ? null : jobId;
-          await this.databaseManager.setActiveJob(newActiveId);
-          
-          // Update all job elements' selection state
-          const updatedJobs = await this.databaseManager.getField('savedJobs');
-          this.updateSavedJobsList(updatedJobs);
-          
-          // Update the current job display
-          await this.updateCurrentJobDisplay();
+          const selectedJob = await this.databaseManager.getField('savedJobs');
+          if (selectedJob.some(j => j.id === jobId)) {
+            if (window.currentAssessment?.id === jobId) {
+              // Deselect if already selected
+              window.currentAssessment = null;
+              await this.databaseManager.setField('activeJobId', null);
+            } else {
+              // Select the job
+              window.currentAssessment = selectedJob.find(j => j.id === jobId);
+              await this.databaseManager.setField('activeJobId', jobId);
+            }
+            await this.updateCurrentJobDisplay();
+            await this.refreshJobsList();
+          }
           break;
 
         case 'apply':
-          const jobToApply = jobs.find(j => j.jobLink === jobLink);
+          const jobToApply = selectedJob.find(j => j.jobLink === jobLink);
           
           if (jobToApply) {
             document.dispatchEvent(new CustomEvent('showApplyModal', { detail: jobToApply }));
@@ -1442,24 +1446,42 @@ export class UIManager {
       return;
     }
 
-    jobsContainer.innerHTML = jobs.map(job => `
-      <div class="saved-job-item" data-job-id="${job.id}">
-        <div class="job-header">
-          <h3 class="job-title">${job.title || 'Untitled Position'}</h3>
-          <span class="job-company">${job.company || 'Unknown Company'}</span>
+    // Store this for use in event handlers
+    const self = this;
+
+    // Get the active job ID from the database
+    const activeJobId = await this.databaseManager.getField('activeJobId');
+    console.log('Active job ID:', activeJobId);
+
+    // Sync window.currentAssessment with database state if needed
+    if (activeJobId && (!window.currentAssessment || window.currentAssessment.id !== activeJobId)) {
+      window.currentAssessment = jobs.find(j => j.id === activeJobId) || null;
+    }
+
+    jobsContainer.innerHTML = jobs.map(job => {
+      const isActive = job.id === (window.currentAssessment?.id || activeJobId);
+      return `
+        <div class="saved-job-item ${isActive ? 'active' : ''}" data-job-id="${job.id}">
+          <div class="job-header">
+            <h3 class="job-title">${job.title || 'Untitled Position'}</h3>
+            <span class="job-company">${job.company || 'Unknown Company'}</span>
+          </div>
+          <div class="job-details">
+            <span class="rating">Rating: ${job.rating}/10</span>
+            <span class="date">Saved: ${new Date(job.dateSaved).toLocaleDateString()}</span>
+          </div>
+          <div class="job-actions">
+            <button class="select-job ${isActive ? 'active' : ''}" data-action="select">
+              ${isActive ? 'Selected' : 'Select Job'}
+            </button>
+            <button class="view-job" data-action="view">View Job Details</button>
+            ${job.jobLink ? `<button class="open-job" data-action="open" data-job-link="${job.jobLink}">Open Job</button>` : ''}
+            <button class="apply-button" data-action="apply">Mark as Applied</button>
+            <button class="remove-button" data-action="remove">Remove</button>
+          </div>
         </div>
-        <div class="job-details">
-          <span class="rating">Rating: ${job.rating}/10</span>
-          <span class="date">Saved: ${new Date(job.dateSaved).toLocaleDateString()}</span>
-        </div>
-        <div class="job-actions">
-          <button class="view-job" data-action="view">View Job Details</button>
-          ${job.jobLink ? `<button class="open-job" data-action="open" data-job-link="${job.jobLink}">Open Job</button>` : ''}
-          <button class="apply-button" data-action="apply">Mark as Applied</button>
-          <button class="remove-button" data-action="remove">Remove</button>
-        </div>
-      </div>
-    `).join('');
+      `;
+    }).join('');
     console.log('Jobs list HTML updated');
 
     // Add event listeners for job actions
@@ -1471,10 +1493,26 @@ export class UIManager {
           console.log('Job action clicked:', { jobId, action });
           
           switch (action) {
+            case 'select':
+              const selectedJob = jobs.find(j => j.id === jobId);
+              if (selectedJob) {
+                if (window.currentAssessment?.id === jobId) {
+                  // Deselect if already selected
+                  window.currentAssessment = null;
+                  await self.databaseManager.updateField('activeJobId', null);
+                } else {
+                  // Select the job
+                  window.currentAssessment = selectedJob;
+                  await self.databaseManager.updateField('activeJobId', jobId);
+                }
+                await self.updateCurrentJobDisplay();
+                await self.refreshJobsList();
+              }
+              break;
             case 'view':
               const job = jobs.find(j => j.id === jobId);
               if (job) {
-                this.showJobDetailsModal(job);
+                self.showJobDetailsModal(job);
               }
               break;
             case 'open':
@@ -1490,10 +1528,10 @@ export class UIManager {
               }
               break;
             case 'remove':
-              if (await this.databaseManager.removeSavedJob(jobId)) {
-                const updatedJobs = await this.databaseManager.getField('savedJobs');
-                this.updateJobsList(updatedJobs);
-                this.showFeedbackMessage('Job removed successfully');
+              if (await self.databaseManager.removeSavedJob(jobId)) {
+                const updatedJobs = await self.databaseManager.getField('savedJobs');
+                self.updateJobsList(updatedJobs);
+                self.showFeedbackMessage('Job removed successfully');
               }
               break;
           }
