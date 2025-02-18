@@ -8,6 +8,7 @@ export class UIManager {
     this.setupTabHandlers();
     this.currentMatchType = 'resume';
     this.setupMatchTypeHandlers();
+    this.setupCoverLetterHandlers();
     this.updateCurrentResumeDisplay(); // Add initial resume display update
     this.updateCurrentJobDisplay(); // Add initial job display update
   }
@@ -29,6 +30,303 @@ export class UIManager {
         this.updateKeywordMatches();
       });
     });
+  }
+
+  setupCoverLetterHandlers() {
+    const saveCoverLetterBtn = document.getElementById('saveCoverLetter');
+    const cancelCoverLetterBtn = document.getElementById('cancelCoverLetter');
+    const generatedCoverLetterDiv = document.querySelector('.generated-cover-letter');
+    const coverLetterContent = document.getElementById('generatedCoverLetterContent');
+    const coverLetterSelect = document.getElementById('coverLetterSelect');
+    const savedCoverLetterContent = document.getElementById('coverLetterContent');
+
+    // Add clear cover letters button to settings (only if it doesn't exist)
+    const settingsTab = document.getElementById('settings');
+    if (settingsTab && !document.getElementById('clearCoverLetters')) {
+      const clearSection = document.createElement('div');
+      clearSection.className = 'settings-section';
+      clearSection.innerHTML = `
+        <h3>Cover Letter Management</h3>
+        <button id="clearCoverLetters" class="danger-button">Clear All Cover Letters</button>
+      `;
+      settingsTab.appendChild(clearSection);
+
+      // Add event listener for clear button
+      const clearBtn = document.getElementById('clearCoverLetters');
+      if (clearBtn) {
+        clearBtn.addEventListener('click', async () => {
+          if (confirm('Are you sure you want to delete all cover letters? This cannot be undone.')) {
+            try {
+              await this.databaseManager.updateField('coverLetters', []);
+              await this.databaseManager.updateField('activeCoverLetterId', null);
+              await this.updateSavedCoverLetters();
+              this.showFeedbackMessage('All cover letters cleared successfully');
+            } catch (error) {
+              console.error('Error clearing cover letters:', error);
+              this.showFeedbackMessage('Failed to clear cover letters', 'error');
+            }
+          }
+        });
+      }
+    }
+
+    if (saveCoverLetterBtn) {
+      saveCoverLetterBtn.addEventListener('click', async () => {
+        console.log('Save cover letter button clicked');
+        
+        // Get content from the correct textarea
+        let textContent;
+        if (generatedCoverLetterDiv?.style.display !== 'none') {
+          textContent = coverLetterContent?.value;
+          console.log('Getting content from generated cover letter');
+        } else {
+          textContent = savedCoverLetterContent?.value;
+          console.log('Getting content from saved cover letter');
+        }
+
+        console.log('Content to save:', { length: textContent?.length, fromGenerated: generatedCoverLetterDiv?.style.display !== 'none' });
+
+        if (!textContent) {
+          this.showFeedbackMessage('No content to save', 'error');
+          return;
+        }
+
+        const name = await this.promptForCoverLetterName();
+        if (!name) return;
+
+        try {
+          console.log('Saving new cover letter:', { name, contentLength: textContent.length });
+          
+          // Create new cover letter object with explicit textContent field
+          const newCoverLetter = {
+            id: Date.now().toString(),
+            name: name.trim(),
+            textContent: textContent.trim(),
+            createdAt: new Date().toISOString()
+          };
+
+          console.log('New cover letter object:', newCoverLetter);
+
+          // Get existing cover letters
+          let coverLetters = await this.databaseManager.getField('coverLetters');
+          console.log('Retrieved cover letters from database:', coverLetters);
+          
+          // Ensure coverLetters is an array and create a fresh copy
+          coverLetters = Array.isArray(coverLetters) ? [...coverLetters] : [];
+          
+          // Validate existing cover letters and remove any invalid ones
+          const originalLength = coverLetters.length;
+          coverLetters = coverLetters.filter(letter => {
+            const isValid = letter && 
+              typeof letter === 'object' && 
+              letter.id && 
+              letter.name && 
+              typeof letter.textContent === 'string' &&
+              letter.textContent.length > 0;
+            
+            if (!isValid) {
+              console.warn('Removing invalid cover letter:', letter);
+            }
+            return isValid;
+          });
+          
+          if (coverLetters.length !== originalLength) {
+            console.log(`Removed ${originalLength - coverLetters.length} invalid cover letters`);
+          }
+          
+          // Add the new cover letter
+          coverLetters.push(newCoverLetter);
+          console.log('Updated cover letters array:', coverLetters);
+
+          // Save to database
+          await this.databaseManager.updateField('coverLetters', coverLetters);
+          await this.databaseManager.updateField('activeCoverLetterId', newCoverLetter.id);
+
+          // Update UI
+          await this.updateSavedCoverLetters();
+          
+          // Hide the generation UI and show success message
+          if (generatedCoverLetterDiv) {
+            generatedCoverLetterDiv.style.display = 'none';
+          }
+          this.showFeedbackMessage('Cover letter saved successfully');
+        } catch (error) {
+          console.error('Error saving cover letter:', error);
+          this.showFeedbackMessage('Failed to save cover letter', 'error');
+        }
+      });
+    }
+
+    if (cancelCoverLetterBtn) {
+      cancelCoverLetterBtn.addEventListener('click', () => {
+        if (generatedCoverLetterDiv) {
+          generatedCoverLetterDiv.style.display = 'none';
+          if (coverLetterContent) {
+            coverLetterContent.value = ''; // Clear the content
+          }
+        }
+      });
+    }
+
+    // Add change handler for cover letter select
+    if (coverLetterSelect) {
+      coverLetterSelect.addEventListener('change', async () => {
+        const selectedId = coverLetterSelect.value;
+        console.log('Cover letter selected:', selectedId);
+        
+        if (!selectedId) {
+          console.log('No cover letter selected, clearing content');
+          if (savedCoverLetterContent) {
+            savedCoverLetterContent.value = '';
+          }
+          return;
+        }
+
+        try {
+          // Get cover letters from database
+          let coverLetters = await this.databaseManager.getField('coverLetters');
+          console.log('Retrieved cover letters from database:', coverLetters);
+          
+          // Ensure coverLetters is an array and create a fresh copy
+          coverLetters = Array.isArray(coverLetters) ? [...coverLetters] : [];
+          
+          // Find the selected letter
+          const selectedLetter = coverLetters.find(letter => letter.id === selectedId);
+          console.log('Selected letter:', selectedLetter);
+          
+          if (selectedLetter?.textContent && savedCoverLetterContent) {
+            console.log('Setting content, length:', selectedLetter.textContent.length);
+            savedCoverLetterContent.value = selectedLetter.textContent;
+            await this.databaseManager.updateField('activeCoverLetterId', selectedId);
+          } else {
+            console.error('Selected letter not found or invalid:', selectedId);
+            if (savedCoverLetterContent) {
+              savedCoverLetterContent.value = '';
+            }
+          }
+        } catch (error) {
+          console.error('Error loading cover letter:', error);
+          this.showFeedbackMessage('Failed to load cover letter', 'error');
+        }
+      });
+    }
+  }
+
+  async promptForCoverLetterName() {
+    const modal = this.showModal(
+      'Save Cover Letter',
+      `
+        <div class="form-group">
+          <label for="coverLetterName">Cover Letter Name:</label>
+          <input type="text" id="coverLetterName" class="form-input" placeholder="Enter a name for this cover letter">
+        </div>
+      `,
+      `
+        <button id="confirmSaveCoverLetter" class="primary-button">Save</button>
+        <button id="cancelSaveCoverLetter" class="secondary-button">Cancel</button>
+      `
+    );
+
+    return new Promise((resolve) => {
+      const confirmBtn = modal.querySelector('#confirmSaveCoverLetter');
+      const cancelBtn = modal.querySelector('#cancelSaveCoverLetter');
+      const input = modal.querySelector('#coverLetterName');
+
+      const cleanup = () => {
+        // Remove any existing modals
+        document.querySelectorAll('.modal').forEach(m => m.remove());
+      };
+
+      const handleSave = () => {
+        const name = input.value.trim();
+        if (name) {
+          cleanup();
+          resolve(name);
+        } else {
+          input.classList.add('error');
+        }
+      };
+
+      confirmBtn.addEventListener('click', handleSave);
+      cancelBtn.addEventListener('click', () => {
+        cleanup();
+        resolve(null);
+      });
+
+      // Handle Enter key press
+      input.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          handleSave();
+        }
+      });
+
+      input.addEventListener('input', () => {
+        input.classList.remove('error');
+      });
+
+      // Focus the input
+      input.focus();
+    });
+  }
+
+  async updateSavedCoverLetters() {
+    const select = document.getElementById('coverLetterSelect');
+    const contentDisplay = document.getElementById('coverLetterContent');
+    if (!select) return;
+
+    try {
+      console.log('Updating saved cover letters...');
+      
+      // Get cover letters from database
+      let coverLetters = await this.databaseManager.getField('coverLetters');
+      console.log('Retrieved cover letters from database:', coverLetters);
+      
+      // Ensure coverLetters is an array and create a fresh copy
+      coverLetters = Array.isArray(coverLetters) ? [...coverLetters] : [];
+      
+      // Get active cover letter ID
+      const activeCoverLetterId = await this.databaseManager.getField('activeCoverLetterId');
+      console.log('Active cover letter ID:', activeCoverLetterId);
+      
+      // Clear existing options
+      select.innerHTML = '<option value="">Select a cover letter</option>';
+
+      // Add cover letters to select
+      coverLetters.forEach(letter => {
+        if (!letter?.id || !letter?.name || !letter?.textContent) {
+          console.error('Invalid cover letter:', letter);
+          return;
+        }
+        const option = document.createElement('option');
+        option.value = letter.id;
+        option.textContent = letter.name;
+        select.appendChild(option);
+      });
+
+      // Handle content display
+      if (contentDisplay) {
+        if (activeCoverLetterId) {
+          const activeLetter = coverLetters.find(letter => letter.id === activeCoverLetterId);
+          console.log('Active letter:', activeLetter);
+          
+          if (activeLetter?.textContent) {
+            select.value = activeCoverLetterId;
+            contentDisplay.value = activeLetter.textContent;
+          } else {
+            console.warn('Active letter not found or invalid:', activeCoverLetterId);
+            contentDisplay.value = '';
+            select.value = '';
+          }
+        } else {
+          console.log('No active cover letter');
+          contentDisplay.value = '';
+          select.value = '';
+        }
+      }
+    } catch (error) {
+      console.error('Error updating saved cover letters:', error);
+      this.showFeedbackMessage('Failed to update cover letters', 'error');
+    }
   }
 
   switchTab(tabId) {
@@ -123,6 +421,12 @@ export class UIManager {
         </div>
       </div>
     `;
+
+    // Remove any existing modals first
+    const existingModal = document.querySelector('.modal');
+    if (existingModal) {
+      existingModal.remove();
+    }
 
     document.body.appendChild(modal);
     return modal;
@@ -702,8 +1006,7 @@ export class UIManager {
           break;
 
         case 'apply':
-          const jobToApply = (await this.databaseManager.getField('savedJobs'))
-            .find(j => j.jobLink === jobLink);
+          const jobToApply = jobs.find(j => j.jobLink === jobLink);
           
           if (jobToApply) {
             document.dispatchEvent(new CustomEvent('showApplyModal', { detail: jobToApply }));

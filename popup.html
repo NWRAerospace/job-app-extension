@@ -290,6 +290,11 @@
         </div>
         
         <div class="generation-controls">
+          <button id="generateFreshCoverLetter" class="primary-button">Generate Fresh Cover Letter</button>
+          <button id="modifyCurrentCoverLetter" class="secondary-button" style="display: none;">
+            Modify Current Cover Letter
+          </button>
+          
           <div class="cover-letter-options">
             <div class="option-group">
               <label>Number of Body Paragraphs:</label>
@@ -317,10 +322,6 @@
               </div>
             </div>
           </div>
-          <button id="generateFreshCoverLetter" class="primary-button">Generate Fresh Cover Letter</button>
-          <button id="modifyCurrentCoverLetter" class="secondary-button" style="display: none;">
-            Modify Current Cover Letter
-          </button>
         </div>
 
         <div class="generated-cover-letter" style="display: none;">
@@ -334,6 +335,8 @@
           </div>
           <div class="action-buttons">
             <button id="copyToClipboard" class="secondary-button">Copy to Clipboard</button>
+            <button id="saveCoverLetter" class="primary-button">Save Cover Letter</button>
+            <button id="cancelCoverLetter" class="danger-button">Cancel</button>
           </div>
         </div>
       </div>
