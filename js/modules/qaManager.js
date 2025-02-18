@@ -19,6 +19,7 @@ export class QAManager {
     this.selectedQuestion = document.getElementById('selectedQuestion');
     this.selectedAnswer = document.getElementById('selectedAnswer');
     this.copyButton = document.getElementById('copyAnswerButton');
+    this.copyQAButton = document.getElementById('copyQAButton');
     this.editButton = document.getElementById('editAnswerButton');
     this.generateAIButton = document.getElementById('generateAIAnswerButton');
     
@@ -52,6 +53,7 @@ export class QAManager {
     
     // Button actions
     this.copyButton.addEventListener('click', this.copyAnswerToClipboard.bind(this));
+    this.copyQAButton.addEventListener('click', this.copyQAToClipboard.bind(this));
     this.editButton.addEventListener('click', this.startEditing.bind(this));
     this.saveButton.addEventListener('click', this.saveQAPair.bind(this));
     this.cancelButton.addEventListener('click', this.cancelEditing.bind(this));
@@ -204,6 +206,7 @@ export class QAManager {
     this.selectedQuestion.textContent = qaPair.question;
     this.selectedAnswer.textContent = qaPair.answer;
     this.copyButton.style.display = 'inline-block';
+    this.copyQAButton.style.display = 'inline-block';
     this.editButton.style.display = 'inline-block';
     this.generateAIButton.style.display = 'inline-block';
     this.qaEditor.style.display = 'none';
@@ -225,6 +228,23 @@ export class QAManager {
     }
   }
 
+  async copyQAToClipboard() {
+    if (this.currentQAPair) {
+      try {
+        const formattedText = `Q: ${this.currentQAPair.question}\nA: ${this.currentQAPair.answer}`;
+        await navigator.clipboard.writeText(formattedText);
+        // Show a brief success message
+        const originalText = this.copyQAButton.textContent;
+        this.copyQAButton.textContent = 'Copied!';
+        setTimeout(() => {
+          this.copyQAButton.textContent = originalText;
+        }, 2000);
+      } catch (err) {
+        console.error('Failed to copy text:', err);
+      }
+    }
+  }
+
   startEditing() {
     if (this.currentQAPair) {
       this.questionInput.value = this.currentQAPair.question;
@@ -235,6 +255,7 @@ export class QAManager {
     this.selectedQuestion.textContent = '';
     this.selectedAnswer.textContent = '';
     this.copyButton.style.display = 'none';
+    this.copyQAButton.style.display = 'none';
     this.editButton.style.display = 'none';
     this.generateAIButton.style.display = 'none';
   }
@@ -246,6 +267,7 @@ export class QAManager {
     this.selectedQuestion.textContent = '';
     this.selectedAnswer.textContent = '';
     this.copyButton.style.display = 'none';
+    this.copyQAButton.style.display = 'none';
     this.editButton.style.display = 'none';
     this.generateAIButton.style.display = 'none';
     
@@ -303,6 +325,7 @@ export class QAManager {
       this.selectedQuestion.textContent = '';
       this.selectedAnswer.textContent = '';
       this.copyButton.style.display = 'none';
+      this.copyQAButton.style.display = 'none';
       this.editButton.style.display = 'none';
       this.generateAIButton.style.display = 'none';
     }
