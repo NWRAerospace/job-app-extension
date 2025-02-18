@@ -21,6 +21,7 @@ export class QAManager {
     this.copyButton = document.getElementById('copyAnswerButton');
     this.copyQAButton = document.getElementById('copyQAButton');
     this.editButton = document.getElementById('editAnswerButton');
+    this.deleteButton = document.getElementById('deleteQAButton');
     this.generateAIButton = document.getElementById('generateAIAnswerButton');
     
     // Editor elements
@@ -55,6 +56,7 @@ export class QAManager {
     this.copyButton.addEventListener('click', this.copyAnswerToClipboard.bind(this));
     this.copyQAButton.addEventListener('click', this.copyQAToClipboard.bind(this));
     this.editButton.addEventListener('click', this.startEditing.bind(this));
+    this.deleteButton.addEventListener('click', this.deleteQAPair.bind(this));
     this.saveButton.addEventListener('click', this.saveQAPair.bind(this));
     this.cancelButton.addEventListener('click', this.cancelEditing.bind(this));
     this.addNewButton.addEventListener('click', this.startNewQAPair.bind(this));
@@ -167,16 +169,17 @@ export class QAManager {
     // Always add the "Add as New Question" option
     const addNewDiv = document.createElement('div');
     addNewDiv.className = 'qa-search-item add-new-option';
+    const searchText = this.searchInput.value.trim();
     addNewDiv.innerHTML = `
       <span>Add as New Question:</span>
-      <span class="new-question-text">"${this.searchInput.value.trim()}"</span>
+      <span class="new-question-text">"${searchText}"</span>
       <button class="add-as-new-button">Add New</button>
     `;
     
     const addButton = addNewDiv.querySelector('.add-as-new-button');
     addButton.addEventListener('click', () => {
       this.startNewQAPair();
-      this.questionInput.value = this.searchInput.value.trim();
+      this.questionInput.value = searchText;
       this.searchResults.classList.remove('active');
     });
     
@@ -201,6 +204,28 @@ export class QAManager {
     }
   }
 
+  async deleteQAPair() {
+    if (!this.currentQAPair) return;
+    
+    if (confirm('Are you sure you want to delete this Q&A pair?')) {
+      try {
+        await DatabaseManager.deleteQAPair(this.currentQAPair.id);
+        this.currentQAPair = null;
+        this.selectedQuestion.textContent = '';
+        this.selectedAnswer.textContent = '';
+        this.copyButton.style.display = 'none';
+        this.copyQAButton.style.display = 'none';
+        this.editButton.style.display = 'none';
+        this.deleteButton.style.display = 'none';
+        this.generateAIButton.style.display = 'none';
+        this.updateQACount();
+      } catch (err) {
+        console.error('Failed to delete Q&A pair:', err);
+        alert('Failed to delete Q&A pair. Please try again.');
+      }
+    }
+  }
+
   displayQAPair(qaPair) {
     this.currentQAPair = qaPair;
     this.selectedQuestion.textContent = qaPair.question;
@@ -208,6 +233,7 @@ export class QAManager {
     this.copyButton.style.display = 'inline-block';
     this.copyQAButton.style.display = 'inline-block';
     this.editButton.style.display = 'inline-block';
+    this.deleteButton.style.display = 'inline-block';
     this.generateAIButton.style.display = 'inline-block';
     this.qaEditor.style.display = 'none';
   }
@@ -257,6 +283,7 @@ export class QAManager {
     this.copyButton.style.display = 'none';
     this.copyQAButton.style.display = 'none';
     this.editButton.style.display = 'none';
+    this.deleteButton.style.display = 'none';
     this.generateAIButton.style.display = 'none';
   }
 
@@ -269,6 +296,7 @@ export class QAManager {
     this.copyButton.style.display = 'none';
     this.copyQAButton.style.display = 'none';
     this.editButton.style.display = 'none';
+    this.deleteButton.style.display = 'none';
     this.generateAIButton.style.display = 'none';
     
     // Then transfer the question
@@ -327,6 +355,7 @@ export class QAManager {
       this.copyButton.style.display = 'none';
       this.copyQAButton.style.display = 'none';
       this.editButton.style.display = 'none';
+      this.deleteButton.style.display = 'none';
       this.generateAIButton.style.display = 'none';
     }
   }

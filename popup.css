@@ -1519,10 +1519,23 @@ button:disabled .loading-spinner {
   padding: 1rem;
   border: 1px solid #eee;
   border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.qa-display:empty,
+.qa-display .qa-content:empty {
+  padding: 0.25rem;
+  margin: 0.5rem 0;
+  border-color: transparent;
 }
 
 .qa-content {
   margin-bottom: 1rem;
+}
+
+.qa-content:empty {
+  margin: 0;
+  padding: 0;
 }
 
 .selected-question {
@@ -1534,9 +1547,27 @@ button:disabled .loading-spinner {
   white-space: pre-wrap;
 }
 
+.selected-question:empty,
+.selected-answer:empty {
+  display: none;
+}
+
 .qa-actions {
   display: flex;
   gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+}
+
+.qa-actions button {
+  font-size: 12px;
+  padding: 4px 8px;
+  white-space: nowrap;
+}
+
+.qa-actions:empty,
+.qa-display:not(:has(.selected-question:not(:empty), .selected-answer:not(:empty))) {
+  display: none;
 }
 
 .qa-editor {
@@ -1579,9 +1610,10 @@ button:disabled .loading-spinner {
   background-color: #007bff;
   color: white;
   border: none;
-  padding: 0.5rem 1rem;
+  padding: 4px 8px;
   border-radius: 4px;
   cursor: pointer;
+  font-size: 12px;
 }
 
 .primary-button:hover {
@@ -1592,9 +1624,10 @@ button:disabled .loading-spinner {
   background-color: #6c757d;
   color: white;
   border: none;
-  padding: 0.5rem 1rem;
+  padding: 4px 8px;
   border-radius: 4px;
   cursor: pointer;
+  font-size: 12px;
 }
 
 .secondary-button:hover {
