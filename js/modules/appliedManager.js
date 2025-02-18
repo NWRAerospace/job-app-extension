@@ -286,4 +286,40 @@ export class AppliedManager {
 
     document.body.appendChild(modal);
   }
+
+  async handleJobAction(jobId, action) {
+    try {
+      const savedJobs = await this.databaseManager.getField('savedJobs') || [];
+      const job = savedJobs.find(j => j.id === jobId);
+      
+      if (!job) {
+        throw new Error('Job not found');
+      }
+
+      switch (action) {
+        case 'view':
+          await this.showJobDetailsModal(job);
+          break;
+        case 'delete':
+          const confirmed = await this.uiManager.showConfirmDialog(
+            'Are you sure you want to delete this job?'
+          );
+          if (confirmed) {
+            const updatedJobs = savedJobs.filter(j => j.id !== jobId);
+            await this.databaseManager.updateField('savedJobs', updatedJobs);
+            if (typeof this.uiManager.updateJobsList === 'function') {
+              // Update the jobs list if the function exists
+              this.uiManager.updateJobsList(updatedJobs);
+            }
+            this.uiManager.showFeedbackMessage('Job deleted successfully');
+          }
+          break;
+        default:
+          throw new Error('Invalid action');
+      }
+    } catch (error) {
+      console.error('Error handling job action:', error);
+      this.uiManager.showFeedbackMessage(`Error: ${error.message}`, 'error');
+    }
+  }
 } 

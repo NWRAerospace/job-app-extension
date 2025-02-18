@@ -55,6 +55,9 @@ export class UIManager {
       } else if (tabId === 'applied') {
         // Dispatch event for applied jobs tab selection
         document.dispatchEvent(new CustomEvent('appliedTabSelected'));
+      } else if (tabId === 'jobs') {
+        // Refresh jobs list when switching to jobs tab
+        this.refreshJobsList();
       }
     }
   }
@@ -169,10 +172,10 @@ export class UIManager {
       keywordList.querySelectorAll('li').forEach(li => keywords.add(li.textContent));
     }
 
-    // Get keywords from saved jobs
-    const savedJobsList = document.getElementById('savedJobsList');
-    if (savedJobsList) {
-      savedJobsList.querySelectorAll('.keyword').forEach(span => keywords.add(span.textContent));
+    // Get keywords from jobs list
+    const jobsList = document.getElementById('jobsList');
+    if (jobsList) {
+      jobsList.querySelectorAll('.keyword').forEach(span => keywords.add(span.textContent));
     }
 
     return Array.from(keywords);
@@ -192,13 +195,13 @@ export class UIManager {
       });
     }
 
-    // Update saved jobs keywords
-    const savedJobsList = document.getElementById('savedJobsList');
-    if (savedJobsList) {
-      savedJobsList.querySelectorAll('.keyword').forEach(span => {
+    // Update jobs list keywords
+    const jobsList = document.getElementById('jobsList');
+    if (jobsList) {
+      jobsList.querySelectorAll('.keyword').forEach(span => {
         const keyword = span.textContent;
         const matchType = matches.get(keyword) || 'no-match';
-        console.log(`Updating saved job keyword "${keyword}" with class "${matchType}"`);
+        console.log(`Updating job keyword "${keyword}" with class "${matchType}"`);
         span.className = `keyword ${matchType}`;
       });
     }
@@ -1102,41 +1105,88 @@ export class UIManager {
     document.body.appendChild(modal);
   }
 
-  async refreshSavedJobsList() {
-    const savedJobs = await this.databaseManager.getField('savedJobs') || [];
-    const savedJobsList = document.getElementById('savedJobsList');
-    
-    if (!savedJobs.length) {
-      savedJobsList.innerHTML = '<p class="no-jobs">No saved jobs yet.</p>';
+  async updateJobsList(jobs = []) {
+    console.log('Updating jobs list with jobs:', jobs);
+    const jobsContainer = document.getElementById('jobsList');
+    if (!jobsContainer) {
+      console.error('Jobs container not found');
       return;
     }
 
-    savedJobsList.innerHTML = savedJobs.map(job => `
+    if (!jobs.length) {
+      console.log('No jobs to display');
+      jobsContainer.innerHTML = '<p class="no-items-message">No saved jobs yet.</p>';
+      return;
+    }
+
+    jobsContainer.innerHTML = jobs.map(job => `
       <div class="saved-job-item" data-job-id="${job.id}">
         <div class="job-header">
           <h3 class="job-title">${job.title || 'Untitled Position'}</h3>
           <span class="job-company">${job.company || 'Unknown Company'}</span>
         </div>
         <div class="job-details">
-          <span>Saved: ${new Date(job.dateSaved).toLocaleDateString()}</span>
-          <span>Job Fit: ${job.rating}/10</span>
+          <span class="rating">Rating: ${job.rating}/10</span>
+          <span class="date">Saved: ${new Date(job.dateSaved).toLocaleDateString()}</span>
         </div>
         <div class="job-actions">
           <button class="view-job" data-action="view">View Job Details</button>
-          <button class="delete-job" data-action="delete">Delete</button>
+          ${job.jobLink ? `<button class="open-job" data-action="open" data-job-link="${job.jobLink}">Open Job</button>` : ''}
+          <button class="apply-button" data-action="apply">Mark as Applied</button>
+          <button class="remove-button" data-action="remove">Remove</button>
         </div>
       </div>
     `).join('');
+    console.log('Jobs list HTML updated');
 
     // Add event listeners for job actions
-    savedJobsList.querySelectorAll('.saved-job-item').forEach(jobElement => {
+    jobsContainer.querySelectorAll('.saved-job-item').forEach(jobElement => {
       jobElement.querySelectorAll('button[data-action]').forEach(button => {
         button.addEventListener('click', async (e) => {
           const jobId = jobElement.dataset.jobId;
           const action = button.dataset.action;
-          await this.handleJobAction(jobId, action);
+          console.log('Job action clicked:', { jobId, action });
+          
+          switch (action) {
+            case 'view':
+              const job = jobs.find(j => j.id === jobId);
+              if (job) {
+                this.showJobDetailsModal(job);
+              }
+              break;
+            case 'open':
+              const jobLink = button.dataset.jobLink;
+              if (jobLink) {
+                window.open(jobLink, '_blank');
+              }
+              break;
+            case 'apply':
+              const jobToApply = jobs.find(j => j.id === jobId);
+              if (jobToApply) {
+                document.dispatchEvent(new CustomEvent('showApplyModal', { detail: jobToApply }));
+              }
+              break;
+            case 'remove':
+              if (await this.databaseManager.removeSavedJob(jobId)) {
+                const updatedJobs = await this.databaseManager.getField('savedJobs');
+                this.updateJobsList(updatedJobs);
+                this.showFeedbackMessage('Job removed successfully');
+              }
+              break;
+          }
         });
       });
     });
+  }
+
+  async refreshJobsList() {
+    console.log('Refreshing jobs list...');
+    try {
+      const savedJobs = await this.databaseManager.getField('savedJobs') || [];
+      console.log('Retrieved saved jobs:', savedJobs);
+      await this.updateJobsList(savedJobs);
+    } catch (error) {
+      console.error('Error refreshing jobs list:', error);
+    }
   }
 }

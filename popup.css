@@ -1274,8 +1274,7 @@ button:disabled .loading-spinner {
   border: 1px solid #e9ecef;
 }
 
-/* Hide keyword match controls in saved jobs list */
-#savedJobsList .keyword-match-controls,
+/* Hide keyword match controls in jobs list */
 #jobs .keyword-match-controls {
   display: none;
 }

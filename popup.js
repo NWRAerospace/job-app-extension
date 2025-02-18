@@ -13,8 +13,10 @@ import { AIHelper } from './js/utils/aiHelper.js';
 import { AppliedManager } from './js/modules/appliedManager.js';
 
 document.addEventListener('DOMContentLoaded', async function() {
+  console.log('DOM Content Loaded');
   // Initialize database first
   await DatabaseManager.initializeDB();
+  console.log('Database initialized');
 
   // Initialize managers
   const jobAssessor = new JobAssessor(DatabaseManager);
@@ -26,6 +28,7 @@ document.addEventListener('DOMContentLoaded', async function() {
   const experienceManager = new ExperienceManager(DatabaseManager, uiManager);
   const qaManager = new QAManager(DatabaseManager, uiManager);
   const appliedManager = new AppliedManager(DatabaseManager, uiManager);
+  console.log('Managers initialized');
 
   // Variable for tracking experience being edited
   let editingIndex = null;
@@ -35,6 +38,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     DatabaseManager.getField('geminiApiKey'),
     DatabaseManager.getField('geminiModel')
   ]);
+  console.log('Settings loaded');
 
   if (apiKey) {
     document.getElementById('geminiApiKey').value = apiKey;
@@ -45,11 +49,13 @@ document.addEventListener('DOMContentLoaded', async function() {
   }
 
   // Initial UI updates
+  console.log('Starting initial UI updates');
   await Promise.all([
     uiManager.updateCurrentJobDisplay(),
     uiManager.updateCurrentResumeDisplay(),
     refreshAllLists()
   ]);
+  console.log('Initial UI updates completed');
 
   // Setup event handlers - pass necessary managers as parameters
   setupEventHandlers({
@@ -95,8 +101,10 @@ document.addEventListener('DOMContentLoaded', async function() {
   });
 
   async function refreshAllLists() {
+    console.log('Refreshing all lists');
     const savedJobs = await DatabaseManager.getField('savedJobs') || [];
-    await uiManager.updateSavedJobsList(savedJobs);
+    console.log('Retrieved saved jobs for initial load:', savedJobs);
+    await uiManager.updateJobsList(savedJobs);
     const [skills, education, limitations] = await Promise.all([
       DatabaseManager.getField('skills') || [],
       DatabaseManager.getField('education') || [],
@@ -106,6 +114,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     uiManager.updateSkillsList(skills);
     uiManager.updateEducationList(education);
     uiManager.updateLimitationsList(limitations);
+    console.log('All lists refreshed');
   }
 
   async function loadSavedDocuments() {
@@ -1567,8 +1576,8 @@ document.addEventListener('DOMContentLoaded', async function() {
       await DatabaseManager.updateField('activeJobId', newJob.id);
       await uiManager.updateCurrentJobDisplay();
       
-      // Update the saved jobs list in the UI
-      uiManager.updateSavedJobsList(savedJobs);
+      // Update the jobs list in the UI
+      uiManager.updateJobsList(savedJobs);
       uiManager.showFeedbackMessage('Job saved successfully!');
       
     } catch (error) {
@@ -1710,7 +1719,7 @@ document.addEventListener('DOMContentLoaded', async function() {
       uiManager.updateSkillsList(skills || []);
       uiManager.updateEducationList(education || []);
       uiManager.updateLimitationsList(limitations || []);
-      uiManager.updateSavedJobsList(savedJobs || []);
+      uiManager.updateJobsList(savedJobs || []);
 
       // Refresh documents
       await Promise.all([

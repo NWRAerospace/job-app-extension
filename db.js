@@ -114,8 +114,12 @@ class DatabaseManager {
   }
 
   static async getField(field) {
+    console.log(`Getting field: ${field}`);
     const activeProfile = await this.getActiveProfile();
-    return activeProfile.data[field];
+    console.log('Active profile:', activeProfile);
+    const value = activeProfile.data[field];
+    console.log(`Value for ${field}:`, value);
+    return value;
   }
 
   static async updateField(field, value) {
