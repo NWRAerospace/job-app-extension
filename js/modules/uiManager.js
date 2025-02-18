@@ -625,22 +625,8 @@ export class UIManager {
         <span class="rating">Rating: ${job.rating}/10</span>
         <span class="date">Saved: ${savedDate}</span>
       </div>
-      <div class="assessment-rationale">
-        ${job.rationale || ''}
-      </div>
-      <div class="job-keywords">
-        ${job.keywords?.map(keyword => `
-          <span class="keyword">
-            ${keyword}
-            <button class="add-skill-button" title="Add to my skills" data-skill="${keyword}">
-              <svg viewBox="0 0 24 24">
-                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
-              </svg>
-            </button>
-          </span>
-        `).join('') || ''}
-      </div>
       <div class="job-actions">
+        <button class="view-job" data-action="view">View Job Details</button>
         <button class="open-job" data-action="open" data-job-link="${job.jobLink}">Open Job</button>
         <button class="select-job" data-action="select">Select Job</button>
         <button class="apply-button" data-action="apply">Mark as Applied</button>
@@ -677,6 +663,14 @@ export class UIManager {
       const action = button.dataset.action;
 
       switch (action) {
+        case 'view':
+          const savedJobs = await this.databaseManager.getField('savedJobs');
+          const job = savedJobs.find(j => j.id === jobId);
+          if (job) {
+            this.showJobDetailsModal(job);
+          }
+          break;
+
         case 'open':
           if (jobLink && jobLink !== '#') {
             window.open(jobLink, '_blank');
@@ -697,19 +691,19 @@ export class UIManager {
           await this.databaseManager.setActiveJob(newActiveId);
           
           // Update all job elements' selection state
-          const savedJobs = await this.databaseManager.getField('savedJobs');
-          this.updateSavedJobsList(savedJobs);
+          const updatedJobs = await this.databaseManager.getField('savedJobs');
+          this.updateSavedJobsList(updatedJobs);
           
           // Update the current job display
           await this.updateCurrentJobDisplay();
           break;
 
         case 'apply':
-          const job = (await this.databaseManager.getField('savedJobs'))
+          const jobToApply = (await this.databaseManager.getField('savedJobs'))
             .find(j => j.jobLink === jobLink);
           
-          if (job) {
-            document.dispatchEvent(new CustomEvent('showApplyModal', { detail: job }));
+          if (jobToApply) {
+            document.dispatchEvent(new CustomEvent('showApplyModal', { detail: jobToApply }));
           }
           break;
       }
@@ -980,5 +974,131 @@ export class UIManager {
     });
 
     cancelButton.addEventListener('click', () => modal.remove());
+  }
+
+  async showJobDetailsModal(job) {
+    // Get current skills to check against
+    const currentSkills = await this.databaseManager.getField('skills') || [];
+    const currentSkillNames = new Set(currentSkills.map(s => s.skill.toLowerCase()));
+
+    // Get resume text for matching
+    const resumeText = await this.databaseManager.getField('resumeText');
+
+    // Create a Map of keyword matches
+    let keywordMatches = new Map();
+    if (job.keywords) {
+      switch (this.currentMatchType) {
+        case 'resume':
+          keywordMatches = KeywordMatcher.findResumeMatches(job.keywords, resumeText);
+          break;
+        case 'skills':
+          keywordMatches = KeywordMatcher.findSkillMatches(job.keywords, currentSkills);
+          break;
+        case 'both':
+          keywordMatches = KeywordMatcher.findCombinedMatches(job.keywords, resumeText, currentSkills);
+          break;
+      }
+    }
+
+    const modalHTML = `
+      <div class="modal-content">
+        <h2>${job.title || 'Untitled Position'}</h2>
+        <div class="job-details-content">
+          <div class="job-company-info">
+            <strong>Company:</strong> ${job.company || 'Unknown Company'}
+          </div>
+          <div class="job-application-info">
+            <strong>Saved:</strong> ${new Date(job.dateSaved).toLocaleDateString()}
+          </div>
+          <div class="job-assessment">
+            <strong>Job Fit Rating:</strong> ${job.rating}/10
+          </div>
+          ${job.rationale ? `
+            <div class="job-rationale">
+              <strong>Assessment:</strong>
+              <p>${job.rationale}</p>
+            </div>
+          ` : ''}
+          ${job.keywords?.length ? `
+            <div class="job-keywords">
+              <strong>Key Skills/Requirements:</strong>
+              <div class="keyword-match-controls">
+                <span>Match Keywords Against:</span>
+                <div class="toggle-group">
+                  <label class="toggle-option">
+                    <input type="radio" name="modalMatchType" value="resume" ${this.currentMatchType === 'resume' ? 'checked' : ''}>
+                    Resume Text
+                  </label>
+                  <label class="toggle-option">
+                    <input type="radio" name="modalMatchType" value="skills" ${this.currentMatchType === 'skills' ? 'checked' : ''}>
+                    Skills
+                  </label>
+                  <label class="toggle-option">
+                    <input type="radio" name="modalMatchType" value="both" ${this.currentMatchType === 'both' ? 'checked' : ''}>
+                    Both
+                  </label>
+                </div>
+              </div>
+              <div class="keyword-list">
+                ${job.keywords.map(keyword => {
+                  const matchType = keywordMatches.get(keyword) || 'no-match';
+                  const isInSkills = currentSkillNames.has(keyword.toLowerCase());
+                  return `
+                    <span class="keyword ${matchType}">
+                      ${keyword}
+                      ${!isInSkills ? `
+                        <button class="add-skill-button" title="Add to my skills" data-skill="${keyword}">
+                          <svg viewBox="0 0 24 24">
+                            <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                          </svg>
+                        </button>
+                      ` : `
+                        <button class="add-skill-button added" title="Already in skills" disabled>
+                          <svg viewBox="0 0 24 24">
+                            <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+                          </svg>
+                        </button>
+                      `}
+                    </span>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+          ` : ''}
+          ${job.jobText ? `
+            <div class="job-posting-text">
+              <strong>Job Posting:</strong>
+              <pre>${job.jobText}</pre>
+            </div>
+          ` : ''}
+        </div>
+        <div class="modal-actions">
+          <button class="secondary-button" data-action="close">Close</button>
+        </div>
+      </div>
+    `;
+
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.innerHTML = modalHTML;
+
+    // Add event listener for close button
+    modal.querySelector('[data-action="close"]').addEventListener('click', () => {
+      modal.remove();
+    });
+
+    // Add event listeners for match type radio buttons
+    modal.querySelectorAll('input[name="modalMatchType"]').forEach(radio => {
+      radio.addEventListener('change', async (e) => {
+        this.currentMatchType = e.target.value;
+        modal.remove(); // Remove the old modal first
+        await this.showJobDetailsModal(job); // Then create the new modal
+      });
+    });
+
+    // Add event listeners for add skill buttons
+    this.setupAddSkillButtons(modal);
+
+    document.body.appendChild(modal);
   }
 }
