@@ -1023,7 +1023,7 @@ export class UIManager {
             <div class="job-keywords">
               <strong>Key Skills/Requirements:</strong>
               <div class="keyword-match-controls">
-                <span>Match Keywords Against:</span>
+                <label>Match Keywords Against:</label>
                 <div class="toggle-group">
                   <label class="toggle-option">
                     <input type="radio" name="modalMatchType" value="resume" ${this.currentMatchType === 'resume' ? 'checked' : ''}>
@@ -1100,5 +1100,43 @@ export class UIManager {
     this.setupAddSkillButtons(modal);
 
     document.body.appendChild(modal);
+  }
+
+  async refreshSavedJobsList() {
+    const savedJobs = await this.databaseManager.getField('savedJobs') || [];
+    const savedJobsList = document.getElementById('savedJobsList');
+    
+    if (!savedJobs.length) {
+      savedJobsList.innerHTML = '<p class="no-jobs">No saved jobs yet.</p>';
+      return;
+    }
+
+    savedJobsList.innerHTML = savedJobs.map(job => `
+      <div class="saved-job-item" data-job-id="${job.id}">
+        <div class="job-header">
+          <h3 class="job-title">${job.title || 'Untitled Position'}</h3>
+          <span class="job-company">${job.company || 'Unknown Company'}</span>
+        </div>
+        <div class="job-details">
+          <span>Saved: ${new Date(job.dateSaved).toLocaleDateString()}</span>
+          <span>Job Fit: ${job.rating}/10</span>
+        </div>
+        <div class="job-actions">
+          <button class="view-job" data-action="view">View Job Details</button>
+          <button class="delete-job" data-action="delete">Delete</button>
+        </div>
+      </div>
+    `).join('');
+
+    // Add event listeners for job actions
+    savedJobsList.querySelectorAll('.saved-job-item').forEach(jobElement => {
+      jobElement.querySelectorAll('button[data-action]').forEach(button => {
+        button.addEventListener('click', async (e) => {
+          const jobId = jobElement.dataset.jobId;
+          const action = button.dataset.action;
+          await this.handleJobAction(jobId, action);
+        });
+      });
+    });
   }
 }

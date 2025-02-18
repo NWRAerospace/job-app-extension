@@ -1274,11 +1274,29 @@ button:disabled .loading-spinner {
   border: 1px solid #e9ecef;
 }
 
+/* Hide keyword match controls in saved jobs list */
+#savedJobsList .keyword-match-controls,
+#jobs .keyword-match-controls {
+  display: none;
+}
+
+/* Show keyword match controls in assessment tab */
 #assessmentResults .keyword-match-controls {
   margin-top: 20px;
   margin-bottom: 20px;
   background: #fff;
   border: 1px solid #e0e0e0;
+  display: block;
+}
+
+/* Show keyword match controls in job details modal */
+.modal-content .keyword-match-controls {
+  margin: 10px 0;
+  padding: 10px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border: 1px solid #e9ecef;
+  display: block;
 }
 
 .current-job {
@@ -2645,14 +2663,6 @@ button:disabled .loading-spinner {
 
 .job-keywords .add-skill-button.added svg {
   fill: white;
-}
-
-.job-keywords .keyword-match-controls {
-  margin: 10px 0;
-  padding: 10px;
-  background: #f8f9fa;
-  border-radius: 6px;
-  border: 1px solid #e9ecef;
 }
 
 .job-keywords .toggle-group {
