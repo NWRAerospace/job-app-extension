@@ -10,7 +10,7 @@ const DEFAULT_PROFILE = {
       phone: ""
     },
     skills: [],
-    jobs: [],
+    experiences: [],
     education: [],
     certifications: [],
     cantDos: [],

@@ -51,6 +51,7 @@
     <button class="tab-button" data-tab="resume">Resume</button>
     <button class="tab-button" data-tab="cover">Cover Letter</button>
     <button class="tab-button" data-tab="skills">My Skills</button>
+    <button class="tab-button" data-tab="experience">Experience</button>
     <button class="tab-button" data-tab="education">Education</button>
     <button class="tab-button" data-tab="limitations">Limitations</button>
     <button class="tab-button" data-tab="saved">Saved Jobs</button>
@@ -104,7 +105,7 @@
 
       <div class="action-buttons">
         <button id="extractSkillsButton" class="secondary-button" style="display: none;">
-          Extract Skills & Education
+          Extract Skills, Education & Experience
         </button>
       </div>
     </div>
@@ -263,6 +264,74 @@
       </div>
       <div id="skillsList" class="skills-list">
         <!-- Skills will be listed here -->
+      </div>
+    </div>
+  </div>
+
+  <div id="experience" class="tab-content">
+    <div class="experience-section">
+      <h2>Work & Volunteer Experience</h2>
+      
+      <div class="experience-list">
+        <div id="experienceItems"></div>
+        <button id="addExperienceButton" class="primary-button">Add Experience</button>
+      </div>
+
+      <!-- Add/Edit Experience Modal -->
+      <div id="experienceModal" class="modal" style="display: none;">
+        <div class="modal-content">
+          <h2 id="experienceModalTitle">Add Experience</h2>
+          <div class="experience-form">
+            <div class="form-group">
+              <label for="experienceType">Type:</label>
+              <select id="experienceType" class="form-input">
+                <option value="job">Job</option>
+                <option value="volunteer">Volunteer</option>
+                <option value="internship">Internship</option>
+                <option value="project">Project</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="experienceTitle">Title:</label>
+              <input type="text" id="experienceTitle" class="form-input" placeholder="Job/Position Title">
+            </div>
+            <div class="form-group">
+              <label for="experienceCompany">Company/Organization:</label>
+              <input type="text" id="experienceCompany" class="form-input" placeholder="Company or Organization Name">
+            </div>
+            <div class="form-group">
+              <label for="experienceLocation">Location:</label>
+              <input type="text" id="experienceLocation" class="form-input" placeholder="City, State/Country">
+            </div>
+            <div class="form-group">
+              <label for="experienceStartDate">Start Date:</label>
+              <input type="date" id="experienceStartDate" class="form-input">
+            </div>
+            <div class="form-group">
+              <label for="experienceEndDate">End Date:</label>
+              <input type="date" id="experienceEndDate" class="form-input">
+              <div class="checkbox-group">
+                <label>
+                  <input type="checkbox" id="experienceInProgress"> Currently working here
+                </label>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="experienceDescription">Description:</label>
+              <textarea id="experienceDescription" class="form-input" rows="4" placeholder="Describe your responsibilities and achievements"></textarea>
+            </div>
+            <div class="form-group">
+              <label>Linked Skills:</label>
+              <div id="experienceSkillsList" class="skills-list">
+                <!-- Skills will be populated here -->
+              </div>
+            </div>
+          </div>
+          <div class="modal-actions">
+            <button id="cancelExperienceButton" class="secondary-button">Cancel</button>
+            <button id="saveExperienceButton" class="primary-button">Save</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>

@@ -44,24 +44,52 @@ async function handleSkillsExtraction(text, apiKey) {
       body: JSON.stringify({
         contents: [{
           parts: [{
-            text: `Analyze this resume text thoroughly and extract ALL skills and education information. Be comprehensive in identifying skills from the entire resume not just one section, including:
+            text: `Analyze this resume text thoroughly and extract ALL skills, education, and work/volunteer experience information. Be comprehensive in identifying information from the entire resume, including:
 
-1. Technical skills (programming languages, tools, platforms)
-2. Professional skills (project management, team leadership, client relations)
-3. Industry-specific skills (marketing, finance, healthcare, etc.)
-4. Soft skills (communication, problem-solving, time management)
-5. Process/methodology skills (Agile, Six Sigma, etc.)
-6. Domain expertise (data analysis, web development, etc.)
-7. Look for skills implied by achievements (e.g., "increased sales by 50%" implies sales and business development skills)
-8. Consider responsibilities that indicate skills (e.g., "managed team of 5" implies leadership and team management)
+1. Skills:
+   - Technical skills (programming languages, tools, platforms)
+   - Professional skills (project management, team leadership)
+   - Industry-specific skills (marketing, finance, healthcare)
+   - Soft skills (communication, problem-solving)
+   - Process/methodology skills (Agile, Six Sigma)
+   - Domain expertise (data analysis, web development)
+   - Skills implied by achievements
+   - Skills indicated by responsibilities
 
-For each skill, assess the level based on context, responsibilities, and achievements described, as well as number of years they have with the skill if possible. Each skill should ideally be one word, up to three words maximum.
+2. Education:
+   - Degrees and certifications
+   - Courses and training
+   - Academic achievements
+   - Relevant coursework
+
+3. Experience:
+   - Job positions and roles
+   - Company/organization names
+   - Dates (MUST be in format YYYY-MM-DD, e.g. "2022-03-15")
+   - Locations
+   - Brief summary of role (STRICT 15-20 WORD LIMIT)
+
+For each skill, assess the level based on context, responsibilities, and achievements described.
+
+IMPORTANT FORMATTING RULES:
+1. DATE FORMATTING:
+   - All dates MUST be in YYYY-MM-DD format
+   - For dates with only month and year, use the first of the month (e.g., "2022-03-01")
+   - For dates with only a year, use January 1st (e.g., "2022-01-01")
+   - Current/ongoing dates should have inProgress set to true and endDate as null
+   - Never return "invalid date" or partial dates
+
+2. EXPERIENCE DESCRIPTIONS:
+   - STRICT 15-20 word limit for each description
+   - Focus on core responsibilities and key achievements only
+   - Omit articles (a, an, the) when possible to save word count
+   - No bullet points or lists
 
 Respond ONLY with a JSON object in this exact format:
 {
   "skills": [
     {
-      "skill": "Name of skill",
+      "skill": "Name of skill (1-3 words maximum)",
       "level": "Beginner" | "Intermediate" | "Expert",
       "yearsExperience": number | null
     }
@@ -78,6 +106,18 @@ Respond ONLY with a JSON object in this exact format:
       "gpa": "GPA value" | null,
       "url": "certificate URL" | null,
       "expiryDate": "YYYY-MM-DD" | null
+    }
+  ],
+  "experiences": [
+    {
+      "type": "job" | "volunteer" | "internship" | "project",
+      "title": "Job/position title",
+      "company": "Company/organization name",
+      "location": "City, State/Country" | null,
+      "startDate": "YYYY-MM-DD",
+      "endDate": "YYYY-MM-DD" | null,
+      "inProgress": boolean,
+      "description": "Brief summary of role (15-20 words maximum)"
     }
   ]
 }
@@ -107,7 +147,16 @@ ${text}`
       throw new Error('No valid JSON found in response');
     }
     
-    return JSON.parse(jsonMatch[0]);
+    const parsedResponse = JSON.parse(jsonMatch[0]);
+    console.log('Parsed AI response:', parsedResponse);
+    
+    // Ensure all required fields exist
+    if (!parsedResponse.skills || !parsedResponse.education || !parsedResponse.experiences) {
+      console.error('Missing required fields in response:', parsedResponse);
+      throw new Error('AI response is missing required data fields');
+    }
+    
+    return parsedResponse;
   } catch (error) {
     console.error('Skills extraction error:', error);
     throw error;

@@ -8,6 +8,7 @@ import { UIManager } from './js/modules/uiManager.js';
 import { EventHandlers } from './js/utils/eventHandlers.js';
 import { QAManager } from './js/modules/qaManager.js';
 import { CoverLetterManager } from './js/modules/coverLetterManager.js';
+import { ExperienceManager } from './js/modules/experienceManager.js';
 
 document.addEventListener('DOMContentLoaded', async function() {
   // Initialize database first
@@ -20,6 +21,7 @@ document.addEventListener('DOMContentLoaded', async function() {
   const limitationsManager = new LimitationsManager(DatabaseManager);
   const uiManager = new UIManager(DatabaseManager);
   const coverLetterManager = new CoverLetterManager(DatabaseManager);
+  const experienceManager = new ExperienceManager(DatabaseManager);
 
   // Initialize Q&A Manager
   const qaManager = new QAManager();
@@ -62,6 +64,9 @@ document.addEventListener('DOMContentLoaded', async function() {
 
   // Profile Management
   await initializeProfileUI();
+
+  // Experience tab functionality
+  initializeExperienceTab();
 
   // Listen for messages from background script
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
@@ -976,35 +981,48 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
 
         // Extract skills and education
+        console.log('Sending resume text to AI for analysis:', resume.textContent.substring(0, 100) + '...');
         const response = await chrome.runtime.sendMessage({
           action: 'extractSkillsAndEducation',
           text: resume.textContent,
           apiKey: apiKey
         });
 
-        console.log('Extraction response:', response);
-
+        console.log('Raw AI response:', response);
+        
         if (response.error) {
           throw new Error(response.error);
         }
 
+        // Verify the structure of the response
+        if (!response.skills || !response.education || !response.experiences) {
+          console.error('Incomplete response structure:', response);
+          throw new Error('AI response is missing required data');
+        }
+
+        console.log('Processed response:', {
+          skillsCount: response.skills.length,
+          educationCount: response.education.length,
+          experiencesCount: response.experiences?.length || 0
+        });
+
         // Show modal with extracted items
         const modal = uiManager.showModal(
           'Extracted Skills & Education',
-          uiManager.createAnalysisModalContent(response),
-          uiManager.createAnalysisModalActions()
+          createAnalysisModalContent(response),
+          createAnalysisModalActions()
         );
 
         // Setup handlers for the modal
-        uiManager.setupAnalysisModalHandlers(modal, response);
+        setupAnalysisModalHandlers(modal, response);
 
       } catch (error) {
-        console.error('Error extracting skills and education:', error);
-        alert('Error extracting skills and education: ' + error.message);
+        console.error('Error extracting data:', error);
+        uiManager.showError('Error extracting data: ' + error.message);
       } finally {
         // Reset button state
         extractSkillsButton.disabled = false;
-        extractSkillsButton.textContent = 'Extract Skills & Education';
+        extractSkillsButton.textContent = 'Extract Skills, Education & Experience';
       }
     });
   }
@@ -1116,6 +1134,20 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
   }
 
+  function formatDate(dateString, inProgress) {
+    if (inProgress) return 'Present';
+    if (!dateString) return 'N/A';
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return 'N/A';
+      // Format as MMM YYYY (e.g., "Jan 2022")
+      return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
+    } catch (e) {
+      console.error('Date formatting error:', e);
+      return 'N/A';
+    }
+  }
+
   function createAnalysisModalContent(analysis) {
     return `
       <div class="analysis-section">
@@ -1146,9 +1178,30 @@ document.addEventListener('DOMContentLoaded', async function() {
                   <strong>${edu.title}</strong>
                   <div>${edu.institution}</div>
                   <div class="education-dates">
-                    ${new Date(edu.startDate).toLocaleDateString()} - 
-                    ${edu.inProgress ? 'Present' : edu.endDate ? new Date(edu.endDate).toLocaleDateString() : 'N/A'}
+                    ${formatDate(edu.startDate)} - ${formatDate(edu.endDate, edu.inProgress)}
                   </div>
+                </div>
+              </label>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+      <div class="analysis-section">
+        <h3>Experience Found (${analysis.experiences.length})</h3>
+        <div class="experience-toggles">
+          ${analysis.experiences.map((exp, i) => `
+            <div class="experience-toggle">
+              <label>
+                <input type="checkbox" class="experience-checkbox" data-index="${i}" checked>
+                <div class="experience-details">
+                  <strong>${exp.title}</strong>
+                  <div>${exp.company}</div>
+                  ${exp.location ? `<div>${exp.location}</div>` : ''}
+                  <div class="experience-dates">
+                    ${formatDate(exp.startDate)} - ${formatDate(exp.endDate, exp.inProgress)}
+                  </div>
+                  ${exp.description ? `<div class="experience-description">${exp.description}</div>` : ''}
                 </div>
               </label>
             </div>
@@ -1187,12 +1240,18 @@ document.addEventListener('DOMContentLoaded', async function() {
           .map(checkbox => analysis.education[parseInt(checkbox.dataset.index)])
           .filter(edu => edu);
 
+        const selectedExperiences = [...modal.querySelectorAll('.experience-checkbox:checked')]
+          .map(checkbox => analysis.experiences[parseInt(checkbox.dataset.index)])
+          .filter(exp => exp);
+
         await Promise.all([
           skillsManager.addExtractedSkills(selectedSkills, replaceCheckbox.checked),
-          educationManager.addExtractedEducation(selectedEducation, replaceCheckbox.checked)
+          educationManager.addExtractedEducation(selectedEducation, replaceCheckbox.checked),
+          experienceManager.addExtractedExperiences(selectedExperiences, replaceCheckbox.checked)
         ]);
 
         await refreshAllLists();
+        await refreshExperienceList();
         uiManager.showFeedbackMessage('Resume analysis applied successfully!');
         modal.remove();
       } catch (error) {
@@ -1430,6 +1489,218 @@ document.addEventListener('DOMContentLoaded', async function() {
       document.getElementById('geminiApiKey').value = apiKey || '';
     } catch (error) {
       console.error('Error refreshing data:', error);
+    }
+  }
+
+  // Experience tab functionality
+  function initializeExperienceTab() {
+    const addExperienceButton = document.getElementById('addExperienceButton');
+    const experienceModal = document.getElementById('experienceModal');
+    const saveExperienceButton = document.getElementById('saveExperienceButton');
+    const cancelExperienceButton = document.getElementById('cancelExperienceButton');
+    const experienceInProgress = document.getElementById('experienceInProgress');
+    const experienceEndDate = document.getElementById('experienceEndDate');
+
+    let editingIndex = null;
+
+    addExperienceButton.addEventListener('click', () => {
+      editingIndex = null;
+      document.getElementById('experienceModalTitle').textContent = 'Add Experience';
+      resetExperienceForm();
+      experienceModal.style.display = 'block';
+    });
+
+    cancelExperienceButton.addEventListener('click', () => {
+      experienceModal.style.display = 'none';
+    });
+
+    experienceInProgress.addEventListener('change', (e) => {
+      experienceEndDate.disabled = e.target.checked;
+      if (e.target.checked) {
+        experienceEndDate.value = '';
+      }
+    });
+
+    saveExperienceButton.addEventListener('click', async () => {
+      try {
+        const experienceData = {
+          type: document.getElementById('experienceType').value,
+          title: document.getElementById('experienceTitle').value,
+          company: document.getElementById('experienceCompany').value,
+          location: document.getElementById('experienceLocation').value,
+          startDate: document.getElementById('experienceStartDate').value,
+          endDate: experienceInProgress.checked ? null : document.getElementById('experienceEndDate').value,
+          inProgress: experienceInProgress.checked,
+          description: document.getElementById('experienceDescription').value,
+          linkedSkills: Array.from(document.querySelectorAll('#experienceSkillsList input[type="checkbox"]:checked'))
+            .map(checkbox => checkbox.value)
+        };
+
+        if (editingIndex !== null) {
+          await experienceManager.updateExperience(editingIndex, experienceData);
+        } else {
+          await experienceManager.addExperience(experienceData);
+        }
+
+        experienceModal.style.display = 'none';
+        await refreshExperienceList();
+        showFeedback('Experience saved successfully');
+      } catch (error) {
+        showFeedback(error.message, true);
+      }
+    });
+
+    // Initialize the experience list
+    refreshExperienceList();
+  }
+
+  async function refreshExperienceList() {
+    const experienceItems = document.getElementById('experienceItems');
+    const experiences = await experienceManager.getAllExperiences();
+    const skills = await DatabaseManager.getField('skills') || [];
+
+    experienceItems.innerHTML = '';
+
+    experiences.forEach((exp, index) => {
+      const experienceElement = document.createElement('div');
+      experienceElement.className = 'experience-item';
+      
+      const dateRange = exp.inProgress 
+        ? `${formatDate(exp.startDate)} - Present`
+        : `${formatDate(exp.startDate)} - ${formatDate(exp.endDate)}`;
+
+      experienceElement.innerHTML = `
+        <div class="experience-item-header">
+          <div>
+            <h3 class="experience-item-title">${exp.title}</h3>
+            <div class="experience-item-company">${exp.company}</div>
+            <div class="experience-item-dates">${dateRange}</div>
+            ${exp.location ? `<div class="experience-item-location">${exp.location}</div>` : ''}
+          </div>
+          <div class="experience-item-actions">
+            <button class="edit-experience secondary-button">Edit</button>
+            <button class="remove-experience danger-button">Remove</button>
+          </div>
+        </div>
+        <div class="experience-item-description">${exp.description}</div>
+        <div class="experience-item-skills">
+          ${(exp.linkedSkills || []).map(skill => `
+            <span class="skill-tag">${skill}</span>
+          `).join('')}
+        </div>
+      `;
+
+      experienceElement.querySelector('.edit-experience').addEventListener('click', () => {
+        editingIndex = index;
+        document.getElementById('experienceModalTitle').textContent = 'Edit Experience';
+        populateExperienceForm(exp);
+        document.getElementById('experienceModal').style.display = 'block';
+      });
+
+      experienceElement.querySelector('.remove-experience').addEventListener('click', async () => {
+        if (confirm('Are you sure you want to remove this experience?')) {
+          await experienceManager.removeExperience(index);
+          await refreshExperienceList();
+          showFeedback('Experience removed successfully');
+        }
+      });
+
+      experienceItems.appendChild(experienceElement);
+    });
+
+    // Update skills list in modal
+    const skillsList = document.getElementById('experienceSkillsList');
+    skillsList.innerHTML = skills.map(skill => `
+      <label class="skill-checkbox">
+        <input type="checkbox" value="${skill.skill}">
+        ${skill.skill}
+      </label>
+    `).join('');
+  }
+
+  function resetExperienceForm() {
+    document.getElementById('experienceType').value = 'job';
+    document.getElementById('experienceTitle').value = '';
+    document.getElementById('experienceCompany').value = '';
+    document.getElementById('experienceLocation').value = '';
+    document.getElementById('experienceStartDate').value = '';
+    document.getElementById('experienceEndDate').value = '';
+    document.getElementById('experienceInProgress').checked = false;
+    document.getElementById('experienceEndDate').disabled = false;
+    document.getElementById('experienceDescription').value = '';
+    
+    const checkboxes = document.querySelectorAll('#experienceSkillsList input[type="checkbox"]');
+    checkboxes.forEach(checkbox => checkbox.checked = false);
+  }
+
+  function populateExperienceForm(experience) {
+    document.getElementById('experienceType').value = experience.type;
+    document.getElementById('experienceTitle').value = experience.title;
+    document.getElementById('experienceCompany').value = experience.company;
+    document.getElementById('experienceLocation').value = experience.location || '';
+    document.getElementById('experienceStartDate').value = experience.startDate;
+    document.getElementById('experienceEndDate').value = experience.endDate || '';
+    document.getElementById('experienceInProgress').checked = experience.inProgress;
+    document.getElementById('experienceEndDate').disabled = experience.inProgress;
+    document.getElementById('experienceDescription').value = experience.description || '';
+
+    const checkboxes = document.querySelectorAll('#experienceSkillsList input[type="checkbox"]');
+    checkboxes.forEach(checkbox => {
+      checkbox.checked = (experience.linkedSkills || []).includes(checkbox.value);
+    });
+  }
+
+  function formatDate(dateString, inProgress) {
+    if (inProgress) return 'Present';
+    if (!dateString) return 'N/A';
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return 'N/A';
+      // Format as MMM YYYY (e.g., "Jan 2022")
+      return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
+    } catch (e) {
+      console.error('Date formatting error:', e);
+      return 'N/A';
+    }
+  }
+
+  // Update the skills tab to show linked experiences
+  async function refreshSkillsList() {
+    // ... existing skill list refresh code ...
+    
+    const skills = await DatabaseManager.getField('skills') || [];
+    const skillsList = document.getElementById('skillsList');
+    
+    skillsList.innerHTML = '';
+    
+    for (const skill of skills) {
+      const linkedExperiences = await experienceManager.getExperiencesForSkill(skill.skill);
+      
+      const skillElement = document.createElement('div');
+      skillElement.className = 'skill-item';
+      skillElement.innerHTML = `
+        <div class="skill-info">
+          <div class="skill-content">
+            <span class="skill-name">${skill.skill}</span>
+            <span class="skill-details">
+              ${skill.level}${skill.yearsExperience ? `, ${skill.yearsExperience}yrs` : ''}
+            </span>
+            ${linkedExperiences.length > 0 ? `
+              <div class="linked-experiences">
+                Used in: ${linkedExperiences.map(exp => exp.title).join(', ')}
+              </div>
+            ` : ''}
+          </div>
+          <div class="skill-actions">
+            <button class="edit-skill secondary-button">Edit</button>
+            <button class="remove-skill danger-button">Remove</button>
+          </div>
+        </div>
+      `;
+      
+      // ... existing skill event handlers ...
+      
+      skillsList.appendChild(skillElement);
     }
   }
 });

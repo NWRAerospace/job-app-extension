@@ -26,7 +26,7 @@ ${userSkills.map(s => `${s.skill} (${s.level}${s.yearsExperience ? `, ${s.yearsE
     const model = await this._getSelectedModel();
     const geminiApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
     
-    const prompt = `Analyze this resume text and extract skills and education information. Be thorough and try to identify ALL relevant skills. Respond ONLY with a JSON object in this exact format:
+    const prompt = `Analyze this resume text and extract skills, education, and work/volunteer experience information. Be thorough and try to identify ALL relevant information. Respond ONLY with a JSON object in this exact format:
 {
   "skills": [
     {
@@ -47,6 +47,19 @@ ${userSkills.map(s => `${s.skill} (${s.level}${s.yearsExperience ? `, ${s.yearsE
       "gpa": "GPA value" | null,
       "url": "certificate URL" | null,
       "expiryDate": "YYYY-MM-DD" | null
+    }
+  ],
+  "experiences": [
+    {
+      "type": "job" | "volunteer" | "internship" | "project",
+      "title": "Job/position title",
+      "company": "Company/organization name",
+      "location": "City, State/Country" | null,
+      "startDate": "YYYY-MM-DD",
+      "endDate": "YYYY-MM-DD" | null,
+      "inProgress": boolean,
+      "description": "Brief description of responsibilities and achievements",
+      "linkedSkills": [] // Will be populated by user later
     }
   ]
 }
