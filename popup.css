@@ -2296,13 +2296,7 @@ button:disabled .loading-spinner {
 
 /* Export Section */
 .export-section {
-  padding: 10px 0;
-}
-
-.export-section h2 {
-  font-size: 1.2em;
-  margin: 0 0 15px 0;
-  color: #2c3e50;
+  padding: 15px;
 }
 
 .export-options {
@@ -2313,31 +2307,42 @@ button:disabled .loading-spinner {
 
 .export-group {
   background: #f8f9fa;
+  border: 1px solid #e9ecef;
   border-radius: 6px;
   padding: 15px;
 }
 
 .export-group h3 {
-  font-size: 1em;
-  margin: 0 0 12px 0;
+  margin: 0 0 10px 0;
+  font-size: 14px;
   color: #2c3e50;
 }
 
-.export-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
 .export-group button {
-  width: 100%;
-  text-align: left;
-  padding: 8px 12px;
+  margin: 5px;
+  min-width: 150px;
 }
 
-.export-group button:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+.profile-backup {
+  background: #e8f0fe;
+  border-color: #3498db;
+}
+
+.profile-backup .help-text {
+  font-size: 12px;
+  color: #666;
+  margin: 5px 0 10px;
+}
+
+.profile-backup-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.profile-backup-buttons button {
+  flex: 1;
+  max-width: 200px;
 }
 
 /* Jobs List (shared between Saved and Applied) */

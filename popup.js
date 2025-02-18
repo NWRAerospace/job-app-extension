@@ -11,6 +11,7 @@ import { CoverLetterManager } from './js/modules/coverLetterManager.js';
 import { ExperienceManager } from './js/modules/experienceManager.js';
 import { AIHelper } from './js/utils/aiHelper.js';
 import { AppliedManager } from './js/modules/appliedManager.js';
+import { ExportManager } from './js/modules/exportManager.js';
 
 document.addEventListener('DOMContentLoaded', async function() {
   console.log('DOM Content Loaded');
@@ -28,6 +29,7 @@ document.addEventListener('DOMContentLoaded', async function() {
   const experienceManager = new ExperienceManager(DatabaseManager, uiManager);
   const qaManager = new QAManager(DatabaseManager, uiManager);
   const appliedManager = new AppliedManager(DatabaseManager, uiManager);
+  const exportManager = new ExportManager(DatabaseManager, uiManager);
   console.log('Managers initialized');
 
   // Variable for tracking experience being edited
