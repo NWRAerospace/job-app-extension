@@ -39,6 +39,26 @@ export class UIManager {
     const coverLetterContent = document.getElementById('generatedCoverLetterContent');
     const coverLetterSelect = document.getElementById('coverLetterSelect');
     const savedCoverLetterContent = document.getElementById('coverLetterContent');
+    const copyCoverLetterButton = document.getElementById('copyCoverLetterButton');
+
+    // Add copy to clipboard functionality
+    if (copyCoverLetterButton) {
+      copyCoverLetterButton.addEventListener('click', async () => {
+        const textToCopy = savedCoverLetterContent?.value;
+        if (!textToCopy) {
+          this.showFeedbackMessage('No cover letter content to copy', 'error');
+          return;
+        }
+
+        try {
+          await navigator.clipboard.writeText(textToCopy);
+          this.showFeedbackMessage('Cover letter copied to clipboard');
+        } catch (error) {
+          console.error('Error copying to clipboard:', error);
+          this.showFeedbackMessage('Failed to copy to clipboard', 'error');
+        }
+      });
+    }
 
     // Add clear cover letters button to settings (only if it doesn't exist)
     const settingsTab = document.getElementById('settings');
