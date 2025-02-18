@@ -1,3 +1,8 @@
+// Helper function to generate unique IDs
+function generateUniqueId() {
+  return crypto.randomUUID();
+}
+
 // Database structure and management
 const DEFAULT_PROFILE = {
   id: "profile1",
@@ -344,51 +349,27 @@ class DatabaseManager {
     });
   }
 
-  static async addResume(name, type, content) {
+  static async addResume(name, content) {
     const resumes = await this.getField('resumes') || [];
-    console.log('Current resumes before adding:', resumes);
-    
-    // Ensure resumes is an array
-    if (!Array.isArray(resumes)) {
-      console.warn('Resumes is not an array, initializing new array');
-      await this.updateField('resumes', []);
-    }
-    
-    const id = crypto.randomUUID();
-    
-    const newResume = {
+    const id = generateUniqueId();
+    resumes.push({
       id,
       name,
-      type,
-      content,
-      textContent: type === 'text' ? content : '',
-      dateAdded: new Date().toISOString(),
-      lastUsed: new Date().toISOString()
-    };
-    
-    console.log('Adding new resume:', { ...newResume, content: 'CONTENT_OMITTED' });
-    resumes.push(newResume);
-    
+      textContent: content,
+      dateAdded: new Date().toISOString()
+    });
     await this.updateField('resumes', resumes);
-    console.log('Resumes after update:', resumes.map(r => ({ id: r.id, name: r.name })));
     return id;
   }
 
-  static async updateResumeText(id, textContent) {
+  static async updateResumeText(id, text) {
     const resumes = await this.getField('resumes') || [];
-    console.log('Current resumes before text update:', resumes.map(r => ({ id: r.id, name: r.name })));
-    
     const index = resumes.findIndex(r => r.id === id);
-    
     if (index !== -1) {
-      resumes[index].textContent = textContent;
-      resumes[index].lastUsed = new Date().toISOString();
-      console.log('Updating resume text for ID:', id);
+      resumes[index].textContent = text;
       await this.updateField('resumes', resumes);
-      console.log('Resumes after text update:', resumes.map(r => ({ id: r.id, name: r.name })));
       return true;
     }
-    console.warn('Resume not found for text update:', id);
     return false;
   }
 
@@ -410,34 +391,24 @@ class DatabaseManager {
     return false;
   }
 
-  static async addCoverLetter(name, type, content) {
+  static async addCoverLetter(name, content) {
     const coverLetters = await this.getField('coverLetters') || [];
-    const id = crypto.randomUUID();
-    
-    const newCoverLetter = {
+    const id = generateUniqueId();
+    coverLetters.push({
       id,
       name,
-      type,
-      content,
-      textContent: type === 'text' ? content : '',
-      dateAdded: new Date().toISOString(),
-      lastUsed: new Date().toISOString()
-    };
-    
-    coverLetters.push(newCoverLetter);
-    console.log('Adding new cover letter:', newCoverLetter);
+      textContent: content,
+      dateAdded: new Date().toISOString()
+    });
     await this.updateField('coverLetters', coverLetters);
     return id;
   }
 
-  static async updateCoverLetterText(id, textContent) {
+  static async updateCoverLetterText(id, text) {
     const coverLetters = await this.getField('coverLetters') || [];
     const index = coverLetters.findIndex(c => c.id === id);
-    
     if (index !== -1) {
-      coverLetters[index].textContent = textContent;
-      coverLetters[index].lastUsed = new Date().toISOString();
-      console.log('Updating cover letter text:', id, coverLetters[index]);
+      coverLetters[index].textContent = text;
       await this.updateField('coverLetters', coverLetters);
       return true;
     }

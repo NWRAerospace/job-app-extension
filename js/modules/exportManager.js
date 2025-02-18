@@ -66,8 +66,8 @@ export class ExportManager {
     
     for (const resume of resumes) {
       content += `Title: ${resume.name}\n`;
-      content += `Type: ${resume.type}\n`;
-      content += `Content:\n${resume.content}\n\n`;
+      content += `Date Added: ${new Date(resume.dateAdded).toLocaleDateString()}\n`;
+      content += `Content:\n${resume.textContent}\n\n`;
       content += '-------------------\n\n';
     }
 
@@ -80,8 +80,8 @@ export class ExportManager {
     
     for (const letter of coverLetters) {
       content += `Title: ${letter.name}\n`;
-      content += `Type: ${letter.type}\n`;
-      content += `Content:\n${letter.content}\n\n`;
+      content += `Date Added: ${new Date(letter.dateAdded).toLocaleDateString()}\n`;
+      content += `Content:\n${letter.textContent}\n\n`;
       content += '-------------------\n\n';
     }
 

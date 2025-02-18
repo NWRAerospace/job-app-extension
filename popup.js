@@ -13,6 +13,17 @@ import { AIHelper } from './js/utils/aiHelper.js';
 import { AppliedManager } from './js/modules/appliedManager.js';
 import { ExportManager } from './js/modules/exportManager.js';
 
+// Function to update modify button visibility
+function updateModifyButtonVisibility() {
+  const modifyCurrentCoverLetterBtn = document.getElementById('modifyCurrentCoverLetter');
+  const coverLetterContent = document.getElementById('coverLetterContent');
+  if (coverLetterContent && coverLetterContent.value.trim()) {
+    modifyCurrentCoverLetterBtn.style.display = 'block';
+  } else if (modifyCurrentCoverLetterBtn) {
+    modifyCurrentCoverLetterBtn.style.display = 'none';
+  }
+}
+
 document.addEventListener('DOMContentLoaded', async function() {
   console.log('DOM Content Loaded');
   // Initialize database first
@@ -446,15 +457,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     const generatedCoverLetterContent = document.getElementById('generatedCoverLetterContent');
     const noCoverLetterWarning = document.getElementById('noCoverLetterWarning');
     const coverLetterContent = document.getElementById('coverLetterContent');
-
-    // Function to update modify button visibility
-    function updateModifyButtonVisibility() {
-      if (coverLetterContent.value.trim()) {
-        modifyCurrentCoverLetterBtn.style.display = 'block';
-      } else {
-        modifyCurrentCoverLetterBtn.style.display = 'none';
-      }
-    }
 
     // Check for cover letter content when tab is shown
     document.querySelector('[data-tab="cover"]').addEventListener('click', updateModifyButtonVisibility);
@@ -1106,9 +1108,6 @@ document.addEventListener('DOMContentLoaded', async function() {
           console.log('Converting document with mammoth.js...');
           console.log('File size:', content.byteLength, 'bytes');
           
-          // Convert ArrayBuffer to base64
-          const base64Content = btoa(String.fromCharCode(...new Uint8Array(content)));
-          
           // Convert to text using mammoth
           const result = await new Promise((resolve, reject) => {
             try {
@@ -1134,10 +1133,9 @@ document.addEventListener('DOMContentLoaded', async function() {
 
           if (currentUploadType === 'resume') {
             console.log('Adding new resume...');
-            const id = await DatabaseManager.addResume(documentTitle.value.trim(), 'docx', base64Content);
+            // Only store the text content
+            const id = await DatabaseManager.addResume(documentTitle.value.trim(), result.value);
             console.log('Resume added with ID:', id);
-            await DatabaseManager.updateResumeText(id, result.value);
-            console.log('Resume text updated');
             
             // Refresh the resumes list
             await loadResumes({ DatabaseManager });
@@ -1149,14 +1147,14 @@ document.addEventListener('DOMContentLoaded', async function() {
             removeResumeButton.style.display = 'block';
             document.getElementById('extractSkillsButton').style.display = 'block';
             await DatabaseManager.setActiveResume(id);
+            await DatabaseManager.updateField('resumeText', result.value);
             await uiManager.updateCurrentResumeDisplay();
             console.log('New resume set as active:', id);
           } else {
             console.log('Adding new cover letter...');
-            const id = await DatabaseManager.addCoverLetter(documentTitle.value.trim(), 'docx', base64Content);
+            // Only store the text content
+            const id = await DatabaseManager.addCoverLetter(documentTitle.value.trim(), result.value);
             console.log('Cover letter added with ID:', id);
-            await DatabaseManager.updateCoverLetterText(id, result.value);
-            console.log('Cover letter text updated');
             
             // Refresh the cover letters list
             await loadCoverLetters({ DatabaseManager });
