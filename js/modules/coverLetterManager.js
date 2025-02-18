@@ -27,17 +27,18 @@ CRITICAL REQUIREMENTS (ALWAYS FOLLOW THESE):
 4. First paragraph MUST:
    - Begin with a strong introduction
    - State the position being applied for
-   - If education is included, mention it here
-   - If no education is included, lead with the most relevant work experience
-5. Remaining paragraphs should:
-   - Focus on connecting experience from the resume to job requirements
-   - If skills list is included, incorporate relevant skills naturally
-   - Never mention skills or qualifications not explicitly provided
-6. Prioritize information in this order:
-   a. Education (if included, always in first paragraph)
-   b. Direct experience from resume matching job requirements
-   c. Skills from skills list (if included) that aren't mentioned in resume
-7. Write a compelling letter using ONLY the information explicitly provided
+   - Include only information that has been explicitly provided and allowed
+5. Information sources and their use:
+   - Resume text: General background and full work history (if included)
+   - Experience entries: Specific, curated work and project experience (if included)
+   - Education entries: Academic background and certifications (if included)
+   - Skills list: Technical and professional capabilities (if included)
+6. Content guidelines:
+   - Only mention information from sources marked as included
+   - When both resume and experience are included, prioritize experience entries as they are more curated
+   - Focus on connecting provided information to job requirements
+   - Never mention information that was not provided or was marked as not to be included
+7. Write a compelling letter using ONLY the information explicitly provided and allowed
 
 The response must be a valid JSON object with exactly these fields:
 1. cover_letter_text: The complete cover letter text
@@ -53,8 +54,8 @@ Do not include any markdown formatting or code blocks in your response. The resp
                 throw new Error('Please enter your API key in the Settings tab first.');
             }
 
-            if (!resumeText) {
-                throw new Error('Please select a resume before generating a cover letter. The AI needs your resume to create a targeted letter.');
+            if (!resumeText && options.includeResume) {
+                throw new Error('Please select a resume before generating a cover letter with resume information.');
             }
 
             // Get education data only if it should be included
@@ -63,6 +64,17 @@ Do not include any markdown formatting or code blocks in your response. The resp
                 const education = await this.db.getField('education') || [];
                 educationString = education.map(edu => 
                     `${edu.type}: ${edu.title} from ${edu.institution}${edu.inProgress ? ' (In Progress)' : edu.endDate ? ` (Completed ${new Date(edu.endDate).getFullYear()})` : ''}`
+                ).join('; ');
+            }
+
+            // Get experience data if it should be included
+            let experienceString = '';
+            if (options.includeExperience) {
+                const experiences = await this.db.getField('experiences') || [];
+                experienceString = experiences.map(exp => 
+                    `${exp.type}: ${exp.title} at ${exp.company}${exp.location ? ` in ${exp.location}` : ''}` +
+                    `${exp.inProgress ? ' (Current)' : exp.endDate ? ` (${new Date(exp.startDate).getFullYear()} - ${new Date(exp.endDate).getFullYear()})` : ''}` +
+                    `${exp.description ? ` - ${exp.description}` : ''}`
                 ).join('; ');
             }
 
@@ -86,8 +98,10 @@ Do not include any markdown formatting or code blocks in your response. The resp
 
             // Add data inclusion instructions
             const dataInclusion = `CONTENT INCLUSION INSTRUCTIONS:
-${options.includeEducation ? '- Include education information in the first paragraph' : '- Lead with most relevant work experience'}
-${options.includeSkills ? '- Incorporate provided skills list where relevant' : '- Focus solely on experience from resume'}`;
+${options.includeResume ? '- Use information from the provided resume' : '- Do not use information from the resume'}
+${options.includeExperience ? '- Include work and project experience provided in the experience section' : '- Do not include work or project experience'}
+${options.includeEducation ? '- Include education information in the first paragraph' : '- Do not include education information'}
+${options.includeSkills ? '- Incorporate provided skills list where relevant' : '- Do not mention skills from the skills list'}`;
 
             // Prepare the prompt for the AI
             let prompt = {
@@ -104,7 +118,8 @@ ${existingCoverLetter ? 'Modify the existing cover letter to better match the jo
                 job_posting: jobPosting,
                 candidate_skills: skillsString,
                 candidate_education: educationString,
-                resume: resumeText,
+                candidate_experience: experienceString,
+                resume: options.includeResume ? resumeText : null,
                 existing_cover_letter: existingCoverLetter
             };
 

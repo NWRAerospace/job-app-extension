@@ -469,12 +469,16 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Get selected options
         const paragraphCount = document.querySelector('input[name="paragraphCount"]:checked').value;
         const tone = document.querySelector('input[name="letterTone"]:checked').value;
+        const includeResume = document.querySelector('input[name="includeResume"]').checked;
+        const includeExperience = document.querySelector('input[name="includeExperience"]').checked;
         const includeEducation = document.querySelector('input[name="includeEducation"]').checked;
         const includeSkills = document.querySelector('input[name="includeSkills"]').checked;
 
         const options = {
           paragraphCount: parseInt(paragraphCount),
           tone: tone,
+          includeResume: includeResume,
+          includeExperience: includeExperience,
           includeEducation: includeEducation,
           includeSkills: includeSkills
         };
@@ -516,12 +520,16 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Get selected options
         const paragraphCount = document.querySelector('input[name="paragraphCount"]:checked').value;
         const tone = document.querySelector('input[name="letterTone"]:checked').value;
+        const includeResume = document.querySelector('input[name="includeResume"]').checked;
+        const includeExperience = document.querySelector('input[name="includeExperience"]').checked;
         const includeEducation = document.querySelector('input[name="includeEducation"]').checked;
         const includeSkills = document.querySelector('input[name="includeSkills"]').checked;
 
         const options = {
           paragraphCount: parseInt(paragraphCount),
           tone: tone,
+          includeResume: includeResume,
+          includeExperience: includeExperience,
           includeEducation: includeEducation,
           includeSkills: includeSkills
         };
