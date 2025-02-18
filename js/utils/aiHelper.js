@@ -137,11 +137,15 @@ Respond ONLY with a JSON object in this exact format:
     return await this._makeGeminiRequest(geminiApiUrl, prompt, apiKey);
   }
 
-  static async generateQAResponse(question, resume, skills, education, apiKey, jobContext = null) {
+  static async generateQAResponse(question, resume, skills, education, apiKey, jobContext = null, limitOptions = null) {
     const model = await this._getSelectedModel();
     const geminiApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
     
-    const prompt = `Given the following job application question and candidate information, generate a concise, professional answer. Unless the question specifically asks for multiple paragraphs or specifies a word/paragraph count, provide only one short paragraph.
+    const prompt = `Given the following job application question and candidate information, generate a concise, professional answer. ${
+      limitOptions 
+        ? `Keep the answer within ${limitOptions.limit} ${limitOptions.type} (STRICT LIMIT).` 
+        : 'Unless the question specifically asks for multiple paragraphs or specifies a word/paragraph count, provide only one short paragraph.'
+    }
 
 Question: ${question}
 
@@ -154,6 +158,7 @@ Respond ONLY with a JSON object in this exact format:
 {
   "answer": "The generated answer text",
   "wordCount": number,
+  "charCount": number,
   "confidence": number from 0-1 indicating how well the answer matches the candidate's background
 }`;
 

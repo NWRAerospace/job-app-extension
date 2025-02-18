@@ -31,6 +31,16 @@ export class QAManager {
     this.addNewButton = document.getElementById('addNewQAButton');
     this.generateAIEditorButton = document.getElementById('generateAIAnswerEditorButton');
     
+    // Limit options
+    this.limitTypeInputs = document.querySelectorAll('input[name="limitType"]');
+    this.wordLimitInput = document.getElementById('wordLimit');
+    this.charLimitInput = document.getElementById('charLimit');
+    
+    // Counter elements
+    this.wordCountDisplay = document.getElementById('wordCount');
+    this.charCountDisplay = document.getElementById('charCount');
+    this.answerCounter = document.querySelector('.answer-counter');
+    
     // Stats
     this.qaPairCount = document.getElementById('qaPairCount');
   }
@@ -51,6 +61,24 @@ export class QAManager {
 
     // Listen for text selection on the page
     document.addEventListener('mouseup', this.handleTextSelection.bind(this));
+
+    // Setup limit option handlers
+    this.limitTypeInputs.forEach(input => {
+      input.addEventListener('change', () => {
+        this.wordLimitInput.disabled = input.value !== 'words';
+        this.charLimitInput.disabled = input.value !== 'characters';
+        this.updateCounters(); // Update when changing radio buttons
+      });
+    });
+
+    // Add input event listener for answer text
+    this.answerInput.addEventListener('input', () => this.updateCounters());
+    
+    // Add change and input listeners for limit inputs to catch both manual entry and arrow buttons
+    this.wordLimitInput.addEventListener('change', () => this.updateCounters());
+    this.wordLimitInput.addEventListener('input', () => this.updateCounters());
+    this.charLimitInput.addEventListener('change', () => this.updateCounters());
+    this.charLimitInput.addEventListener('input', () => this.updateCounters());
   }
 
   setupMessageListener() {
@@ -201,6 +229,7 @@ export class QAManager {
     if (this.currentQAPair) {
       this.questionInput.value = this.currentQAPair.question;
       this.answerInput.value = this.currentQAPair.answer;
+      this.updateCounters(); // Update counters when starting to edit
     }
     this.qaEditor.style.display = 'block';
     this.selectedQuestion.textContent = '';
@@ -212,14 +241,24 @@ export class QAManager {
 
   startNewQAPair() {
     this.currentQAPair = null;
-    this.questionInput.value = '';
-    this.answerInput.value = '';
+    // First show the editor
     this.qaEditor.style.display = 'block';
     this.selectedQuestion.textContent = '';
     this.selectedAnswer.textContent = '';
     this.copyButton.style.display = 'none';
     this.editButton.style.display = 'none';
     this.generateAIButton.style.display = 'none';
+    
+    // Then transfer the question
+    this.questionInput.value = this.searchInput.value.trim();
+    this.answerInput.value = '';
+    
+    // Finally clear the search
+    this.searchInput.value = '';
+    this.searchResults.classList.remove('active');
+    
+    // Update counters
+    this.updateCounters();
   }
 
   async saveQAPair() {
@@ -282,7 +321,11 @@ export class QAManager {
 
   async updateQACount() {
     const qaPairs = await DatabaseManager.getAllQAPairs();
-    this.qaPairCount.textContent = qaPairs.length;
+    // Update all instances of qaPairCount
+    const qaPairCountElements = document.querySelectorAll('#qaPairCount');
+    qaPairCountElements.forEach(element => {
+      element.textContent = qaPairs.length;
+    });
   }
 
   setButtonLoadingState(button, isLoading) {
@@ -344,23 +387,41 @@ export class QAManager {
         }
       }
 
+      // Get limit options
+      const limitType = document.querySelector('input[name="limitType"]:checked').value;
+      let limitOptions = null;
+      if (limitType === 'words') {
+        const wordLimit = parseInt(this.wordLimitInput.value);
+        if (!isNaN(wordLimit) && wordLimit > 0) {
+          limitOptions = { type: 'words', limit: Math.max(1, wordLimit - 10) };
+        }
+      } else if (limitType === 'characters') {
+        const charLimit = parseInt(this.charLimitInput.value);
+        if (!isNaN(charLimit) && charLimit > 0) {
+          limitOptions = { type: 'characters', limit: Math.max(1, charLimit - 25) };
+        }
+      }
+
       const response = await AIHelper.generateQAResponse(
         question,
         resumeText,
         skills,
         education,
         apiKey,
-        jobContext
+        jobContext,
+        limitOptions
       );
 
       if (response && response.answer) {
         if (isEditing) {
           this.answerInput.value = response.answer;
+          this.updateCounters(); // Update after AI generates answer in edit mode
         } else {
           // Open editor with AI response
           this.startEditing();
           this.questionInput.value = question;
           this.answerInput.value = response.answer;
+          this.updateCounters(); // Update after AI generates answer in new mode
         }
       } else {
         throw new Error('Invalid response from AI');
@@ -371,5 +432,41 @@ export class QAManager {
     } finally {
       this.setButtonLoadingState(button, false);
     }
+  }
+
+  updateCounters() {
+    const text = this.answerInput.value;
+    const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+    const chars = text.length;
+
+    this.wordCountDisplay.textContent = words;
+    this.charCountDisplay.textContent = chars;
+
+    this.checkLimits();
+  }
+
+  checkLimits() {
+    const text = this.answerInput.value;
+    const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+    const chars = text.length;
+    const limitType = document.querySelector('input[name="limitType"]:checked').value;
+    
+    let isExceeded = false;
+
+    if (limitType === 'words') {
+      const wordLimit = parseInt(this.wordLimitInput.value);
+      if (!isNaN(wordLimit) && wordLimit > 0) {
+        isExceeded = words > wordLimit;
+      }
+    } else if (limitType === 'characters') {
+      const charLimit = parseInt(this.charLimitInput.value);
+      if (!isNaN(charLimit) && charLimit > 0) {
+        isExceeded = chars > charLimit;
+      }
+    }
+
+    // Update UI to show if limit is exceeded
+    this.answerCounter.classList.toggle('limit-exceeded', isExceeded);
+    this.answerInput.classList.toggle('limit-exceeded', isExceeded);
   }
 } 

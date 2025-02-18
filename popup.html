@@ -508,13 +508,10 @@
     <div class="qa-section">
       <div class="qa-header">
         <h2>Questions & Answers</h2>
-        <div class="qa-stats">
-          <span>Total Q&A Pairs: </span>
-          <span id="qaPairCount">0</span>
-        </div>
       </div>
 
       <div class="qa-search">
+        <label for="qaSearchInput">Search:</label>
         <input type="text" id="qaSearchInput" placeholder="Search questions..." class="qa-search-input">
         <div id="qaSearchResults" class="qa-search-results"></div>
       </div>
@@ -533,7 +530,27 @@
 
       <div class="qa-editor" style="display: none;">
         <textarea id="questionInput" placeholder="Enter question..."></textarea>
+        <div class="limit-options">
+          <label>
+            <input type="radio" name="limitType" value="none" checked>
+            No limit
+          </label>
+          <label>
+            <input type="radio" name="limitType" value="words">
+            Word limit:
+            <input type="number" id="wordLimit" min="1" max="1000" value="250" disabled>
+          </label>
+          <label>
+            <input type="radio" name="limitType" value="characters">
+            Character limit:
+            <input type="number" id="charLimit" min="1" max="5000" value="500" disabled>
+          </label>
+        </div>
         <textarea id="answerInput" placeholder="Enter answer..."></textarea>
+        <div class="answer-counter">
+          <span class="word-count">Words: <span id="wordCount">0</span></span>
+          <span class="char-count">Characters: <span id="charCount">0</span></span>
+        </div>
         <div class="editor-actions">
           <button id="generateAIAnswerEditorButton" class="primary-button">Generate AI Answer</button>
           <button id="saveQAButton" class="secondary-button">Save</button>

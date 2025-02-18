@@ -2156,3 +2156,64 @@ button:disabled .loading-spinner {
   outline: none;
   box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
 }
+
+.limit-options {
+  margin: 10px 0;
+  padding: 10px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.limit-options label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  color: #495057;
+}
+
+.limit-options input[type="number"] {
+  width: 70px;
+  padding: 2px 5px;
+  border: 1px solid #ced4da;
+  border-radius: 3px;
+  font-size: 13px;
+}
+
+.limit-options input[type="number"]:disabled {
+  background-color: #e9ecef;
+  cursor: not-allowed;
+}
+
+.answer-counter {
+  display: flex;
+  justify-content: space-between;
+  padding: 5px 10px;
+  font-size: 12px;
+  color: #666;
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-top: none;
+  border-bottom-left-radius: 4px;
+  border-bottom-right-radius: 4px;
+  margin-top: -5px;
+  margin-bottom: 10px;
+}
+
+.answer-counter.limit-exceeded {
+  color: #dc3545;
+  background-color: #fff5f5;
+  border-color: #ffebeb;
+}
+
+.answer-counter.limit-exceeded span {
+  color: #dc3545;
+}
+
+#answerInput.limit-exceeded {
+  border-color: #dc3545;
+  background-color: #fff5f5;
+}
