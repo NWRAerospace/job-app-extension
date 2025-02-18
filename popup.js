@@ -23,6 +23,9 @@ document.addEventListener('DOMContentLoaded', async function() {
   const coverLetterManager = new CoverLetterManager(DatabaseManager);
   const experienceManager = new ExperienceManager(DatabaseManager);
 
+  // Variable for tracking experience being edited
+  let editingIndex = null;
+
   // Initialize Q&A Manager
   const qaManager = new QAManager();
 
@@ -66,7 +69,7 @@ document.addEventListener('DOMContentLoaded', async function() {
   await initializeProfileUI();
 
   // Experience tab functionality
-  initializeExperienceTab();
+  initializeExperienceTab(experienceManager);
 
   // Listen for messages from background script
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
@@ -1493,15 +1496,13 @@ document.addEventListener('DOMContentLoaded', async function() {
   }
 
   // Experience tab functionality
-  function initializeExperienceTab() {
+  function initializeExperienceTab(experienceManager) {
     const addExperienceButton = document.getElementById('addExperienceButton');
     const experienceModal = document.getElementById('experienceModal');
     const saveExperienceButton = document.getElementById('saveExperienceButton');
     const cancelExperienceButton = document.getElementById('cancelExperienceButton');
     const experienceInProgress = document.getElementById('experienceInProgress');
     const experienceEndDate = document.getElementById('experienceEndDate');
-
-    let editingIndex = null;
 
     addExperienceButton.addEventListener('click', () => {
       editingIndex = null;
@@ -1543,7 +1544,10 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
 
         experienceModal.style.display = 'none';
-        await refreshExperienceList();
+        await Promise.all([
+          refreshExperienceList(),
+          refreshSkillsList()
+        ]);
         showFeedback('Experience saved successfully');
       } catch (error) {
         showFeedback(error.message, true);
@@ -1600,7 +1604,10 @@ document.addEventListener('DOMContentLoaded', async function() {
       experienceElement.querySelector('.remove-experience').addEventListener('click', async () => {
         if (confirm('Are you sure you want to remove this experience?')) {
           await experienceManager.removeExperience(index);
-          await refreshExperienceList();
+          await Promise.all([
+            refreshExperienceList(),
+            refreshSkillsList()
+          ]);
           showFeedback('Experience removed successfully');
         }
       });
