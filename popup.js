@@ -10,6 +10,7 @@ import { QAManager } from './js/modules/qaManager.js';
 import { CoverLetterManager } from './js/modules/coverLetterManager.js';
 import { ExperienceManager } from './js/modules/experienceManager.js';
 import { AIHelper } from './js/utils/aiHelper.js';
+import { AppliedManager } from './js/modules/appliedManager.js';
 
 document.addEventListener('DOMContentLoaded', async function() {
   // Initialize database first
@@ -17,18 +18,17 @@ document.addEventListener('DOMContentLoaded', async function() {
 
   // Initialize managers
   const jobAssessor = new JobAssessor(DatabaseManager);
-  const skillsManager = new SkillsManager(DatabaseManager);
-  const educationManager = new EducationManager(DatabaseManager);
+  const skillsManager = new SkillsManager(DatabaseManager, new UIManager(DatabaseManager));
+  const educationManager = new EducationManager(DatabaseManager, new UIManager(DatabaseManager));
   const limitationsManager = new LimitationsManager(DatabaseManager);
   const uiManager = new UIManager(DatabaseManager);
-  const coverLetterManager = new CoverLetterManager(DatabaseManager);
-  const experienceManager = new ExperienceManager(DatabaseManager);
+  const coverLetterManager = new CoverLetterManager(DatabaseManager, uiManager);
+  const experienceManager = new ExperienceManager(DatabaseManager, uiManager);
+  const qaManager = new QAManager(DatabaseManager, uiManager);
+  const appliedManager = new AppliedManager(DatabaseManager, uiManager);
 
   // Variable for tracking experience being edited
   let editingIndex = null;
-
-  // Initialize Q&A Manager
-  const qaManager = new QAManager();
 
   // Load saved settings
   const [apiKey, model] = await Promise.all([
@@ -60,7 +60,9 @@ document.addEventListener('DOMContentLoaded', async function() {
     uiManager,
     coverLetterManager,
     qaManager,
-    DatabaseManager
+    DatabaseManager,
+    experienceManager,
+    appliedManager
   });
 
   // Load saved documents
@@ -85,6 +87,11 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
     // Always return true to indicate we'll respond asynchronously
     return true;
+  });
+
+  // Set up event listener for apply modal
+  document.addEventListener('showApplyModal', (e) => {
+    appliedManager.showApplyModal(e.detail);
   });
 
   async function refreshAllLists() {
@@ -139,7 +146,9 @@ document.addEventListener('DOMContentLoaded', async function() {
       uiManager,
       coverLetterManager,
       qaManager,
-      DatabaseManager
+      DatabaseManager,
+      experienceManager,
+      appliedManager
     } = managers;
 
     // Assess job button handler

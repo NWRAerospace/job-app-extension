@@ -32,40 +32,29 @@ export class UIManager {
   }
 
   switchTab(tabId) {
-    console.log('UIManager.switchTab called for tab:', tabId); // Added log
+    console.log('UIManager.switchTab called for tab:', tabId);
     // Remove active class from all tabs
     const tabButtons = document.querySelectorAll('.tab-button');
     const tabContents = document.querySelectorAll('.tab-content');
 
-    console.log('tabButtons found:', tabButtons.length); // Added log
-    console.log('tabContents found:', tabContents.length); // Added log
-
-    tabButtons.forEach(b => {
-      b.classList.remove('active');
-      console.log('Removed active class from tab button:', b.dataset.tab); // Added log
-    });
-    tabContents.forEach(c => {
-      c.classList.remove('active');
-      console.log('Removed active class from tab content:', c.id); // Added log
-    });
+    tabButtons.forEach(b => b.classList.remove('active'));
+    tabContents.forEach(c => c.classList.remove('active'));
     
     // Add active class to clicked tab
     const button = document.querySelector(`.tab-button[data-tab="${tabId}"]`);
     const tabContent = document.getElementById(tabId);
-
-    console.log('Active button element:', button); // Added log
-    console.log('Active tabContent element:', tabContent); // Added log
     
     if (button && tabContent) {
       button.classList.add('active');
       tabContent.classList.add('active');
       this.activeTab = tabId;
-      console.log('Added active class to tab button:', tabId); // Added log
-      console.log('Added active class to tab content:', tabId); // Added log
 
       // Refresh data when switching to specific tabs
       if (tabId === 'skills') {
         this.refreshSkillsList();
+      } else if (tabId === 'applied') {
+        // Dispatch event for applied jobs tab selection
+        document.dispatchEvent(new CustomEvent('appliedTabSelected'));
       }
     }
   }
@@ -601,167 +590,133 @@ export class UIManager {
   }
 
   async updateSavedJobsList(savedJobs = []) {
-    try {
-      const savedJobsList = document.getElementById('savedJobsList');
-      if (!savedJobsList) {
-        console.error('Saved jobs list element not found');
-        return;
-      }
+    const savedContainer = document.getElementById('savedJobsList');
+    if (!savedContainer) return;
 
-      // Ensure savedJobs is an array
-      const jobs = Array.isArray(savedJobs) ? savedJobs : [];
-      
-      if (jobs.length === 0) {
-        savedJobsList.innerHTML = '<p class="no-jobs">No saved jobs yet. Use the "Save Job" button after assessment to save jobs.</p>';
-        return;
-      }
+    savedContainer.innerHTML = '';
 
-      // Get current skills to check against
-      const currentSkills = await this.databaseManager.getField('skills') || [];
-      const currentSkillNames = new Set(currentSkills.map(s => s.skill.toLowerCase()));
+    if (savedJobs.length === 0) {
+      savedContainer.innerHTML = '<p class="no-items-message">No saved jobs yet.</p>';
+      return;
+    }
 
-      // Get current active job ID
-      const activeJobId = await this.databaseManager.getField('activeJobId');
-      
-      savedJobsList.innerHTML = jobs.map(job => {
-        const {
-          id = '',
-          title = 'Untitled Job',
-          company = '',
-          rating = 0,
-          rationale = '',
-          keywords = [],
-          jobLink = '#',
-          dateSaved = new Date().toISOString()
-        } = job;
+    savedJobs.forEach(job => {
+      const jobElement = this.createSavedJobElement(job);
+      savedContainer.appendChild(jobElement);
+    });
 
-        const isActive = id === activeJobId;
+    this.setupSavedJobsEventListeners(savedContainer);
+  }
 
-        const keywordsHtml = keywords.map(keyword => {
-          const isInSkills = currentSkillNames.has(keyword.toLowerCase());
-          return `
-            <span class="keyword">
-              ${keyword}
-              ${!isInSkills ? `
-                <button class="add-skill-button" title="Add to my skills" data-skill="${keyword}">
-                  <svg viewBox="0 0 24 24">
-                    <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
-                  </svg>
-                </button>
-              ` : `
-                <button class="add-skill-button added" title="Already in skills" disabled>
-                  <svg viewBox="0 0 24 24">
-                    <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
-                  </svg>
-                </button>
-              `}
-            </span>
-          `;
-        }).join('');
+  createSavedJobElement(job) {
+    const jobElement = document.createElement('div');
+    jobElement.className = 'saved-job-item';
+    jobElement.dataset.jobId = job.id;
+    jobElement.dataset.jobLink = job.jobLink;
 
-        return `
-          <div class="saved-job${isActive ? ' active' : ''}" data-job-id="${id}">
-            <h3>${title}${company ? ` - ${company}` : ''}</h3>
-            <div class="job-details">
-              <span class="rating">Rating: ${rating}/10</span>
-              <span class="date">Saved: ${new Date(dateSaved).toLocaleString()}</span>
-            </div>
-            <div class="assessment-rationale">
-              ${rationale}
-            </div>
-            <div class="job-keywords">
-              ${keywordsHtml}
-            </div>
-            <div class="job-actions">
-              <button class="open-job" data-job-link="${jobLink}">Open Job</button>
-              <button class="select-job${isActive ? ' active' : ''}" data-job-id="${id}">
-                ${isActive ? 'Selected' : 'Select'}
-              </button>
-              <button class="delete-job" data-job-id="${id}">Delete</button>
-            </div>
-          </div>
-        `;
-      }).join('');
+    const savedDate = new Date(job.dateSaved).toLocaleDateString();
+    
+    jobElement.innerHTML = `
+      <div class="job-header">
+        <h3 class="job-title">${job.title || 'Untitled Position'}</h3>
+        <span class="job-company">${job.company || 'Unknown Company'}</span>
+      </div>
+      <div class="job-details">
+        <span class="rating">Rating: ${job.rating}/10</span>
+        <span class="date">Saved: ${savedDate}</span>
+      </div>
+      <div class="assessment-rationale">
+        ${job.rationale || ''}
+      </div>
+      <div class="job-keywords">
+        ${job.keywords?.map(keyword => `
+          <span class="keyword">
+            ${keyword}
+            <button class="add-skill-button" title="Add to my skills" data-skill="${keyword}">
+              <svg viewBox="0 0 24 24">
+                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+              </svg>
+            </button>
+          </span>
+        `).join('') || ''}
+      </div>
+      <div class="job-actions">
+        <button class="open-job" data-action="open" data-job-link="${job.jobLink}">Open Job</button>
+        <button class="select-job" data-action="select">Select Job</button>
+        <button class="apply-button" data-action="apply">Mark as Applied</button>
+        <button class="remove-button" data-action="remove">Remove</button>
+      </div>
+    `;
 
-      // Add event listeners
-      this.setupSavedJobsEventListeners(savedJobsList);
-      this.setupAddSkillButtons(savedJobsList);
+    // Update the select button if this is the active job
+    this.updateJobSelectionState(jobElement, job.id);
 
-      // Update keyword matches
-      this.updateKeywordMatches();
-    } catch (error) {
-      console.error('Error updating saved jobs list:', error);
-      savedJobsList.innerHTML = '<p class="error">Error loading saved jobs</p>';
+    return jobElement;
+  }
+
+  async updateJobSelectionState(jobElement, jobId) {
+    const activeJobId = await this.databaseManager.getField('activeJobId');
+    const selectButton = jobElement.querySelector('.select-job');
+    if (selectButton) {
+      const isActive = activeJobId === jobId;
+      selectButton.classList.toggle('active', isActive);
+      selectButton.textContent = isActive ? 'Selected' : 'Select Job';
     }
   }
 
   setupSavedJobsEventListeners(container) {
-    container.querySelectorAll('.select-job').forEach(button => {
-      button.addEventListener('click', async () => {
-        const jobId = button.dataset.jobId;
-        const currentActiveId = await this.databaseManager.getField('activeJobId');
-        
-        console.log('Job selection clicked:', { jobId, currentActiveId });
-        
-        // If clicking the already active job, deselect it
-        if (currentActiveId === jobId) {
-          console.log('Deselecting current job');
-          await this.databaseManager.updateField('activeJobId', null);
-        } else {
-          console.log('Selecting new job:', jobId);
-          await this.databaseManager.updateField('activeJobId', jobId);
-        }
-        
-        // Get fresh jobs data from database
-        const updatedJobs = await this.databaseManager.getField('savedJobs') || [];
-        console.log('Updated jobs data:', updatedJobs);
-        
-        await this.updateCurrentJobDisplay();
-        await this.updateSavedJobsList(updatedJobs); // Pass the fresh jobs data
-      });
-    });
+    container.addEventListener('click', async (e) => {
+      const button = e.target.closest('button');
+      if (!button) return;
 
-    container.querySelectorAll('.open-job').forEach(button => {
-      button.addEventListener('click', () => {
-        const jobLink = button.dataset.jobLink;
-        if (jobLink && jobLink !== '#') {
-          window.open(jobLink, '_blank');
-        }
-      });
-    });
+      const jobElement = button.closest('.saved-job-item');
+      if (!jobElement) return;
 
-    // Add event listeners for delete buttons
-    container.querySelectorAll('.delete-job').forEach(button => {
-      button.addEventListener('click', async () => {
-        const jobId = button.dataset.jobId;
-        const savedJobs = await this.databaseManager.getField('savedJobs') || [];
-        const jobToDelete = savedJobs.find(job => job.id === jobId);
-        
-        if (jobToDelete) {
-          if (confirm('Are you sure you want to delete this job?')) {
-            console.log('Deleting job:', jobId);
-            
-            // Remove the job from saved jobs
-            const updatedJobs = savedJobs.filter(job => job.id !== jobId);
-            await this.databaseManager.updateField('savedJobs', updatedJobs);
-            
-            // If this was the active job, clear the active job
-            const activeJobId = await this.databaseManager.getField('activeJobId');
-            if (activeJobId === jobId) {
-              await this.databaseManager.updateField('activeJobId', null);
-              await this.updateCurrentJobDisplay();
-            }
-            
-            // Update the UI
-            await this.updateSavedJobsList(updatedJobs);
-            this.showFeedbackMessage('Job deleted successfully');
+      const jobId = jobElement.dataset.jobId;
+      const jobLink = jobElement.dataset.jobLink;
+      const action = button.dataset.action;
+
+      switch (action) {
+        case 'open':
+          if (jobLink && jobLink !== '#') {
+            window.open(jobLink, '_blank');
           }
-        } else {
-          console.error('Job not found:', jobId);
-          this.showFeedbackMessage('Error deleting job', 'error');
-        }
-      });
+          break;
+
+        case 'remove':
+          if (await this.databaseManager.removeSavedJob(jobLink)) {
+            const savedJobs = await this.databaseManager.getField('savedJobs');
+            this.updateSavedJobsList(savedJobs);
+            this.showFeedbackMessage('Job removed successfully');
+          }
+          break;
+
+        case 'select':
+          const currentActiveId = await this.databaseManager.getField('activeJobId');
+          const newActiveId = currentActiveId === jobId ? null : jobId;
+          await this.databaseManager.setActiveJob(newActiveId);
+          
+          // Update all job elements' selection state
+          const savedJobs = await this.databaseManager.getField('savedJobs');
+          this.updateSavedJobsList(savedJobs);
+          
+          // Update the current job display
+          await this.updateCurrentJobDisplay();
+          break;
+
+        case 'apply':
+          const job = (await this.databaseManager.getField('savedJobs'))
+            .find(j => j.jobLink === jobLink);
+          
+          if (job) {
+            document.dispatchEvent(new CustomEvent('showApplyModal', { detail: job }));
+          }
+          break;
+      }
     });
+
+    // Set up add skill buttons
+    this.setupAddSkillButtons(container);
   }
 
   setupAddSkillButtons(container) {

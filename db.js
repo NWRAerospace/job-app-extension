@@ -18,6 +18,7 @@ const DEFAULT_PROFILE = {
     defaultCoverLetterTemplate: "",
     limitations: [],
     savedJobs: [],
+    appliedJobs: [],
     resumes: [],
     coverLetters: [],
     activeResumeId: null,
@@ -590,6 +591,42 @@ class DatabaseManager {
 
   static async getAllQAPairs() {
     return await this.getField('qaPairs') || [];
+  }
+
+  static async addAppliedJob(job) {
+    const profile = await this.getActiveProfile();
+    const appliedJobs = profile.data.appliedJobs || [];
+    
+    // Keep only the last 30 jobs
+    if (appliedJobs.length >= 30) {
+      appliedJobs.pop(); // Remove the oldest job
+    }
+    
+    const newJob = {
+      ...job,
+      appliedDate: new Date().toISOString(),
+      id: crypto.randomUUID()
+    };
+    
+    appliedJobs.unshift(newJob); // Add new job at the beginning
+    await this.updateField('appliedJobs', appliedJobs);
+    
+    // If the job was in savedJobs, remove it
+    if (job.link) {
+      await this.removeSavedJob(job.link);
+    }
+    
+    return newJob;
+  }
+
+  static async getAppliedJobs() {
+    return await this.getField('appliedJobs') || [];
+  }
+
+  static async removeAppliedJob(jobId) {
+    const appliedJobs = await this.getField('appliedJobs') || [];
+    const updatedJobs = appliedJobs.filter(job => job.id !== jobId);
+    await this.updateField('appliedJobs', updatedJobs);
   }
 }
 
