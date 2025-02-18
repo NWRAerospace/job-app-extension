@@ -26,24 +26,6 @@
       <span class="label">Selected Job:</span>
       <span id="currentJobName" class="value">None selected</span>
     </div>
-
-    <div class="keyword-match-controls">
-      <span>Match Keywords Against:</span>
-      <div class="toggle-group">
-        <label class="toggle-option">
-          <input type="radio" name="matchType" value="resume" checked>
-          Resume Text
-        </label>
-        <label class="toggle-option">
-          <input type="radio" name="matchType" value="skills">
-          Skills
-        </label>
-        <label class="toggle-option">
-          <input type="radio" name="matchType" value="both">
-          Both
-        </label>
-      </div>
-    </div>
   </div>
   
   <div class="tabs">
@@ -74,6 +56,23 @@
       <div id="jobKeywords">
         <strong>Key Keywords:</strong>
         <ul id="keywordList"></ul>
+      </div>
+      <div class="keyword-match-controls">
+        <span>Match Keywords Against:</span>
+        <div class="toggle-group">
+          <label class="toggle-option">
+            <input type="radio" name="matchType" value="resume" checked>
+            Resume Text
+          </label>
+          <label class="toggle-option">
+            <input type="radio" name="matchType" value="skills">
+            Skills
+          </label>
+          <label class="toggle-option">
+            <input type="radio" name="matchType" value="both">
+            Both
+          </label>
+        </div>
       </div>
       <button id="saveJobButton" class="primary-button" style="display: none;">Save Job</button>
     </div>
@@ -425,9 +424,24 @@
   </div>
 
   <div id="saved" class="tab-content">
-    <div id="savedJobsList">
-      <!-- Saved jobs will be populated here -->
+    <div class="keyword-match-controls">
+      <span>Match Keywords Against:</span>
+      <div class="toggle-group">
+        <label class="toggle-option">
+          <input type="radio" name="matchType" value="resume" checked>
+          Resume Text
+        </label>
+        <label class="toggle-option">
+          <input type="radio" name="matchType" value="skills">
+          Skills
+        </label>
+        <label class="toggle-option">
+          <input type="radio" name="matchType" value="both">
+          Both
+        </label>
+      </div>
     </div>
+    <div id="savedJobsList"></div>
   </div>
 
   <div id="qa" class="tab-content">

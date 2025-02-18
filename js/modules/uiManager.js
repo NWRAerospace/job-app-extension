@@ -293,6 +293,9 @@ export class UIManager {
       
       // Update keyword matches
       this.updateKeywordMatches();
+
+      // Update the current job display with the assessed job
+      this.updateCurrentJobDisplay();
       
     } catch (error) {
       console.error('Error updating assessment results:', error);
@@ -574,25 +577,25 @@ export class UIManager {
         if (currentAssessment) {
           // Show assessed job
           const jobTitle = `${currentAssessment.title}${currentAssessment.company ? ` - ${currentAssessment.company}` : ''}`;
-          currentJobNameElement.textContent = `Assessed Job: ${jobTitle}`;
+          currentJobNameElement.textContent = jobTitle;
         } else if (currentJobId && savedJobs.length > 0) {
           // Show selected job
           const currentJob = savedJobs.find(j => j.id === currentJobId);
           if (currentJob) {
             const jobTitle = `${currentJob.title}${currentJob.company ? ` - ${currentJob.company}` : ''}`;
-            currentJobNameElement.textContent = `Selected Job: ${jobTitle}`;
+            currentJobNameElement.textContent = jobTitle;
           } else {
-            currentJobNameElement.textContent = 'None selected';
+            currentJobNameElement.textContent = 'No job selected';
           }
         } else {
-          currentJobNameElement.textContent = 'None selected';
+          currentJobNameElement.textContent = 'No job selected';
         }
       }
     } catch (error) {
       console.error('Error updating current job display:', error);
       const currentJobNameElement = document.getElementById('currentJobName');
       if (currentJobNameElement) {
-        currentJobNameElement.textContent = 'None selected';
+        currentJobNameElement.textContent = 'No job selected';
       }
     }
   }

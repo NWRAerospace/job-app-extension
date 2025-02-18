@@ -1252,21 +1252,47 @@ button:disabled .loading-spinner {
 }
 
 .keyword-match-controls {
-  margin: 0;
-  padding: 0;
-  background: transparent;
+  margin: 15px 0;
+  padding: 10px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border: 1px solid #e9ecef;
 }
 
-.keyword-match-controls span {
-  color: #495057;
+#assessmentResults .keyword-match-controls {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+}
+
+.current-job {
+  margin-bottom: 10px;
+  padding: 8px 12px;
+  background-color: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.current-job .label {
   font-weight: 500;
-  margin-bottom: 6px;
+  color: #495057;
+  white-space: nowrap;
+}
+
+.current-job .value {
+  color: #2c3e50;
+  font-weight: 600;
+  flex: 1;
 }
 
 .toggle-group {
   display: flex;
   gap: 15px;
-  margin-top: 5px;
+  margin-top: 8px;
 }
 
 .toggle-option {
@@ -1332,8 +1358,15 @@ button:disabled .loading-spinner {
 
 .current-job {
   margin-bottom: 10px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid #e9ecef;
+  padding: 8px 12px;
+  background-color: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+}
+
+.current-job .value {
+  color: #2c3e50;
+  font-weight: 600;
 }
 
 .current-resume .label,
