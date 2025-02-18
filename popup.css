@@ -1,41 +1,87 @@
 body {
   width: 450px;
-  padding: 15px;
+  padding: 12px;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
+.app-header {
+  margin-bottom: 10px;
+}
+
 h1 {
-  font-size: 1.5em;
-  margin: 0 0 15px 0;
+  font-size: 1.3em;
+  margin: 0 0 8px 0;
   color: #2c3e50;
+}
+
+/* Header Controls */
+.header-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  padding: 6px;
+}
+
+.control-item {
+  display: flex;
+  align-items: center;
+  padding: 4px 8px;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.control-item .label {
+  color: #666;
+  font-weight: 500;
+  margin-right: 6px;
+  white-space: nowrap;
+}
+
+.control-item .value {
+  color: #2c3e50;
+  font-weight: 500;
 }
 
 /* Tabs */
 .tabs {
   display: flex;
-  margin-bottom: 15px;
-  border-bottom: 2px solid #e0e0e0;
   flex-wrap: wrap;
+  gap: 1px;
+  margin-bottom: 12px;
+  border-bottom: 2px solid #e0e0e0;
+  padding-bottom: 2px;
 }
 
 .tab-button {
-  padding: 8px 12px;
+  padding: 4px 6px;
   border: none;
   background: none;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 10px;
   color: #666;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   white-space: nowrap;
+  border-radius: 4px 4px 0 0;
+  text-transform: uppercase;
+  letter-spacing: 0.2px;
+  min-width: 40px;
+  text-align: center;
 }
 
 .tab-button:hover {
   color: #2c3e50;
+  background: #f5f5f5;
 }
 
 .tab-button.active {
   color: #2c3e50;
-  font-weight: bold;
+  font-weight: 600;
+  background: #e8f0fe;
   border-bottom: 2px solid #3498db;
   margin-bottom: -2px;
 }
@@ -2216,4 +2262,127 @@ button:disabled .loading-spinner {
 #answerInput.limit-exceeded {
   border-color: #dc3545;
   background-color: #fff5f5;
+}
+
+/* Applied Jobs Section */
+.applied-jobs-section {
+  padding: 10px 0;
+}
+
+.applied-jobs-section h2 {
+  font-size: 1.2em;
+  margin: 0 0 15px 0;
+  color: #2c3e50;
+}
+
+/* Export Section */
+.export-section {
+  padding: 10px 0;
+}
+
+.export-section h2 {
+  font-size: 1.2em;
+  margin: 0 0 15px 0;
+  color: #2c3e50;
+}
+
+.export-options {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.export-group {
+  background: #f8f9fa;
+  border-radius: 6px;
+  padding: 15px;
+}
+
+.export-group h3 {
+  font-size: 1em;
+  margin: 0 0 12px 0;
+  color: #2c3e50;
+}
+
+.export-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.export-group button {
+  width: 100%;
+  text-align: left;
+  padding: 8px 12px;
+}
+
+.export-group button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Jobs List (shared between Saved and Applied) */
+.jobs-list {
+  max-height: 400px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.no-jobs {
+  text-align: center;
+  padding: 20px;
+  color: #666;
+  background: #f8f9fa;
+  border-radius: 6px;
+  margin-top: 10px;
+}
+
+/* Help Section */
+.help-section {
+  padding: 10px 0;
+}
+
+.help-section h2 {
+  font-size: 1.2em;
+  margin: 0 0 15px 0;
+  color: #2c3e50;
+}
+
+.help-group {
+  background: #f8f9fa;
+  border-radius: 6px;
+  padding: 15px;
+  margin-bottom: 15px;
+}
+
+.help-group:last-child {
+  margin-bottom: 0;
+}
+
+.help-group h3 {
+  font-size: 1em;
+  margin: 0 0 10px 0;
+  color: #2c3e50;
+}
+
+.help-group ol,
+.help-group ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.help-group li {
+  margin-bottom: 8px;
+  line-height: 1.4;
+  color: #444;
+}
+
+.help-group li:last-child {
+  margin-bottom: 0;
+}
+
+.help-group strong {
+  color: #2c3e50;
 }

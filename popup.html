@@ -9,36 +9,39 @@
   <script type="module" src="popup.js"></script>
 </head>
 <body>
-  <h1>Job App Assistant</h1>
-  
-  <div class="header-controls">
-    <div class="current-profile">
-      <span class="label">Profile:</span>
-      <span id="currentProfileName" class="value">Profile 1</span>
-    </div>
-
-    <div class="current-resume">
-      <span class="label">Current Resume:</span>
-      <span id="currentResumeName" class="value">None selected</span>
-    </div>
-
-    <div class="current-job">
-      <span class="label">Selected Job:</span>
-      <span id="currentJobName" class="value">None selected</span>
+  <div class="app-header">
+    <h1>Job App Assistant</h1>
+    
+    <div class="header-controls">
+      <div class="control-item">
+        <span class="label">Profile:</span>
+        <span id="currentProfileName" class="value">Profile 1</span>
+      </div>
+      <div class="control-item">
+        <span class="label">Current Resume:</span>
+        <span id="currentResumeName" class="value">None selected</span>
+      </div>
+      <div class="control-item">
+        <span class="label">Selected Job:</span>
+        <span id="currentJobName" class="value">None selected</span>
+      </div>
     </div>
   </div>
   
   <div class="tabs">
     <button class="tab-button active" data-tab="assess">Assess Job</button>
-    <button class="tab-button" data-tab="resume">Resume</button>
+    <button class="tab-button" data-tab="saved">Jobs</button>
+    <button class="tab-button" data-tab="applied">Applied</button>
+    <button class="tab-button" data-tab="cv">CV</button>
     <button class="tab-button" data-tab="cover">Cover Letter</button>
-    <button class="tab-button" data-tab="skills">My Skills</button>
+    <button class="tab-button" data-tab="skills">Skills</button>
     <button class="tab-button" data-tab="experience">Experience</button>
     <button class="tab-button" data-tab="education">Education</button>
-    <button class="tab-button" data-tab="limitations">Limitations</button>
-    <button class="tab-button" data-tab="saved">Saved Jobs</button>
+    <button class="tab-button" data-tab="limits">Limits</button>
     <button class="tab-button" data-tab="qa">Q&A</button>
+    <button class="tab-button" data-tab="export">Export</button>
     <button class="tab-button" data-tab="settings">Settings</button>
+    <button class="tab-button" data-tab="help">Help</button>
   </div>
 
   <div id="assess" class="tab-content active">
@@ -82,7 +85,7 @@
     </div>
   </div>
 
-  <div id="resume" class="tab-content">
+  <div id="cv" class="tab-content">
     <div class="resume-section">
       <h2>Resume Management</h2>
       
@@ -166,6 +169,115 @@
         </div>
       </div>
     </div>
+  </div>
+
+  <div id="education" class="tab-content">
+    <div class="education-section">
+      <h2>Education & Certifications</h2>
+      
+      <div id="educationList" class="education-list">
+        <!-- Education items will be listed here -->
+      </div>
+
+      <div class="add-education-form">
+        <h3>Add New Education/Certification</h3>
+        <select id="educationType" class="education-select">
+          <option value="degree">Degree</option>
+          <option value="certification">Certification</option>
+          <option value="course">Course</option>
+        </select>
+
+        <input type="text" id="educationTitle" placeholder="Title/Degree Name" class="education-input">
+        <input type="text" id="educationInstitution" placeholder="Institution" class="education-input">
+        
+        <div class="date-group">
+          <div class="date-input">
+            <label>Start Date:</label>
+            <input type="date" id="educationStartDate">
+          </div>
+          <div class="date-input">
+            <label>End Date:</label>
+            <input type="date" id="educationEndDate">
+          </div>
+          <label class="checkbox-label">
+            <input type="checkbox" id="educationInProgress"> In Progress
+          </label>
+        </div>
+
+        <div class="optional-fields">
+          <input type="text" id="educationGPA" placeholder="GPA (optional)" class="education-input">
+          <input type="text" id="educationURL" placeholder="Certificate URL (optional)" class="education-input">
+          <input type="date" id="educationExpiry" placeholder="Expiry Date (optional)">
+        </div>
+
+        <textarea id="educationDescription" placeholder="Description or relevant coursework" class="education-textarea"></textarea>
+        
+        <button id="addEducationButton" class="primary-button">Add Education/Certification</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="limits" class="tab-content">
+    <div class="limitations-section">
+      <h2>Limitations & Restrictions</h2>
+      
+      <div class="add-limitation-form">
+        <select id="limitationCategory" class="limitation-select">
+          <option value="legal">Legal/Visa</option>
+          <option value="physical">Physical/Health</option>
+          <option value="technical">Technical</option>
+          <option value="other">Other</option>
+        </select>
+
+        <input type="text" id="limitationText" placeholder="Limitation or Restriction" class="limitation-input">
+        <textarea id="limitationDetails" placeholder="Additional details (optional)" class="limitation-textarea"></textarea>
+        
+        <div class="temporary-group">
+          <label class="checkbox-label">
+            <input type="checkbox" id="isTemporary"> Temporary Limitation
+          </label>
+          <div class="end-date-input" style="display: none;">
+            <label>End Date:</label>
+            <input type="date" id="limitationEndDate">
+          </div>
+        </div>
+
+        <button id="addLimitationButton" class="primary-button">Add Limitation</button>
+      </div>
+
+      <div class="limitations-filters">
+        <button class="filter-button active" data-category="all">All</button>
+        <button class="filter-button" data-category="legal">Legal</button>
+        <button class="filter-button" data-category="physical">Physical</button>
+        <button class="filter-button" data-category="technical">Technical</button>
+        <button class="filter-button" data-category="other">Other</button>
+      </div>
+
+      <div id="limitationsList" class="limitations-list">
+        <!-- Limitations will be listed here -->
+      </div>
+    </div>
+  </div>
+
+  <div id="saved" class="tab-content">
+    <div class="keyword-match-controls">
+      <span>Match Keywords Against:</span>
+      <div class="toggle-group">
+        <label class="toggle-option">
+          <input type="radio" name="matchType" value="resume" checked>
+          Resume Text
+        </label>
+        <label class="toggle-option">
+          <input type="radio" name="matchType" value="skills">
+          Skills
+        </label>
+        <label class="toggle-option">
+          <input type="radio" name="matchType" value="both">
+          Both
+        </label>
+      </div>
+    </div>
+    <div id="savedJobsList"></div>
   </div>
 
   <div id="cover" class="tab-content">
@@ -395,115 +507,6 @@
     </div>
   </div>
 
-  <div id="education" class="tab-content">
-    <div class="education-section">
-      <h2>Education & Certifications</h2>
-      
-      <div id="educationList" class="education-list">
-        <!-- Education items will be listed here -->
-      </div>
-
-      <div class="add-education-form">
-        <h3>Add New Education/Certification</h3>
-        <select id="educationType" class="education-select">
-          <option value="degree">Degree</option>
-          <option value="certification">Certification</option>
-          <option value="course">Course</option>
-        </select>
-
-        <input type="text" id="educationTitle" placeholder="Title/Degree Name" class="education-input">
-        <input type="text" id="educationInstitution" placeholder="Institution" class="education-input">
-        
-        <div class="date-group">
-          <div class="date-input">
-            <label>Start Date:</label>
-            <input type="date" id="educationStartDate">
-          </div>
-          <div class="date-input">
-            <label>End Date:</label>
-            <input type="date" id="educationEndDate">
-          </div>
-          <label class="checkbox-label">
-            <input type="checkbox" id="educationInProgress"> In Progress
-          </label>
-        </div>
-
-        <div class="optional-fields">
-          <input type="text" id="educationGPA" placeholder="GPA (optional)" class="education-input">
-          <input type="text" id="educationURL" placeholder="Certificate URL (optional)" class="education-input">
-          <input type="date" id="educationExpiry" placeholder="Expiry Date (optional)">
-        </div>
-
-        <textarea id="educationDescription" placeholder="Description or relevant coursework" class="education-textarea"></textarea>
-        
-        <button id="addEducationButton" class="primary-button">Add Education/Certification</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="limitations" class="tab-content">
-    <div class="limitations-section">
-      <h2>Limitations & Restrictions</h2>
-      
-      <div class="add-limitation-form">
-        <select id="limitationCategory" class="limitation-select">
-          <option value="legal">Legal/Visa</option>
-          <option value="physical">Physical/Health</option>
-          <option value="technical">Technical</option>
-          <option value="other">Other</option>
-        </select>
-
-        <input type="text" id="limitationText" placeholder="Limitation or Restriction" class="limitation-input">
-        <textarea id="limitationDetails" placeholder="Additional details (optional)" class="limitation-textarea"></textarea>
-        
-        <div class="temporary-group">
-          <label class="checkbox-label">
-            <input type="checkbox" id="isTemporary"> Temporary Limitation
-          </label>
-          <div class="end-date-input" style="display: none;">
-            <label>End Date:</label>
-            <input type="date" id="limitationEndDate">
-          </div>
-        </div>
-
-        <button id="addLimitationButton" class="primary-button">Add Limitation</button>
-      </div>
-
-      <div class="limitations-filters">
-        <button class="filter-button active" data-category="all">All</button>
-        <button class="filter-button" data-category="legal">Legal</button>
-        <button class="filter-button" data-category="physical">Physical</button>
-        <button class="filter-button" data-category="technical">Technical</button>
-        <button class="filter-button" data-category="other">Other</button>
-      </div>
-
-      <div id="limitationsList" class="limitations-list">
-        <!-- Limitations will be listed here -->
-      </div>
-    </div>
-  </div>
-
-  <div id="saved" class="tab-content">
-    <div class="keyword-match-controls">
-      <span>Match Keywords Against:</span>
-      <div class="toggle-group">
-        <label class="toggle-option">
-          <input type="radio" name="matchType" value="resume" checked>
-          Resume Text
-        </label>
-        <label class="toggle-option">
-          <input type="radio" name="matchType" value="skills">
-          Skills
-        </label>
-        <label class="toggle-option">
-          <input type="radio" name="matchType" value="both">
-          Both
-        </label>
-      </div>
-    </div>
-    <div id="savedJobsList"></div>
-  </div>
-
   <div id="qa" class="tab-content">
     <div class="qa-section">
       <div class="qa-header">
@@ -588,6 +591,102 @@
           <button id="confirmQAImportButton" class="primary-button" disabled>Import</button>
           <button id="cancelQAImportButton" class="secondary-button">Cancel</button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="applied" class="tab-content">
+    <div class="applied-jobs-section">
+      <h2>Applied Jobs</h2>
+      <div id="appliedJobsList" class="jobs-list">
+        <!-- Applied jobs will be populated here -->
+      </div>
+      <div class="no-jobs" style="display: none;">
+        <p>No applied jobs yet.</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="export" class="tab-content">
+    <div class="export-section">
+      <h2>Export Data</h2>
+      
+      <div class="export-options">
+        <div class="export-group">
+          <h3>Resume & Cover Letters</h3>
+          <button class="secondary-button" data-export="resumes">Export Resumes</button>
+          <button class="secondary-button" data-export="coverLetters">Export Cover Letters</button>
+        </div>
+
+        <div class="export-group">
+          <h3>Job Information</h3>
+          <button class="secondary-button" data-export="savedJobs">Export Saved Jobs</button>
+          <button class="secondary-button" data-export="appliedJobs">Export Applied Jobs</button>
+        </div>
+
+        <div class="export-group">
+          <h3>Profile Data</h3>
+          <button class="secondary-button" data-export="skills">Export Skills</button>
+          <button class="secondary-button" data-export="experience">Export Experience</button>
+          <button class="secondary-button" data-export="education">Export Education</button>
+          <button class="secondary-button" data-export="qa">Export Q&A</button>
+        </div>
+
+        <div class="export-group">
+          <h3>Complete Backup</h3>
+          <button class="primary-button" data-export="all">Export All Data</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="help" class="tab-content">
+    <div class="help-section">
+      <h2>How to Use Job App Assistant</h2>
+      
+      <div class="help-group">
+        <h3>Getting Started</h3>
+        <ol>
+          <li>Set up your profile in the Settings tab</li>
+          <li>Upload your resume in the Resume tab</li>
+          <li>Add your skills, experience, and education</li>
+        </ol>
+      </div>
+
+      <div class="help-group">
+        <h3>Applying to Jobs</h3>
+        <ol>
+          <li>Find a job posting you're interested in</li>
+          <li>Select the job posting text on the webpage</li>
+          <li>Click "Assess Job Posting" to analyze the job</li>
+          <li>Review the job fit rating and keyword matches</li>
+          <li>Save interesting jobs to review later</li>
+          <li>Generate a tailored cover letter</li>
+          <li>Move jobs to "Applied" once you've submitted your application</li>
+        </ol>
+      </div>
+
+      <div class="help-group">
+        <h3>Key Features</h3>
+        <ul>
+          <li><strong>Job Assessment:</strong> Analyzes job postings for fit and keyword matches</li>
+          <li><strong>Resume Management:</strong> Store and manage multiple versions of your resume</li>
+          <li><strong>Cover Letter Generator:</strong> Create customized cover letters using AI</li>
+          <li><strong>Skills Tracking:</strong> Maintain a database of your skills and experience</li>
+          <li><strong>Q&A Management:</strong> Store and organize common application questions and answers</li>
+          <li><strong>Job Tracking:</strong> Keep track of saved and applied jobs</li>
+          <li><strong>Data Export:</strong> Export your data for backup or external use</li>
+        </ul>
+      </div>
+
+      <div class="help-group">
+        <h3>Tips</h3>
+        <ul>
+          <li>Keep your skills and experience up to date for better job matching</li>
+          <li>Use the Q&A section to save common application questions and answers</li>
+          <li>Regularly backup your data using the Export feature</li>
+          <li>Track your application status by moving jobs to the Applied section</li>
+        </ul>
       </div>
     </div>
   </div>
