@@ -106,6 +106,64 @@
         <button id="extractSkillsButton" class="secondary-button" style="display: none;">
           Extract Skills, Education & Experience
         </button>
+        
+        <div class="resume-enhancement-section" style="margin-top: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 5px;">
+          <h3>AI Resume Enhancement</h3>
+          
+          <div class="enhancement-options">
+            <div class="enhancement-mode">
+              <h4>Enhancement Mode</h4>
+              <div class="radio-group">
+                <label>
+                  <input type="radio" name="enhancementMode" value="minor" checked>
+                  Minor Rewrites
+                  <small>(Conservative improvements, minimal keyword additions)</small>
+                </label>
+                <label>
+                  <input type="radio" name="enhancementMode" value="major">
+                  Major Rewrite
+                  <small>(Comprehensive restructuring using your experience)</small>
+                </label>
+              </div>
+            </div>
+
+            <div class="resume-length">
+              <h4>Target Length</h4>
+              <div class="radio-group">
+                <label>
+                  <input type="radio" name="resumeLength" value="one" checked>
+                  One Page (450-650 words)
+                </label>
+                <label>
+                  <input type="radio" name="resumeLength" value="two">
+                  Two Pages (800-1200 words)
+                </label>
+              </div>
+            </div>
+
+            <div class="include-sections">
+              <h4>Include Sections</h4>
+              <div class="checkbox-group">
+                <label>
+                  <input type="checkbox" name="includeSkills" checked>
+                  Skills
+                </label>
+                <label>
+                  <input type="checkbox" name="includeEducation" checked>
+                  Education
+                </label>
+                <label>
+                  <input type="checkbox" name="includeExperience" checked>
+                  Experience
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <button id="enhanceResumeButton" class="primary-button" style="margin-top: 15px;">
+            Enhance Resume
+          </button>
+        </div>
       </div>
     </div>
   </div>

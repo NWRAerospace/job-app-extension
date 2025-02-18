@@ -70,6 +70,73 @@ ${resumeText}`;
     return await this._makeGeminiRequest(geminiApiUrl, prompt, apiKey);
   }
 
+  static async enhanceResume(resumeText, jobText, options, skills, education, experiences, apiKey) {
+    const model = await this._getSelectedModel();
+    const geminiApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
+    
+    const targetWordCount = options.resumeLength === 'one' ? '450-650' : '800-1200';
+    const rewriteMode = options.enhancementMode;
+    
+    let prompt = `Enhance this resume to better target the provided job posting. Follow these specific instructions:
+
+1. Target Length: ${targetWordCount} words
+2. Enhancement Mode: ${rewriteMode === 'minor' ? 'Conservative improvements with minimal changes' : 'Comprehensive restructuring'}
+3. Format: Return plain text with clear section headers and bullet points
+4. Keywords: ONLY incorporate keywords that appear in the job posting. Do not add skills from the candidate's background unless they are specifically mentioned in the job posting.
+5. STAR Format: Each bullet point should tell a complete story in a single sentence that naturally incorporates:
+   - The Situation/context
+   - The specific Task/challenge
+   - The Actions taken
+   - The measurable Results/impact
+   Example: "Reduced processing time by 40% by designing and implementing an automated workflow system to address critical bottlenecks in the company's data pipeline."
+   NOT: "Situation: ... Task: ... Action: ... Result: ..."
+6. Sections to Include: ${[
+      options.includeSkills ? 'Skills' : null,
+      options.includeEducation ? 'Education' : null,
+      options.includeExperience ? 'Experience' : null
+    ].filter(Boolean).join(', ')}
+
+Enhancement Guidelines:
+${rewriteMode === 'minor' ? `
+- Make minimal changes to improve clarity and impact
+- Only add keywords that appear in the job posting
+- Improve poorly written sentences
+- Convert relevant experience points to STAR format in a natural way
+- Maintain most of the original content and structure` : `
+- Comprehensively restructure the resume
+- Prioritize experiences most relevant to the job
+- Only incorporate keywords from the job posting
+- Rewrite experience points in STAR format naturally
+- Focus on achievements and measurable results
+- Optimize section ordering for this specific role`}
+
+Job Posting:
+${jobText}
+
+Current Resume:
+${resumeText}
+
+${options.includeSkills ? `Skills to Consider:\n${skills.map(s => `${s.skill} (${s.level}${s.yearsExperience ? `, ${s.yearsExperience}yrs` : ''})`).join(', ')}` : ''}
+
+${options.includeEducation ? `Education to Consider:\n${education.map(e => `${e.title} from ${e.institution}`).join('\n')}` : ''}
+
+${options.includeExperience ? `Experience to Consider:\n${experiences.map(e => `${e.title} at ${e.company}`).join('\n')}` : ''}
+
+Respond ONLY with a JSON object in this exact format:
+{
+  "enhanced_resume": "The complete enhanced resume text with proper formatting",
+  "word_count": number,
+  "changes_made": [
+    "List of main changes/improvements made"
+  ],
+  "keywords_added": [
+    "List of relevant keywords from the job posting that were incorporated"
+  ]
+}`;
+
+    return await this._makeGeminiRequest(geminiApiUrl, prompt, apiKey);
+  }
+
   static async generateQAResponse(question, resume, skills, education, apiKey) {
     const model = await this._getSelectedModel();
     const geminiApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;

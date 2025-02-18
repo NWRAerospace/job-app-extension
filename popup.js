@@ -9,6 +9,7 @@ import { EventHandlers } from './js/utils/eventHandlers.js';
 import { QAManager } from './js/modules/qaManager.js';
 import { CoverLetterManager } from './js/modules/coverLetterManager.js';
 import { ExperienceManager } from './js/modules/experienceManager.js';
+import { AIHelper } from './js/utils/aiHelper.js';
 
 document.addEventListener('DOMContentLoaded', async function() {
   // Initialize database first
@@ -584,6 +585,208 @@ document.addEventListener('DOMContentLoaded', async function() {
         modifyCurrentCoverLetterBtn.style.display = 'none';
       }
     });
+
+    // Enhance resume button handler
+    const enhanceResumeButton = document.getElementById('enhanceResumeButton');
+    enhanceResumeButton.addEventListener('click', async () => {
+      try {
+        // First check if we have a current assessment or selected job
+        let currentJob = window.currentAssessment;
+        if (!currentJob) {
+          // Try to get the selected job as fallback
+          const activeJobId = await DatabaseManager.getField('activeJobId');
+          const savedJobs = await DatabaseManager.getField('savedJobs') || [];
+          currentJob = savedJobs.find(j => j.id === activeJobId);
+          
+          if (!currentJob) {
+            uiManager.showError('Please assess a job posting or select a saved job first.');
+            return;
+          }
+        }
+
+        // Get the current resume
+        const activeResumeId = await DatabaseManager.getField('activeResumeId');
+        const resumes = await DatabaseManager.getField('resumes') || [];
+        const activeResume = resumes.find(r => r.id === activeResumeId);
+        
+        if (!activeResume || !activeResume.textContent) {
+          uiManager.showError('Please select a resume first.');
+          return;
+        }
+
+        // Get the API key
+        const apiKey = await DatabaseManager.getField('geminiApiKey');
+        if (!apiKey) {
+          uiManager.showError('API Key is required. Please add it in the Settings tab.');
+          return;
+        }
+
+        // Show loading state
+        const restoreButton = uiManager.showLoadingState(enhanceResumeButton, 'Enhancing...');
+
+        // Get enhancement options
+        const options = {
+          enhancementMode: document.querySelector('input[name="enhancementMode"]:checked').value,
+          resumeLength: document.querySelector('input[name="resumeLength"]:checked').value,
+          includeSkills: document.querySelector('input[name="includeSkills"]').checked,
+          includeEducation: document.querySelector('input[name="includeEducation"]').checked,
+          includeExperience: document.querySelector('input[name="includeExperience"]').checked
+        };
+
+        // Validate options for major rewrite
+        if (options.enhancementMode === 'major' && 
+            (!options.includeSkills || !options.includeEducation || !options.includeExperience)) {
+          uiManager.showError('Major rewrite requires all sections (Skills, Education, Experience) to be included.');
+          return;
+        }
+
+        // Get user data
+        const [skills, education, experiences] = await Promise.all([
+          DatabaseManager.getField('skills') || [],
+          DatabaseManager.getField('education') || [],
+          DatabaseManager.getField('experiences') || []
+        ]);
+
+        // Call AI to enhance resume
+        const result = await AIHelper.enhanceResume(
+          activeResume.textContent,
+          currentJob.jobText,
+          options,
+          skills,
+          education,
+          experiences,
+          apiKey
+        );
+
+        if (!result || !result.enhanced_resume) {
+          throw new Error('Failed to enhance resume. Please try again.');
+        }
+
+        // Show the enhanced resume in a modal for review
+        const modalContent = `
+          <div class="enhanced-resume-preview">
+            <h4>Enhanced Resume (${result.word_count} words)</h4>
+            
+            <div class="save-options" style="margin-bottom: 15px;">
+              <label>
+                <input type="radio" name="saveOption" value="overwrite" checked>
+                Overwrite current resume
+              </label>
+              <label>
+                <input type="radio" name="saveOption" value="new">
+                Save as new resume
+              </label>
+              <div class="new-resume-name" style="display: none; margin-top: 10px;">
+                <input type="text" id="newResumeName" class="form-input" 
+                       placeholder="Enter name for new resume" 
+                       style="width: 100%; padding: 8px; margin-bottom: 5px;">
+              </div>
+            </div>
+
+            <div class="preview-section">
+              <textarea class="enhanced-text" style="width: 100%; height: 300px; margin-bottom: 15px;">${result.enhanced_resume}</textarea>
+            </div>
+            <div class="changes-section">
+              <h4>Changes Made</h4>
+              <ul>
+                ${result.changes_made.map(change => `<li>${change}</li>`).join('')}
+              </ul>
+              <h4>Keywords Added</h4>
+              <ul>
+                ${result.keywords_added.map(keyword => `<li>${keyword}</li>`).join('')}
+              </ul>
+            </div>
+          </div>
+        `;
+
+        const modalActions = `
+          <button class="confirm-button primary-button">Apply Changes</button>
+          <button class="cancel-button secondary-button">Cancel</button>
+        `;
+
+        const modal = uiManager.showModal('Enhanced Resume Preview', modalContent, modalActions);
+
+        // Setup modal handlers
+        const confirmButton = modal.querySelector('.confirm-button');
+        const cancelButton = modal.querySelector('.cancel-button');
+        const saveOptions = modal.querySelectorAll('input[name="saveOption"]');
+        const newResumeNameContainer = modal.querySelector('.new-resume-name');
+        const newResumeNameInput = modal.querySelector('#newResumeName');
+
+        // Show/hide new resume name input based on save option
+        saveOptions.forEach(option => {
+          option.addEventListener('change', () => {
+            newResumeNameContainer.style.display = 
+              option.value === 'new' ? 'block' : 'none';
+            
+            if (option.value === 'new' && !newResumeNameInput.value) {
+              // Set a default name based on current resume
+              const currentResume = document.querySelector('#resumeSelect option:checked');
+              if (currentResume && currentResume.text) {
+                newResumeNameInput.value = `${currentResume.text} - Enhanced`;
+              } else {
+                newResumeNameInput.value = 'Enhanced Resume';
+              }
+            }
+          });
+        });
+
+        confirmButton.addEventListener('click', async () => {
+          try {
+            const restoreConfirmButton = uiManager.showLoadingState(confirmButton, 'Applying...');
+            const saveOption = modal.querySelector('input[name="saveOption"]:checked').value;
+            
+            if (saveOption === 'new') {
+              const newName = newResumeNameInput.value.trim();
+              if (!newName) {
+                throw new Error('Please enter a name for the new resume');
+              }
+              
+              // Create new resume
+              const newId = await DatabaseManager.addResume(newName, 'text', null);
+              await DatabaseManager.updateResumeText(newId, result.enhanced_resume);
+              
+              // Set as active resume
+              await DatabaseManager.setActiveResume(newId);
+              
+              // Refresh resume list and select new resume
+              await loadResumes({ DatabaseManager });
+              document.getElementById('resumeSelect').value = newId;
+            } else {
+              // Overwrite existing resume
+              await DatabaseManager.updateResumeText(activeResumeId, result.enhanced_resume);
+            }
+            
+            // Update the display
+            document.getElementById('resumeContent').value = result.enhanced_resume;
+            
+            // Update current resume display in header
+            await uiManager.updateCurrentResumeDisplay();
+            
+            uiManager.showFeedbackMessage('Resume enhanced successfully!');
+            modal.remove();
+            restoreButton(); // Reset the enhance button state
+          } catch (error) {
+            uiManager.showError('Failed to apply changes: ' + error.message);
+          } finally {
+            restoreConfirmButton();
+          }
+        });
+
+        cancelButton.addEventListener('click', () => {
+          modal.remove();
+          restoreButton(); // Reset the enhance button state
+        });
+
+      } catch (error) {
+        console.error('Error enhancing resume:', error);
+        uiManager.showError(error.message);
+      } finally {
+        if (!document.querySelector('.modal')) { // Only restore if modal isn't showing
+          restoreButton();
+        }
+      }
+    });
   }
 
   function setupSkillsHandlers({ skillsManager, uiManager }) {
@@ -770,6 +973,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     const resumeFileInput = document.getElementById('resumeFileInput');
     const removeResumeButton = document.getElementById('removeResumeButton');
     const extractSkillsButton = document.getElementById('extractSkillsButton');
+    const enhanceResumeButton = document.getElementById('enhanceResumeButton');
 
     // Cover letter handlers
     const coverLetterSelect = document.getElementById('coverLetterSelect');
@@ -815,6 +1019,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         resumeContent.value = '';
         removeResumeButton.style.display = 'none';
         document.getElementById('extractSkillsButton').style.display = 'none';
+        await uiManager.updateCurrentResumeDisplay();
       }
     });
 
@@ -924,6 +1129,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             removeResumeButton.style.display = 'block';
             document.getElementById('extractSkillsButton').style.display = 'block';
             await DatabaseManager.setActiveResume(id);
+            await uiManager.updateCurrentResumeDisplay();
             console.log('New resume set as active:', id);
           } else {
             console.log('Adding new cover letter...');

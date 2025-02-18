@@ -2034,3 +2034,125 @@ button:disabled .loading-spinner {
   margin-top: 4px;
   line-height: 1.4;
 }
+
+.resume-enhancement-section {
+  background-color: #f8f9fa;
+}
+
+.enhancement-options {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.enhancement-mode,
+.resume-length,
+.include-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.radio-group,
+.checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.radio-group label,
+.checkbox-group label {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.radio-group small {
+  display: block;
+  color: #666;
+  margin-left: 24px;
+  font-size: 0.85em;
+}
+
+.enhancement-options h4 {
+  margin: 0;
+  font-size: 1em;
+  color: #333;
+}
+
+#enhanceResumeButton {
+  width: 100%;
+}
+
+.enhancement-options input[type="radio"],
+.enhancement-options input[type="checkbox"] {
+  margin-top: 3px;
+}
+
+.enhanced-resume-preview {
+  max-height: 80vh;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+.enhanced-resume-preview .preview-section {
+  margin-bottom: 20px;
+}
+
+.enhanced-resume-preview .enhanced-text {
+  font-family: monospace;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  resize: vertical;
+}
+
+.enhanced-resume-preview .changes-section {
+  border-top: 1px solid #ddd;
+  padding-top: 15px;
+}
+
+.enhanced-resume-preview h4 {
+  margin: 0 0 10px 0;
+  color: #333;
+}
+
+.enhanced-resume-preview ul {
+  margin: 0 0 20px 0;
+  padding-left: 20px;
+}
+
+.enhanced-resume-preview li {
+  margin-bottom: 5px;
+  color: #555;
+}
+
+.save-options {
+  background-color: #f8f9fa;
+  padding: 15px;
+  border-radius: 4px;
+  margin-top: 20px;
+}
+
+.save-options label {
+  display: block;
+  margin-bottom: 10px;
+  cursor: pointer;
+}
+
+.save-options input[type="radio"] {
+  margin-right: 8px;
+}
+
+.save-options .new-resume-name input {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.save-options .new-resume-name input:focus {
+  border-color: #007bff;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+}
