@@ -2522,3 +2522,50 @@ button:disabled .loading-spinner {
   padding: 2rem;
   font-style: italic;
 }
+
+.applied-job-item .job-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  justify-content: flex-end;
+}
+
+.applied-job-item .job-actions button {
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+
+.applied-job-item .delete-job {
+  background-color: transparent;
+  color: #dc3545;
+  border: 1px solid #dc3545;
+  padding: 4px 8px;
+  font-size: 0.8em;
+  transition: all 0.2s ease;
+}
+
+.applied-job-item .delete-job:hover {
+  background-color: #dc3545;
+  color: white;
+}
+
+.job-summary {
+  margin: 16px 0;
+  padding: 12px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.job-summary strong {
+  color: #2c3e50;
+  font-size: 1.1em;
+}
+
+.job-summary span {
+  color: #6c757d;
+  font-size: 0.9em;
+}

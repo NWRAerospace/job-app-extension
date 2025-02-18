@@ -55,6 +55,7 @@ export class AppliedManager {
       <div class="job-actions">
         <button class="view-job" data-action="view">View Job Details</button>
         ${job.jobLink ? `<button class="open-job" data-action="open" data-job-link="${job.jobLink}">Open Job</button>` : ''}
+        <button class="delete-job danger-button" data-action="delete" title="Delete this job">Delete</button>
       </div>
     `;
 
@@ -68,6 +69,9 @@ export class AppliedManager {
         window.open(job.jobLink, '_blank');
       });
     }
+
+    const deleteButton = jobElement.querySelector('.delete-job');
+    deleteButton.addEventListener('click', () => this.confirmAndDeleteJob(job));
 
     return jobElement;
   }
@@ -240,5 +244,46 @@ export class AppliedManager {
         </div>
       </div>
     `;
+  }
+
+  async confirmAndDeleteJob(job) {
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.innerHTML = `
+      <div class="modal-content">
+        <h2>Delete Applied Job</h2>
+        <p>Are you sure you want to delete this job application record?</p>
+        <div class="job-summary">
+          <strong>${job.title || 'Untitled Position'}</strong>
+          <span>${job.company || 'Unknown Company'}</span>
+          <span>Applied: ${new Date(job.appliedDate).toLocaleDateString()}</span>
+        </div>
+        <div class="modal-actions">
+          <button class="secondary-button" data-action="cancel">Cancel</button>
+          <button class="danger-button" data-action="confirm">Delete</button>
+        </div>
+      </div>
+    `;
+
+    const cancelButton = modal.querySelector('[data-action="cancel"]');
+    const confirmButton = modal.querySelector('[data-action="confirm"]');
+
+    cancelButton.addEventListener('click', () => {
+      modal.remove();
+    });
+
+    confirmButton.addEventListener('click', async () => {
+      try {
+        await this.databaseManager.removeAppliedJob(job.id);
+        await this.refreshAppliedJobsList();
+        this.uiManager.showFeedbackMessage('Job deleted successfully');
+        modal.remove();
+      } catch (error) {
+        console.error('Error deleting job:', error);
+        this.uiManager.showFeedbackMessage('Error deleting job', 'error');
+      }
+    });
+
+    document.body.appendChild(modal);
   }
 } 
