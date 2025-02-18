@@ -444,11 +444,18 @@ document.addEventListener('DOMContentLoaded', async function() {
     generateFreshCoverLetterBtn.addEventListener('click', async () => {
       const restoreButton = uiManager.showLoadingState(generateFreshCoverLetterBtn, 'Generating...');
       try {
-        // First check if we have a current assessment
-        const currentJob = window.currentAssessment;
-        if (!currentJob || !currentJob.jobText) {
-          uiManager.showError('Please assess a job posting first.');
-          return;
+        // First check if we have a current assessment or selected job
+        let currentJob = window.currentAssessment;
+        if (!currentJob) {
+          // Try to get the selected job as fallback
+          const activeJobId = await DatabaseManager.getField('activeJobId');
+          const savedJobs = await DatabaseManager.getField('savedJobs') || [];
+          currentJob = savedJobs.find(j => j.id === activeJobId);
+          
+          if (!currentJob) {
+            uiManager.showError('Please assess a job posting or select a saved job first.');
+            return;
+          }
         }
 
         const skills = await DatabaseManager.getField('skills') || [];
@@ -488,11 +495,18 @@ document.addEventListener('DOMContentLoaded', async function() {
     modifyCurrentCoverLetterBtn.addEventListener('click', async () => {
       const restoreButton = uiManager.showLoadingState(modifyCurrentCoverLetterBtn, 'Modifying...');
       try {
-        // First check if we have a current assessment
-        const currentJob = window.currentAssessment;
-        if (!currentJob || !currentJob.jobText) {
-          uiManager.showError('Please assess a job posting first.');
-          return;
+        // First check if we have a current assessment or selected job
+        let currentJob = window.currentAssessment;
+        if (!currentJob) {
+          // Try to get the selected job as fallback
+          const activeJobId = await DatabaseManager.getField('activeJobId');
+          const savedJobs = await DatabaseManager.getField('savedJobs') || [];
+          currentJob = savedJobs.find(j => j.id === activeJobId);
+          
+          if (!currentJob) {
+            uiManager.showError('Please assess a job posting or select a saved job first.');
+            return;
+          }
         }
 
         const skills = await DatabaseManager.getField('skills') || [];

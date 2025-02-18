@@ -565,16 +565,27 @@ export class UIManager {
     try {
       const currentJobId = await this.databaseManager.getField('activeJobId');
       const savedJobs = await this.databaseManager.getField('savedJobs') || [];
-      const currentJob = savedJobs.find(j => j.id === currentJobId);
+      const currentAssessment = window.currentAssessment;
       
-      console.log('Updating current job display:', { currentJobId, currentJob });
+      console.log('Updating current job display:', { currentJobId, currentAssessment });
       
       const currentJobNameElement = document.getElementById('currentJobName');
       if (currentJobNameElement) {
-        if (!currentJobId || !currentJob) {
-          currentJobNameElement.textContent = 'None selected';
+        if (currentAssessment) {
+          // Show assessed job
+          const jobTitle = `${currentAssessment.title}${currentAssessment.company ? ` - ${currentAssessment.company}` : ''}`;
+          currentJobNameElement.textContent = `Assessed Job: ${jobTitle}`;
+        } else if (currentJobId && savedJobs.length > 0) {
+          // Show selected job
+          const currentJob = savedJobs.find(j => j.id === currentJobId);
+          if (currentJob) {
+            const jobTitle = `${currentJob.title}${currentJob.company ? ` - ${currentJob.company}` : ''}`;
+            currentJobNameElement.textContent = `Selected Job: ${jobTitle}`;
+          } else {
+            currentJobNameElement.textContent = 'None selected';
+          }
         } else {
-          currentJobNameElement.textContent = `${currentJob.title}${currentJob.company ? ` - ${currentJob.company}` : ''}`;
+          currentJobNameElement.textContent = 'None selected';
         }
       }
     } catch (error) {
