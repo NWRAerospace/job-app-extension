@@ -170,9 +170,11 @@ export class AppliedManager {
       
       // Refresh both lists
       await this.refreshAppliedJobsList();
-      if (typeof this.uiManager.updateSavedJobsList === 'function') {
+      
+      // Immediately update the jobs list if we're on the jobs tab
+      if (this.uiManager.activeTab === 'jobs' && typeof this.uiManager.updateJobsList === 'function') {
         const savedJobs = await this.databaseManager.getField('savedJobs');
-        this.uiManager.updateSavedJobsList(savedJobs);
+        await this.uiManager.updateJobsList(savedJobs);
       }
     } catch (error) {
       console.error('Error marking job as applied:', error);
