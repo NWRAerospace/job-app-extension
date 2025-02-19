@@ -1671,7 +1671,7 @@ document.addEventListener('DOMContentLoaded', async function() {
       </label>
       <div class="button-group">
         <button class="secondary-button cancel-button">Cancel</button>
-        <button class="primary-button confirm-button">Apply Selected</button>
+        <button class="primary-button confirm-button">Add to Database</button>
       </div>
     `;
   }
