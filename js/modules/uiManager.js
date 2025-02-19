@@ -1246,19 +1246,20 @@ export class UIManager {
           `).join('') || 'No education found'}
         </div>
       </div>
-
-      <div class="replace-toggle">
-        <label>
-          <input type="checkbox" id="replaceExisting"> Replace existing items instead of adding
-        </label>
-      </div>
     `;
   }
 
   createAnalysisModalActions() {
     return `
-      <button class="secondary-button cancel-button">Cancel</button>
-      <button class="primary-button confirm-button">Apply Selected</button>
+      <div class="replace-toggle">
+        <label>
+          <input type="checkbox" id="replaceExisting"> Replace existing items
+        </label>
+      </div>
+      <div class="button-group">
+        <button class="primary-button confirm-button">Apply Selected</button>
+        <button class="secondary-button cancel-button">Cancel</button>
+      </div>
     `;
   }
 

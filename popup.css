@@ -1001,31 +1001,48 @@ button:disabled .loading-spinner {
 
 .modal-actions {
   display: flex;
-  justify-content: flex-start;
-  align-items: center;
+  flex-direction: column;
   gap: 10px;
   padding-top: 15px;
   border-top: 1px solid #eee;
 }
 
+.modal-actions .replace-toggle {
+  margin-right: auto;
+}
+
+.modal-actions .button-group {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.modal-actions .button-group .confirm-button {
+  order: 1; /* Primary action first */
+}
+
+.modal-actions .button-group .cancel-button {
+  order: 2; /* Secondary action second */
+}
+
+.modal-actions button {
+  margin: 0;
+  flex-shrink: 0;
+  min-width: fit-content;
+}
+
 .modal-actions button[data-action="apply"],
 .modal-actions .confirm-button,
-.modal-actions .primary-button {
-  order: 0;
+.modal-actions button.primary-button {
+  background-color: #3498db;
+  color: white;
 }
 
 .modal-actions button[data-action="cancel"],
 .modal-actions .cancel-button,
-.modal-actions .secondary-button {
-  order: 2;
-}
-
-.modal-actions .replace-toggle {
-  order: 1;
-  margin: 0;
-  padding: 0;
-  background: none;
-  border: none;
+.modal-actions button.secondary-button {
+  background-color: #95a5a6;
+  color: white;
 }
 
 .modal-actions .replace-toggle label {
@@ -1246,6 +1263,8 @@ button:disabled .loading-spinner {
   gap: 10px;
   padding-top: 15px;
   border-top: 1px solid #eee;
+  flex-direction: row;
+  align-items: center;
 }
 
 /* Button Styles */
