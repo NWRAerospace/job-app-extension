@@ -181,6 +181,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     const clearEducationBtn = document.getElementById('clearEducation');
     const clearExperienceBtn = document.getElementById('clearExperience');
     const wipeProfileBtn = document.getElementById('wipeProfile');
+    const deleteAllJobsBtn = document.getElementById('deleteAllJobs');
+    const deleteAllAppliedJobsBtn = document.getElementById('deleteAllAppliedJobs');
 
     clearCoverLettersBtn.addEventListener('click', async () => {
       if (confirm('Are you sure you want to delete all cover letters? This cannot be undone.')) {
@@ -265,52 +267,48 @@ document.addEventListener('DOMContentLoaded', async function() {
     });
 
     wipeProfileBtn.addEventListener('click', async () => {
-      if (confirm('Are you sure you want to wipe your entire profile? This will delete ALL your data and cannot be undone.')) {
-        if (confirm('This is your last chance to cancel. Are you absolutely sure?')) {
-          try {
-            // Clear all data fields
-            await DatabaseManager.updateField('coverLetters', []);
-            await DatabaseManager.updateField('activeCoverLetterId', null);
-            await DatabaseManager.updateField('resumes', []);
-            await DatabaseManager.updateField('activeResumeId', null);
-            await DatabaseManager.updateField('resumeText', '');
-            await DatabaseManager.updateField('skills', []);
-            await DatabaseManager.updateField('qaPairs', []);
-            await DatabaseManager.updateField('education', []);
-            await DatabaseManager.updateField('experiences', []);
-            await DatabaseManager.updateField('savedJobs', []);
-            await DatabaseManager.updateField('appliedJobs', []);
-            await DatabaseManager.updateField('limitations', []);
-            await DatabaseManager.updateField('personalInfo', {});
+      if (confirm('Are you sure you want to wipe your entire profile? This will delete ALL data and cannot be undone.')) {
+        try {
+          await DatabaseManager.updateField('coverLetters', []);
+          await DatabaseManager.updateField('resumes', []);
+          await DatabaseManager.updateField('skills', []);
+          await DatabaseManager.updateField('education', []);
+          await DatabaseManager.updateField('experience', []);
+          await DatabaseManager.updateField('qa', []);
+          await DatabaseManager.updateField('savedJobs', []);
+          await DatabaseManager.updateField('appliedJobs', []);
+          await DatabaseManager.updateField('activeCoverLetterId', null);
+          await DatabaseManager.updateField('activeResumeId', null);
+          await DatabaseManager.updateField('activeJobId', null);
+          uiManager.showFeedbackMessage('Profile wiped successfully');
+          refreshAllLists();
+        } catch (error) {
+          uiManager.showError('Failed to wipe profile: ' + error.message);
+        }
+      }
+    });
 
-            // Update all displays
-            await uiManager.updateSavedCoverLetters();
-            await uiManager.updateCurrentResumeDisplay();
-            await loadResumes({ DatabaseManager });
-            await loadCoverLetters({ DatabaseManager });
-            
-            // Update lists using UIManager
-            uiManager.updateSkillsList([]);
-            uiManager.updateEducationList([]);
-            uiManager.updateLimitationsList([]);
-            uiManager.updateJobsList([]);
-            await refreshExperienceList();
-            
-            // Clear content displays
-            document.getElementById('resumeContent').value = '';
-            document.getElementById('coverLetterContent').value = '';
-            document.getElementById('removeResumeButton').style.display = 'none';
-            document.getElementById('removeCoverLetterButton').style.display = 'none';
-            document.getElementById('extractSkillsButton').style.display = 'none';
-            
-            // Clear experience items container
-            document.getElementById('experienceItems').innerHTML = '';
+    deleteAllJobsBtn.addEventListener('click', async () => {
+      if (confirm('Are you sure you want to delete all saved jobs? This cannot be undone.')) {
+        try {
+          await DatabaseManager.updateField('savedJobs', []);
+          await DatabaseManager.updateField('activeJobId', null);
+          uiManager.updateJobsList([]);
+          uiManager.showFeedbackMessage('All saved jobs deleted successfully');
+        } catch (error) {
+          uiManager.showError('Failed to delete saved jobs: ' + error.message);
+        }
+      }
+    });
 
-            uiManager.showFeedbackMessage('Profile wiped successfully');
-          } catch (error) {
-            console.error('Error wiping profile:', error);
-            uiManager.showFeedbackMessage('Failed to wipe profile', 'error');
-          }
+    deleteAllAppliedJobsBtn.addEventListener('click', async () => {
+      if (confirm('Are you sure you want to delete all applied jobs? This cannot be undone.')) {
+        try {
+          await DatabaseManager.updateField('appliedJobs', []);
+          appliedManager.refreshAppliedJobsList();
+          uiManager.showFeedbackMessage('All applied jobs deleted successfully');
+        } catch (error) {
+          uiManager.showError('Failed to delete applied jobs: ' + error.message);
         }
       }
     });

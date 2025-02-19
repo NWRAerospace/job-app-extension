@@ -957,7 +957,7 @@ export class UIManager {
         <button class="open-job" data-action="open" data-job-link="${job.jobLink}">Open Job</button>
         <button class="select-job" data-action="select">Select Job</button>
         <button class="apply-button" data-action="apply">Mark as Applied</button>
-        <button class="remove-button" data-action="remove">Remove</button>
+        <button class="remove-button" data-action="remove">Delete</button>
       </div>
     `;
 
@@ -1005,24 +1005,25 @@ export class UIManager {
           break;
 
         case 'remove':
-          if (await this.databaseManager.removeSavedJob(jobLink)) {
-            const savedJobs = await this.databaseManager.getField('savedJobs');
-            this.updateSavedJobsList(savedJobs);
-            this.showFeedbackMessage('Job removed successfully');
+          const jobToRemove = savedJobs.find(j => j.id === jobId);
+          if (jobToRemove && await this.databaseManager.removeSavedJob(jobToRemove.jobLink)) {
+            const updatedJobs = await this.databaseManager.getField('savedJobs');
+            this.updateSavedJobsList(updatedJobs);
+            this.showFeedbackMessage('Job deleted successfully');
           }
           break;
 
         case 'select':
-          const selectedJob = await this.databaseManager.getField('savedJobs');
-          if (selectedJob.some(j => j.id === jobId)) {
+          const selectedJob = savedJobs.find(j => j.id === jobId);
+          if (selectedJob) {
             if (window.currentAssessment?.id === jobId) {
               // Deselect if already selected
               window.currentAssessment = null;
-              await this.databaseManager.setField('activeJobId', null);
+              await this.databaseManager.updateField('activeJobId', null);
             } else {
               // Select the job
-              window.currentAssessment = selectedJob.find(j => j.id === jobId);
-              await this.databaseManager.setField('activeJobId', jobId);
+              window.currentAssessment = selectedJob;
+              await this.databaseManager.updateField('activeJobId', jobId);
             }
             await this.updateCurrentJobDisplay();
             await this.refreshJobsList();
@@ -1477,7 +1478,7 @@ export class UIManager {
             <button class="view-job" data-action="view">View Job Details</button>
             ${job.jobLink ? `<button class="open-job" data-action="open" data-job-link="${job.jobLink}">Open Job</button>` : ''}
             <button class="apply-button" data-action="apply">Mark as Applied</button>
-            <button class="remove-button" data-action="remove">Remove</button>
+            <button class="remove-button" data-action="remove">Delete</button>
           </div>
         </div>
       `;
@@ -1528,10 +1529,11 @@ export class UIManager {
               }
               break;
             case 'remove':
-              if (await self.databaseManager.removeSavedJob(jobId)) {
+              const jobToRemove = jobs.find(j => j.id === jobId);
+              if (jobToRemove && await self.databaseManager.removeSavedJob(jobToRemove.jobLink)) {
                 const updatedJobs = await self.databaseManager.getField('savedJobs');
                 self.updateJobsList(updatedJobs);
-                self.showFeedbackMessage('Job removed successfully');
+                self.showFeedbackMessage('Job deleted successfully');
               }
               break;
           }
