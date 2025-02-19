@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Job Application Assistant",
+  "name": "Job Djinni",
   "version": "1.0",
-  "description": "Helps streamline the job application process",
+  "description": "Helps streamline the job application process!",
   "action": {
     "default_popup": "popup.html",
     "default_icon": {
