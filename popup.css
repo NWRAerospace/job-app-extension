@@ -62,7 +62,7 @@ h1 {
   border: none;
   background: none;
   cursor: pointer;
-  font-size: 10px;
+  font-size: 11px;
   color: #666;
   transition: all 0.2s ease;
   white-space: nowrap;
@@ -113,7 +113,7 @@ button {
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 12px;
   transition: background-color 0.3s ease;
 }
 
@@ -247,14 +247,14 @@ button:disabled .loading-spinner {
 }
 
 .saved-job-item .job-title {
-  font-size: 1.1rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: #333;
   margin: 0;
 }
 
 .saved-job-item .job-company {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: #666;
 }
 
@@ -262,7 +262,7 @@ button:disabled .loading-spinner {
   display: flex;
   align-items: center;
   gap: 1rem;
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   color: #777;
   margin-bottom: 0.75rem;
 }
@@ -275,7 +275,7 @@ button:disabled .loading-spinner {
 
 .saved-job-item .job-actions button {
   padding: 0.4rem 0.8rem;
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   border-radius: 4px;
   white-space: nowrap;
 }
@@ -299,7 +299,7 @@ button:disabled .loading-spinner {
 .job-company-info,
 .job-application-info,
 .job-assessment {
-  font-size: 0.95rem;
+  font-size: 0.75rem;
   line-height: 1.5;
 }
 
@@ -366,7 +366,7 @@ button:disabled .loading-spinner {
   margin: 0;
   padding: 4px 12px;
   border-radius: 16px;
-  font-size: 13px;
+  font-size: 12px;
   transition: all 0.2s ease;
   display: inline-flex;
   align-items: center;
@@ -612,16 +612,18 @@ button:disabled .loading-spinner {
 }
 
 .remove-skill {
-  background-color: #e74c3c;
-  color: white;
+  background-color: transparent;
+  color: #dc3545;
   padding: 4px 8px;
+  border: 1px solid #dc3545;
   border-radius: 3px;
   font-size: 12px;
   margin-left: 10px;
 }
 
 .remove-skill:hover {
-  background-color: #c0392b;
+  background-color: transparent;
+  color: white
 }
 
 /* Education Section Styles */
@@ -640,7 +642,7 @@ button:disabled .loading-spinner {
 
 .add-education-form h3 {
   margin: 0 0 15px 0;
-  font-size: 16px;
+  font-size: 14px;
   color: #2c3e50;
 }
 
@@ -692,7 +694,7 @@ button:disabled .loading-spinner {
   display: flex;
   align-items: center;
   gap: 5px;
-  font-size: 14px;
+  font-size: 12px;
   color: #666;
 }
 
@@ -743,7 +745,7 @@ button:disabled .loading-spinner {
 
 .education-item-institution {
   color: #666;
-  font-size: 14px;
+  font-size: 12px;
 }
 
 .education-item-dates {
@@ -753,7 +755,7 @@ button:disabled .loading-spinner {
 
 .education-item-description {
   color: #666;
-  font-size: 14px;
+  font-size: 12px;
   margin-top: 10px;
 }
 
@@ -826,7 +828,7 @@ button:disabled .loading-spinner {
 
 .limitation-details {
   color: #666;
-  font-size: 14px;
+  font-size: 12px;
   margin-top: 5px;
 }
 
@@ -949,6 +951,7 @@ button:disabled .loading-spinner {
 
 .secondary-button {
   background-color: #2ecc71;
+  font-size: 12px;
   color: white;
 }
 
@@ -1245,7 +1248,7 @@ button:disabled .loading-spinner {
   padding: 8px;
   border: 1px solid #ddd;
   border-radius: 4px;
-  font-size: 14px;
+  font-size: 12px;
 }
 
 .selected-file {
@@ -1253,7 +1256,7 @@ button:disabled .loading-spinner {
   background-color: #f8f9fa;
   border: 1px solid #eee;
   border-radius: 4px;
-  font-size: 14px;
+  font-size: 12px;
   color: #666;
 }
 
@@ -1275,7 +1278,7 @@ button:disabled .loading-spinner {
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 12px;
   height: 36px;
   display: flex;
   align-items: center;
@@ -1288,12 +1291,13 @@ button:disabled .loading-spinner {
 
 .danger-button {
   padding: 0.5rem 1rem;
-  background-color: #e74c3c;
-  color: white;
-  border: none;
+  background-color: transparent;
+  color: #dc3545;
+  border: 1px solid #dc3545;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 12px;
+  transition: all 0.2s ease;
   height: 36px;
   display: flex;
   align-items: center;
@@ -1301,7 +1305,8 @@ button:disabled .loading-spinner {
 }
 
 .danger-button:hover {
-  background-color: #c0392b;
+  background-color: #dc3545;
+  color: white;
 }
 
 .primary-button {
@@ -1311,7 +1316,7 @@ button:disabled .loading-spinner {
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 12px;
   height: 36px;
   display: flex;
   align-items: center;
@@ -1389,7 +1394,7 @@ button:disabled .loading-spinner {
   gap: 6px;
   cursor: pointer;
   color: #495057;
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .toggle-option:hover {
@@ -1762,7 +1767,7 @@ button:disabled .loading-spinner {
   border: 1px solid #ccc;
   border-radius: 4px;
   background-color: white;
-  font-size: 14px;
+  font-size: 12px;
 }
 
 .model-select:focus {
@@ -1785,7 +1790,7 @@ button:disabled .loading-spinner {
 #qaImportModal .help-text {
   margin-bottom: 20px;
   color: #666;
-  font-size: 13px;
+  font-size: 12px;
 }
 
 #qaImportModal .selected-file {
@@ -1794,7 +1799,7 @@ button:disabled .loading-spinner {
   background-color: #f8f9fa;
   border: 1px solid #e9ecef;
   border-radius: 4px;
-  font-size: 14px;
+  font-size: 12px;
   color: #495057;
 }
 
@@ -1835,7 +1840,7 @@ button:disabled .loading-spinner {
 .qa-separator span {
   padding: 0 10px;
   color: #666;
-  font-size: 13px;
+  font-size: 12px;
   background: white;
 }
 
@@ -1878,22 +1883,22 @@ button:disabled .loading-spinner {
 .cover-letter-options {
   display: flex;
   flex-direction: row;
-  gap: 20px;
-  padding: 15px;
+  gap: 5px;
+  padding: 8px;
   background: #f8f9fa;
   border: 1px solid #e9ecef;
   border-radius: 6px;
-  margin-bottom: 15px;
+  margin-bottom: 10px;
   width: 100%;
 }
 
 .option-group {
   flex: 1;
   min-width: 0;
-  padding: 10px;
+  padding: 5px;
   background: white;
   border: 1px solid #e0e0e0;
-  border-radius: 4px;
+  border-radius: 3px;
 }
 
 .option-group label {
@@ -1901,7 +1906,7 @@ button:disabled .loading-spinner {
   font-weight: 500;
   color: #2c3e50;
   margin-bottom: 8px;
-  font-size: 13px;
+  font-size: 10px;
 }
 
 .radio-group, .checkbox-group {
@@ -1921,8 +1926,8 @@ button:disabled .loading-spinner {
 }
 
 .generated-cover-letter {
-  margin-top: 20px;
-  padding: 15px;
+  margin-top: 12px;
+  padding: 10px;
   background: #f8f9fa;
   border: 1px solid #e9ecef;
   border-radius: 6px;
@@ -1945,7 +1950,7 @@ button:disabled .loading-spinner {
   border: 1px solid #e0e0e0;
   border-radius: 4px;
   font-family: inherit;
-  font-size: 14px;
+  font-size: 12px;
   line-height: 1.5;
   resize: vertical;
 }
@@ -1976,32 +1981,32 @@ button:disabled .loading-spinner {
 }
 
 .experience-item-title {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: bold;
   color: #2c3e50;
   margin: 0;
 }
 
 .experience-item-company {
-  font-size: 14px;
+  font-size: 12px;
   color: #666;
   margin: 5px 0;
 }
 
 .experience-item-dates {
-  font-size: 13px;
+  font-size: 12px;
   color: #666;
   margin: 5px 0;
 }
 
 .experience-item-location {
-  font-size: 13px;
+  font-size: 12px;
   color: #666;
   margin: 5px 0;
 }
 
 .experience-item-description {
-  font-size: 14px;
+  font-size: 12px;
   color: #444;
   margin: 10px 0;
   line-height: 1.4;
@@ -2018,7 +2023,7 @@ button:disabled .loading-spinner {
   background-color: #e1f0fa;
   color: #2980b9;
   border-radius: 16px;
-  font-size: 13px;
+  font-size: 12px;
   transition: all 0.2s ease;
 }
 
@@ -2053,7 +2058,7 @@ button:disabled .loading-spinner {
   padding: 8px;
   border: 1px solid #ddd;
   border-radius: 4px;
-  font-size: 14px;
+  font-size: 12px;
 }
 
 .experience-form .form-input:focus {
@@ -2086,7 +2091,7 @@ button:disabled .loading-spinner {
   padding: 4px 12px;
   background-color: #f8f9fa;
   border-radius: 16px;
-  font-size: 13px;
+  font-size: 12px;
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -2147,13 +2152,13 @@ button:disabled .loading-spinner {
 }
 
 .experience-dates {
-  font-size: 13px;
+  font-size: 12px;
   color: #666;
   margin: 4px 0;
 }
 
 .experience-description {
-  font-size: 13px;
+  font-size: 12px;
   color: #495057;
   margin-top: 4px;
   line-height: 1.4;
@@ -2196,7 +2201,7 @@ button:disabled .loading-spinner {
   display: block;
   color: #666;
   margin-left: 24px;
-  font-size: 0.85em;
+  font-size: 0.75em;
 }
 
 .enhancement-options h4 {
@@ -2272,7 +2277,7 @@ button:disabled .loading-spinner {
 .save-options .new-resume-name input {
   border: 1px solid #ddd;
   border-radius: 4px;
-  font-size: 14px;
+  font-size: 12px;
 }
 
 .save-options .new-resume-name input:focus {
@@ -2295,7 +2300,7 @@ button:disabled .loading-spinner {
   display: flex;
   align-items: center;
   gap: 5px;
-  font-size: 13px;
+  font-size: 12px;
   color: #495057;
 }
 
@@ -2304,7 +2309,7 @@ button:disabled .loading-spinner {
   padding: 2px 5px;
   border: 1px solid #ced4da;
   border-radius: 3px;
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .limit-options input[type="number"]:disabled {
@@ -2373,7 +2378,7 @@ button:disabled .loading-spinner {
 
 .export-group h3 {
   margin: 0 0 10px 0;
-  font-size: 14px;
+  font-size: 12px;
   color: #2c3e50;
 }
 
@@ -2520,7 +2525,7 @@ button:disabled .loading-spinner {
   display: flex;
   align-items: center;
   gap: 1rem;
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   color: #777;
 }
 
@@ -2598,6 +2603,22 @@ button:disabled .loading-spinner {
   background: #45a049;
 }
 
+.remove-button {
+  background-color: transparent;
+  color: #dc3545;
+  border: 1px solid #dc3545;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: background-color 0.2s ease;
+}
+
+.remove-button:hover {
+  background: #dc3545;
+  color: white;
+}
+
 /* No Items Message */
 .no-items-message {
   text-align: center;
@@ -2658,7 +2679,7 @@ button:disabled .loading-spinner {
   margin: 0;
   padding: 4px 12px;
   border-radius: 16px;
-  font-size: 13px;
+  font-size: 12px;
   transition: all 0.2s ease;
   display: inline-flex;
   align-items: center;
@@ -2740,7 +2761,7 @@ button:disabled .loading-spinner {
   gap: 6px;
   cursor: pointer;
   color: #495057;
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .job-keywords .toggle-option:hover {
@@ -2763,16 +2784,16 @@ button:disabled .loading-spinner {
 .data-management-buttons .danger-button {
   width: 100%;
   padding: 8px;
-  font-size: 14px;
-  background-color: #dc3545;
+  font-size: 12px;
+  background-color: transparent;
   border: 1px solid #dc3545;
-  color: white;
-  transition: background-color 0.2s;
+  /*color: white;*/
+  transition: all 0.2s ease;
 }
 
 .data-management-buttons .danger-button:hover {
-  background-color: #c82333;
-  border-color: #bd2130;
+  background-color: #dc3545;
+  color: white;
 }
 
 .data-management-buttons .section-divider {
@@ -2782,7 +2803,7 @@ button:disabled .loading-spinner {
 }
 
 .data-management-buttons #wipeProfile {
-  background-color: #dc3545;
+  background-color: transparent;
   border-color: #dc3545;
   font-weight: bold;
 }
