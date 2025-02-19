@@ -92,4 +92,26 @@ export class SkillsManager {
     }
     return true;
   }
-} 
+}
+
+// Add to your initialization code
+const toggleAddSkillForm = document.getElementById('toggleAddSkillForm');
+const skillInputForm = document.querySelector('.skill-input-form');
+const cancelAddSkill = document.getElementById('cancelAddSkill');
+
+toggleAddSkillForm.addEventListener('click', () => {
+  skillInputForm.classList.add('active');
+  document.getElementById('skillName').focus();
+});
+
+cancelAddSkill.addEventListener('click', () => {
+  skillInputForm.classList.remove('active');
+  // Clear the inputs
+  document.getElementById('skillName').value = '';
+  document.getElementById('skillLevel').value = 'Intermediate';
+  document.getElementById('skillYears').value = '';
+});
+
+// Also clear and hide form after successful skill addition
+// Add this to your addSkill success handler
+skillInputForm.classList.remove('active'); 

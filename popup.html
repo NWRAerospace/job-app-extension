@@ -453,17 +453,26 @@
 
   <div id="skills" class="tab-content">
     <div id="skillInputArea">
-      <label for="skillName">Add a Skill:</label>
-      <div class="skill-input-group">
-        <input type="text" id="skillName" placeholder="Skill name (e.g., Python)" class="skill-input">
-        <select id="skillLevel" class="skill-select">
-          <option value="Beginner">Beginner</option>
-          <option value="Intermediate" selected>Intermediate</option>
-          <option value="Expert">Expert</option>
-        </select>
-        <input type="number" id="skillYears" placeholder="Years" class="skill-years" min="0" max="50">
-        <button id="addSkillButton">Add Skill</button>
+      <div class="add-skill-button-wrapper">
+        <button id="toggleAddSkillForm">Add Skill</button>
       </div>
+      
+      <div class="skill-input-form">
+        <div class="skill-input-group">
+          <input type="text" id="skillName" placeholder="Skill name (e.g., Python)" class="skill-input">
+          <select id="skillLevel" class="skill-select">
+            <option value="Beginner">Beginner</option>
+            <option value="Intermediate" selected>Intermediate</option>
+            <option value="Expert">Expert</option>
+          </select>
+          <input type="number" id="skillYears" placeholder="Years" class="skill-years" min="0" max="50">
+        </div>
+        <div class="skill-form-actions">
+          <button id="cancelAddSkill" class="secondary-button">Cancel</button>
+          <button id="addSkillButton" class="primary-button">Add</button>
+        </div>
+      </div>
+
       <div id="skillsList" class="skills-list">
         <!-- Skills will be listed here -->
       </div>
