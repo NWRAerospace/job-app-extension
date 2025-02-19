@@ -296,30 +296,39 @@
             </button>
             
             <div class="cover-letter-options">
-              <div class="option-group">
-                <label>Number of Body Paragraphs:</label>
-                <div class="radio-group">
-                  <label><input type="radio" name="paragraphCount" value="2" checked> 2</label>
-                  <label><input type="radio" name="paragraphCount" value="3"> 3</label>
-                  <label><input type="radio" name="paragraphCount" value="4"> 4</label>
+              <div class="option-groups-container">
+                <div class="option-group">
+                  <label>Number of Body Paragraphs:</label>
+                  <div class="radio-group">
+                    <label><input type="radio" name="paragraphCount" value="2" checked> 2</label>
+                    <label><input type="radio" name="paragraphCount" value="3"> 3</label>
+                    <label><input type="radio" name="paragraphCount" value="4"> 4</label>
+                  </div>
+                </div>
+                <div class="option-group">
+                  <label>Tone:</label>
+                  <div class="radio-group">
+                    <label><input type="radio" name="letterTone" value="eager" checked> Eager</label>
+                    <label><input type="radio" name="letterTone" value="professional"> Seasoned Professional</label>
+                    <label><input type="radio" name="letterTone" value="expressive"> Expressive</label>
+                  </div>
+                </div>
+                <div class="option-group">
+                  <label>Include in Letter:</label>
+                  <div class="checkbox-group">
+                    <label><input type="checkbox" name="includeResume" checked> Resume</label>
+                    <label><input type="checkbox" name="includeExperience" checked> Experience</label>
+                    <label><input type="checkbox" name="includeEducation" checked> Education</label>
+                    <label><input type="checkbox" name="includeSkills" checked> Skills List</label>
+                  </div>
                 </div>
               </div>
-              <div class="option-group">
-                <label>Tone:</label>
-                <div class="radio-group">
-                  <label><input type="radio" name="letterTone" value="eager" checked> Eager</label>
-                  <label><input type="radio" name="letterTone" value="professional"> Seasoned Professional</label>
-                  <label><input type="radio" name="letterTone" value="expressive"> Expressive</label>
-                </div>
-              </div>
-              <div class="option-group">
-                <label>Include in Letter:</label>
-                <div class="checkbox-group">
-                  <label><input type="checkbox" name="includeResume" checked> Resume</label>
-                  <label><input type="checkbox" name="includeExperience" checked> Experience</label>
-                  <label><input type="checkbox" name="includeEducation" checked> Education</label>
-                  <label><input type="checkbox" name="includeSkills" checked> Skills List</label>
-                </div>
+              <div class="special-instructions-container">
+                <label for="specialInstructions">Special Instructions:</label>
+                <textarea id="specialInstructions" 
+                          placeholder="Add specific requests for the AI (e.g., 'Focus on my startup experience' or 'Emphasize my leadership skills')"
+                          rows="2"
+                          maxlength="200"></textarea>
               </div>
             </div>
           </div>

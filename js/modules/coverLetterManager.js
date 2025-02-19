@@ -103,6 +103,9 @@ ${options.includeExperience ? '- Include work and project experience provided in
 ${options.includeEducation ? '- Include education information in the first paragraph' : '- Do not include education information'}
 ${options.includeSkills ? '- Incorporate provided skills list where relevant' : '- Do not mention skills from the skills list'}`;
 
+            // Get special instructions from options
+            const specialInstructions = options.specialInstructions || '';
+
             // Prepare the prompt for the AI
             let prompt = {
                 task: existingCoverLetter ? 'modify_cover_letter' : 'generate_cover_letter',
@@ -114,14 +117,21 @@ ${paragraphInstruction}
 
 ${dataInclusion}
 
+SPECIAL USER REQUEST (HIGH PRIORITY):
+${specialInstructions ? specialInstructions : 'No special instructions provided.'}
+
 ${existingCoverLetter ? 'Modify the existing cover letter to better match the job requirements while maintaining the exact paragraph structure specified above.' : ''}`,
                 job_posting: jobPosting,
                 candidate_skills: skillsString,
                 candidate_education: educationString,
                 candidate_experience: experienceString,
                 resume: options.includeResume ? resumeText : null,
-                existing_cover_letter: existingCoverLetter
+                existing_cover_letter: existingCoverLetter,
+                specialInstructions: specialInstructions
             };
+
+            // Debug: log the prompt before sending
+            console.log("Prompt object to be sent to AI:", prompt);
 
             // Call the Gemini API
             const model = await this.db.getField('geminiModel') || 'gemini-1.5-pro';

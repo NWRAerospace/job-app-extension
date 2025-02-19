@@ -236,24 +236,23 @@ export class UIManager {
 
     if (generateFreshBtn) {
       generateFreshBtn.addEventListener('click', async () => {
-        // Get current job from database
-        const currentJob = await this.databaseManager.getField('currentJob');
-        
-        if (!currentJob) {
-          this.showFeedbackMessage('Please select a job in the Jobs tab first', 'error');
-          if (warningDiv) {
-            warningDiv.style.display = 'block';
-            warningDiv.textContent = 'Please select a job in the Jobs tab first to generate a cover letter.';
-          }
-          return;
-        }
+        // Repoll the DOM immediately on click to get the latest value.
+        const specialInstructionsEl = document.getElementById('specialInstructions');
+        const specialInstructions = specialInstructionsEl ? specialInstructionsEl.value.trim() : '';
+        console.log("Special Instructions (polled on click):", specialInstructions);
 
-        // Hide warning if job is selected
-        if (warningDiv) {
-          warningDiv.style.display = 'none';
-        }
+        const options = {
+          paragraphCount: document.querySelector('input[name="paragraphCount"]:checked')?.value || '3',
+          tone: document.querySelector('input[name="letterTone"]:checked')?.value || 'eager',
+          includeResume: document.querySelector('input[name="includeResume"]')?.checked || false,
+          includeExperience: document.querySelector('input[name="includeExperience"]')?.checked || false,
+          includeEducation: document.querySelector('input[name="includeEducation"]')?.checked || false,
+          includeSkills: document.querySelector('input[name="includeSkills"]')?.checked || false,
+          specialInstructions
+        };
 
-        // ... rest of the generate cover letter logic ...
+        console.log("Cover letter options:", options);
+        // ... proceed to generate cover letter with the options.
       });
     }
 
@@ -274,6 +273,9 @@ export class UIManager {
         if (warningDiv) {
           warningDiv.style.display = 'none';
         }
+
+        // Get the latest value of special instructions right before generating
+        const specialInstructions = document.getElementById('specialInstructions')?.value?.trim() || '';
 
         // ... rest of the modify cover letter logic ...
       });
