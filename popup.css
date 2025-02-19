@@ -130,19 +130,207 @@ textarea {
   box-sizing: border-box;
 }
 
+/* Base button styles */
 button {
-  background-color: #3498db;
-  color: white;
-  padding: 8px 15px;
-  border: none;
+  padding: 6px 12px;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.3s ease;
+  font-size: 12px; /* Standardize to smaller font size */
+  font-weight: 500;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid transparent;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
-button:hover {
-  background-color: #2980b9;
+/* Primary action buttons (like Save, Add, Generate) */
+.primary-button,
+button[data-action="save"],
+#addSkillButton,
+#addEducationButton,
+#generateFreshCoverLetter,
+#enhanceResumeButton,
+#saveApiKeyButton {
+  background-color: #3498db;
+  color: white;
+  border-color: #3498db;
+}
+
+.primary-button:hover,
+button[data-action="save"]:hover,
+#addSkillButton:hover,
+#addEducationButton:hover,
+#generateFreshCoverLetter:hover,
+#enhanceResumeButton:hover,
+#saveApiKeyButton:hover {
+  background-color: #2573a7;  /* Darker blue */
+  border-color: #2573a7;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Secondary action buttons (like Edit, View, Copy) */
+.secondary-button,
+button[data-action="view"],
+button[data-action="edit"],
+.edit-skill,
+#copyCoverLetterButton,
+#copyToClipboard,
+#modifyCurrentCoverLetter,
+#uploadResumeButton,
+#uploadCoverLetterButton {
+  background-color: #6c757d;
+  color: white;
+  border-color: #6c757d;
+}
+
+.secondary-button:hover,
+button[data-action="view"]:hover,
+button[data-action="edit"]:hover,
+.edit-skill:hover,
+#copyCoverLetterButton:hover,
+#copyToClipboard:hover,
+#modifyCurrentCoverLetter:hover,
+#uploadResumeButton:hover,
+#uploadCoverLetterButton:hover {
+  background-color: #4e555b;  /* Darker gray */
+  border-color: #4e555b;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Success buttons (like Apply, Select) */
+.apply-button,
+.select-job,
+#extractSkillsButton {
+  background-color: #2ecc71;
+  color: white;
+  border-color: #2ecc71;
+}
+
+.apply-button:hover,
+.select-job:hover,
+#extractSkillsButton:hover {
+  background-color: #219a52;  /* Darker green */
+  border-color: #219a52;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Selected state */
+.select-job.active {
+  background-color: #27ae60;
+  border-color: #27ae60;
+  color: white;
+}
+
+/* Danger buttons (unified delete/remove styling) */
+.danger-button,
+button[data-action="remove"],
+button[data-action="delete"],
+.remove-skill,
+#clearCoverLetters,
+#clearResumes,
+#clearSkills,
+#clearQA,
+#clearEducation,
+#clearExperience,
+#deleteAllJobs,
+#deleteAllAppliedJobs,
+#wipeProfile,
+#removeResumeButton,
+#removeCoverLetterButton {
+  background-color: white;
+  color: #dc3545;
+  border: 1px solid #dc3545;
+}
+
+.danger-button:hover,
+button[data-action="remove"]:hover,
+button[data-action="delete"]:hover,
+.remove-skill:hover,
+#clearCoverLetters:hover,
+#clearResumes:hover,
+#clearSkills:hover,
+#clearQA:hover,
+#clearEducation:hover,
+#clearExperience:hover,
+#deleteAllJobs:hover,
+#deleteAllAppliedJobs:hover,
+#wipeProfile:hover,
+#removeResumeButton:hover,
+#removeCoverLetterButton:hover {
+  background-color: #c82333;  /* Darker red */
+  border-color: #c82333;
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Cancel buttons */
+button[data-action="cancel"],
+#cancelCoverLetter,
+#cancelAddSkill,
+.cancel-edit {
+  background-color: transparent;
+  color: #6c757d;
+  border: 1px solid #6c757d;
+}
+
+button[data-action="cancel"]:hover,
+#cancelCoverLetter:hover,
+#cancelAddSkill:hover,
+.cancel-edit:hover {
+  background-color: #5a6268;  /* Darker gray */
+  border-color: #5a6268;
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Disabled state */
+button:disabled {
+  background-color: #e9ecef !important;
+  border-color: #dee2e6 !important;
+  color: #adb5bd !important;
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
+/* Loading state */
+button:disabled .loading-spinner {
+  border-color: #adb5bd;
+  border-top-color: transparent;
+}
+
+/* Button groups */
+.button-group,
+.modal-actions,
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Update specific button containers */
+.job-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.skill-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* Ensure consistent height for form buttons */
+.form-actions button,
+.modal-actions button {
+  height: 32px;
 }
 
 /* Loading State */
@@ -939,12 +1127,14 @@ button:disabled .loading-spinner {
 }
 
 .danger-button {
-  background-color: #e74c3c;
-  color: white;
+  background-color: white !important;
+  color: #dc3545 !important;
+  border: 1px solid #dc3545 !important;
 }
 
 .danger-button:hover {
-  background-color: #c0392b;
+  background-color: #dc3545 !important;
+  color: white !important;
 }
 
 /* Modal Styles */
@@ -1270,10 +1460,9 @@ button:disabled .loading-spinner {
 
 .danger-button {
   padding: 0.5rem 1rem;
-  background-color: #e74c3c;
-  color: white;
-  border: none;
-  border-radius: 4px;
+  background-color: white !important;
+  color: #dc3545 !important;
+  border: 1px solid #dc3545 !important;
   cursor: pointer;
   font-size: 14px;
   height: 36px;
@@ -1283,7 +1472,8 @@ button:disabled .loading-spinner {
 }
 
 .danger-button:hover {
-  background-color: #c0392b;
+  background-color: #dc3545 !important;
+  color: white !important;
 }
 
 .primary-button {
@@ -2900,4 +3090,102 @@ button:disabled .loading-spinner {
   padding: 4px 10px;
   font-size: 12px;
   height: 26px;
+}
+
+/* Update skill and education action buttons */
+.skill-actions button,
+.education-item-header button {
+  padding: 4px 8px;  /* Smaller padding */
+  font-size: 12px;
+  height: 28px;
+}
+
+/* Make remove buttons consistent */
+.remove-skill,
+.education-item-header button[data-action="remove"] {
+  background-color: white;
+  color: #dc3545;
+  border: 1px solid #dc3545;
+}
+
+.remove-skill:hover,
+.education-item-header button[data-action="remove"]:hover {
+  background-color: #dc3545;
+  color: white;
+}
+
+/* Style edit buttons */
+.edit-skill,
+.education-item-header button[data-action="edit"] {
+  background-color: #6c757d;
+  color: white;
+  border: 1px solid #6c757d;
+}
+
+.edit-skill:hover,
+.education-item-header button[data-action="edit"]:hover {
+  background-color: #5a6268;
+  border-color: #5a6268;
+}
+
+/* Ensure consistent button spacing */
+.skill-actions,
+.education-item-header .button-group {
+  display: flex;
+  gap: 6px;
+}
+
+/* Make font size consistent for remove/danger buttons */
+.danger-button,
+#removeResumeButton,
+#removeCoverLetterButton,
+.experience-item button[data-action="remove"],
+.education-item button[data-action="remove"] {
+  font-size: 12px !important;  /* Match other buttons */
+  padding: 4px 8px;  /* Consistent padding */
+  height: 28px;  /* Consistent height */
+}
+
+/* Remove any conflicting styles */
+.danger-button {
+  padding: 0.5rem 1rem !important;  /* Remove this line */
+  font-size: 14px !important;  /* Remove this line */
+  height: 36px !important;  /* Remove this line */
+}
+
+/* Job action buttons */
+.view-job,
+.open-job {
+  background-color: #6c757d;  /* Start with same gray */
+  color: white;
+  border-color: #6c757d;
+}
+
+.view-job:hover {
+  background-color: #5a6268;  /* Slightly darker on hover */
+  border-color: #5a6268;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.open-job:hover {
+  background-color: #5a6268;  /* Same hover color as view-job */
+  border-color: #5a6268;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Active/pressed state */
+.view-job:active,
+.open-job:active {
+  transform: translateY(0);
+  box-shadow: none;
+  background-color: #545b62;  /* Slightly darker when pressed */
+  border-color: #545b62;
+}
+
+/* Remove any conflicting styles */
+button[data-action="view"],
+button[data-action="open"] {
+  transition: all 0.2s ease;
 }
