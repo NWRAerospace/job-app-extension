@@ -2888,3 +2888,105 @@ button:disabled .loading-spinner {
   border-left: 3px solid #28a745;
   padding-left: 7px;
 }
+
+/* Help Section Collapsible Styles */
+.help-collapsible {
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+
+.help-collapsible-header {
+  background: #f8f9fa;
+  padding: 12px 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.help-collapsible-header:hover {
+  background: #e9ecef;
+}
+
+.help-collapsible.active .help-collapsible-header {
+  border-bottom-color: #e9ecef;
+}
+
+.help-collapsible-title {
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.help-collapsible-icon {
+  width: 16px;
+  height: 16px;
+  transition: transform 0.2s ease;
+}
+
+.help-collapsible.active .help-collapsible-icon {
+  transform: rotate(180deg);
+}
+
+.help-collapsible-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-out;
+  background: white;
+}
+
+.help-collapsible.active .help-collapsible-content {
+  max-height: 1000px;
+  transition: max-height 0.5s ease-in;
+}
+
+.help-collapsible-body {
+  padding: 15px;
+  color: #444;
+  line-height: 1.5;
+}
+
+.help-collapsible-body p {
+  margin: 0 0 10px 0;
+}
+
+.help-collapsible-body p:last-child {
+  margin-bottom: 0;
+}
+
+.help-collapsible-body ul,
+.help-collapsible-body ol {
+  margin: 10px 0;
+  padding-left: 20px;
+}
+
+.help-collapsible-body li {
+  margin-bottom: 8px;
+}
+
+.help-collapsible-body li:last-child {
+  margin-bottom: 0;
+}
+
+.help-collapsible-body code {
+  background: #f8f9fa;
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-size: 12px;
+  color: #e83e8c;
+}
+
+.help-collapsible-body .feature-highlight {
+  background: #e8f0fe;
+  border-left: 3px solid #3498db;
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 0 4px 4px 0;
+}

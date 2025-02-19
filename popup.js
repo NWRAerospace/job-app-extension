@@ -203,6 +203,39 @@ document.addEventListener('DOMContentLoaded', async function() {
       appliedManager
     } = managers;
 
+    // Add collapsible section handlers
+    const helpCollapsibles = document.querySelectorAll('.help-collapsible');
+    helpCollapsibles.forEach(collapsible => {
+      const header = collapsible.querySelector('.help-collapsible-header');
+      const content = collapsible.querySelector('.help-collapsible-content');
+      const icon = collapsible.querySelector('.help-collapsible-icon');
+      
+      // Set initial state
+      if (collapsible.classList.contains('active')) {
+        content.style.maxHeight = content.scrollHeight + 'px';
+        icon.style.transform = 'rotate(0deg)';
+      } else {
+        content.style.maxHeight = '0';
+        icon.style.transform = 'rotate(-90deg)';
+      }
+
+      header.addEventListener('click', () => {
+        const isActive = collapsible.classList.contains('active');
+        
+        // Toggle active state
+        collapsible.classList.toggle('active');
+        
+        // Update content height and icon rotation
+        if (!isActive) {
+          content.style.maxHeight = content.scrollHeight + 'px';
+          icon.style.transform = 'rotate(0deg)';
+        } else {
+          content.style.maxHeight = '0';
+          icon.style.transform = 'rotate(-90deg)';
+        }
+      });
+    });
+
     // Data Management Buttons
     const clearCoverLettersBtn = document.getElementById('clearCoverLetters');
     const clearResumesBtn = document.getElementById('clearResumes');
