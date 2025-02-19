@@ -238,9 +238,8 @@ export class UIManager {
       generateFreshBtn.addEventListener('click', async () => {
         // Repoll the DOM immediately on click to get the latest value.
         const specialInstructionsEl = document.getElementById('specialInstructions');
-        const specialInstructions = specialInstructionsEl ? specialInstructionsEl.value.trim() : '';
-        console.log("Special Instructions (polled on click):", specialInstructions);
-
+        const specialInstructions = specialInstructionsEl?.value?.trim() || '';
+        
         const options = {
           paragraphCount: document.querySelector('input[name="paragraphCount"]:checked')?.value || '3',
           tone: document.querySelector('input[name="letterTone"]:checked')?.value || 'eager',
