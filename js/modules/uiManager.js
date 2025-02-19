@@ -40,6 +40,9 @@ export class UIManager {
     const coverLetterSelect = document.getElementById('coverLetterSelect');
     const savedCoverLetterContent = document.getElementById('coverLetterContent');
     const copyCoverLetterButton = document.getElementById('copyCoverLetterButton');
+    const generateFreshBtn = document.getElementById('generateFreshCoverLetter');
+    const modifyCurrentBtn = document.getElementById('modifyCurrentCoverLetter');
+    const warningDiv = document.getElementById('noCoverLetterWarning');
 
     // Add copy to clipboard functionality
     if (copyCoverLetterButton) {
@@ -228,6 +231,51 @@ export class UIManager {
           console.error('Error loading cover letter:', error);
           this.showFeedbackMessage('Failed to load cover letter', 'error');
         }
+      });
+    }
+
+    if (generateFreshBtn) {
+      generateFreshBtn.addEventListener('click', async () => {
+        // Get current job from database
+        const currentJob = await this.databaseManager.getField('currentJob');
+        
+        if (!currentJob) {
+          this.showFeedbackMessage('Please select a job in the Jobs tab first', 'error');
+          if (warningDiv) {
+            warningDiv.style.display = 'block';
+            warningDiv.textContent = 'Please select a job in the Jobs tab first to generate a cover letter.';
+          }
+          return;
+        }
+
+        // Hide warning if job is selected
+        if (warningDiv) {
+          warningDiv.style.display = 'none';
+        }
+
+        // ... rest of the generate cover letter logic ...
+      });
+    }
+
+    if (modifyCurrentBtn) {
+      modifyCurrentBtn.addEventListener('click', async () => {
+        const currentJob = await this.databaseManager.getField('currentJob');
+        
+        if (!currentJob) {
+          this.showFeedbackMessage('Please select a job in the Jobs tab first', 'error');
+          if (warningDiv) {
+            warningDiv.style.display = 'block';
+            warningDiv.textContent = 'Please select a job in the Jobs tab first to modify the cover letter.';
+          }
+          return;
+        }
+
+        // Hide warning if job is selected
+        if (warningDiv) {
+          warningDiv.style.display = 'none';
+        }
+
+        // ... rest of the modify cover letter logic ...
       });
     }
   }

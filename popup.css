@@ -218,6 +218,27 @@ button:disabled .loading-spinner {
   padding: 10px 20px;
   border-radius: 4px;
   animation: fadeInOut 2s ease-in-out;
+  z-index: 1000;
+}
+
+.feedback-message.error {
+  background-color: #e74c3c;
+}
+
+.warning-message {
+  background-color: #fff3cd;
+  border: 1px solid #ffeeba;
+  color: #856404;
+  padding: 10px;
+  margin-bottom: 15px;
+  border-radius: 4px;
+  display: none;
+}
+
+.warning-message.error {
+  background-color: #fee;
+  border-color: #fcc;
+  color: #c00;
 }
 
 @keyframes fadeInOut {
@@ -1915,6 +1936,13 @@ button:disabled .loading-spinner {
   padding: 10px;
   margin-bottom: 15px;
   border-radius: 4px;
+  display: none;
+}
+
+.warning-message.error {
+  background-color: #fee;
+  border-color: #fcc;
+  color: #c00;
 }
 
 .generation-controls {
