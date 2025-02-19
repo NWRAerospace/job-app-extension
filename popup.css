@@ -848,9 +848,12 @@ button:disabled .loading-spinner {
 }
 
 /* Resume and Cover Letter Sections */
-.resume-section,
-.cover-letter-section {
+.resume-section {
   padding: 15px;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  margin-bottom: 20px;
 }
 
 .file-upload-area {

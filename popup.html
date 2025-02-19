@@ -89,14 +89,23 @@
     <div class="resume-section">
       <h2>Resume Management</h2>
       
-      <div class="document-controls">
-        <div class="document-selector">
-          <select id="resumeSelect" class="document-select">
-            <option value="">Select a resume...</option>
-          </select>
-          <button id="uploadResumeButton" class="secondary-button">Upload Resume</button>
-          <button id="removeResumeButton" class="danger-button" style="display: none;">Remove</button>
+      <div class="current-info">
+        <div class="current-resume">
+          <span class="label">Current Resume:</span>
+          <span id="currentResumeName" class="value">None selected</span>
         </div>
+        <div class="current-job">
+          <span class="label">Selected Job:</span>
+          <span id="currentJobName" class="value">None selected</span>
+        </div>
+      </div>
+
+      <div class="upload-controls">
+        <select id="resumeSelect" class="document-select">
+          <option value="">Select a resume...</option>
+        </select>
+        <button id="uploadResumeButton" class="secondary-button">Upload Resume</button>
+        <button id="removeResumeButton" class="danger-button" style="display: none;">Remove</button>
       </div>
 
       <input type="file" id="resumeFileInput" accept=".docx" style="display: none;">
@@ -105,12 +114,12 @@
         <textarea id="resumeContent" class="document-content" readonly placeholder="Select a resume to view its content..."></textarea>
       </div>
 
-      <div class="action-buttons">
+      <div class="generation-controls">
         <button id="extractSkillsButton" class="secondary-button" style="display: none;">
           Extract Skills, Education & Experience
         </button>
         
-        <div class="resume-enhancement-section" style="margin-top: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 5px;">
+        <div class="resume-enhancement-section">
           <h3>AI Resume Enhancement</h3>
           
           <div class="enhancement-options">
@@ -163,7 +172,7 @@
             </div>
           </div>
 
-          <button id="enhanceResumeButton" class="primary-button" style="margin-top: 15px;">
+          <button id="enhanceResumeButton" class="primary-button">
             Enhance Resume
           </button>
         </div>
