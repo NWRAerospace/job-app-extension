@@ -14,6 +14,6 @@ async updateField(field, value) {
     return true;
   } catch (error) {
     console.error(`Error updating field "${field}":`, error);
-    return false;
+    throw error;
   }
 } 

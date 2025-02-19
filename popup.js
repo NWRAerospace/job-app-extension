@@ -894,8 +894,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
 
         confirmButton.addEventListener('click', async () => {
+          const restoreButton = uiManager.showLoadingState(confirmButton, 'Applying...');
+
           try {
-            const restoreConfirmButton = uiManager.showLoadingState(confirmButton, 'Applying...');
             const saveOption = modal.querySelector('input[name="saveOption"]:checked').value;
             
             if (saveOption === 'new') {
@@ -931,7 +932,7 @@ document.addEventListener('DOMContentLoaded', async function() {
           } catch (error) {
             uiManager.showError('Failed to apply changes: ' + error.message);
           } finally {
-            restoreConfirmButton();
+            if (restoreButton) restoreButton(); // Add null check
           }
         });
 
@@ -1670,7 +1671,7 @@ document.addEventListener('DOMContentLoaded', async function() {
       } catch (error) {
         uiManager.showFeedbackMessage(error.message, 'error');
       } finally {
-        restoreButton();
+        if (restoreButton) restoreButton(); // Add null check
       }
     });
 
