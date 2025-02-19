@@ -26,7 +26,7 @@ ${userSkills.map(s => `${s.skill} (${s.level}${s.yearsExperience ? `, ${s.yearsE
     const model = await this._getSelectedModel();
     const geminiApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
     
-    const prompt = `Analyze this resume text and extract skills, education, and work/volunteer experience information. Be thorough and try to identify ALL relevant information. Respond ONLY with a JSON object in this exact format:
+    const prompt = `Analyze this resume text and extract skills, education, and work/volunteer experience information. Be thorough and try to identify ALL relevant information. IMPORTANT: All dates MUST be in YYYY-MM-DD format. Respond ONLY with a JSON object in this exact format:
 {
   "skills": [
     {
@@ -40,13 +40,13 @@ ${userSkills.map(s => `${s.skill} (${s.level}${s.yearsExperience ? `, ${s.yearsE
       "type": "degree" | "certification" | "course",
       "title": "Full title/name",
       "institution": "Institution name",
-      "startDate": "YYYY-MM-DD",
-      "endDate": "YYYY-MM-DD" | null,
+      "startDate": "YYYY-MM-DD", // MUST be in this exact format
+      "endDate": "YYYY-MM-DD" | null, // MUST be in this exact format if not null
       "inProgress": boolean,
       "description": "Brief description or relevant coursework",
       "gpa": "GPA value" | null,
       "url": "certificate URL" | null,
-      "expiryDate": "YYYY-MM-DD" | null
+      "expiryDate": "YYYY-MM-DD" | null // MUST be in this exact format if not null
     }
   ],
   "experiences": [
@@ -55,14 +55,16 @@ ${userSkills.map(s => `${s.skill} (${s.level}${s.yearsExperience ? `, ${s.yearsE
       "title": "Job/position title",
       "company": "Company/organization name",
       "location": "City, State/Country" | null,
-      "startDate": "YYYY-MM-DD",
-      "endDate": "YYYY-MM-DD" | null,
+      "startDate": "YYYY-MM-DD", // MUST be in this exact format
+      "endDate": "YYYY-MM-DD" | null, // MUST be in this exact format if not null
       "inProgress": boolean,
       "description": "Brief description of responsibilities and achievements",
       "linkedSkills": [] // Will be populated by user later
     }
   ]
 }
+
+For dates where only month and year are available, use the first day of the month (e.g., "2020-06-01"). For dates where only year is available, use January 1st (e.g., "2020-01-01").
 
 Resume Text:
 ${resumeText}`;

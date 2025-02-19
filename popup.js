@@ -1624,23 +1624,47 @@ document.addEventListener('DOMContentLoaded', async function() {
         const selectedSkills = [...modal.querySelectorAll('.skill-checkbox:checked')]
           .map(checkbox => analysis.skills[parseInt(checkbox.dataset.index)])
           .filter(skill => skill);
-
+        
         const selectedEducation = [...modal.querySelectorAll('.education-checkbox:checked')]
           .map(checkbox => analysis.education[parseInt(checkbox.dataset.index)])
           .filter(edu => edu);
-
+          
         const selectedExperiences = [...modal.querySelectorAll('.experience-checkbox:checked')]
           .map(checkbox => analysis.experiences[parseInt(checkbox.dataset.index)])
           .filter(exp => exp);
 
-        await Promise.all([
-          skillsManager.addExtractedSkills(selectedSkills, replaceCheckbox.checked),
-          educationManager.addExtractedEducation(selectedEducation, replaceCheckbox.checked),
-          experienceManager.addExtractedExperiences(selectedExperiences, replaceCheckbox.checked)
-        ]);
+        console.log('Selected items:', {
+          skills: selectedSkills,
+          education: selectedEducation,
+          experiences: selectedExperiences
+        });
+
+        const replaceExisting = modal.querySelector('#replaceExisting').checked;
+        console.log('Replace existing:', replaceExisting);
+
+        // Add these individual try-catch blocks to isolate where the failure might be
+        try {
+          await skillsManager.addExtractedSkills(selectedSkills, replaceExisting);
+          console.log('Skills added successfully');
+        } catch (error) {
+          console.error('Error adding skills:', error);
+        }
+
+        try {
+          await educationManager.addExtractedEducation(selectedEducation, replaceExisting);
+          console.log('Education added successfully');
+        } catch (error) {
+          console.error('Error adding education:', error);
+        }
+
+        try {
+          await experienceManager.addExtractedExperiences(selectedExperiences, replaceExisting);
+          console.log('Experiences added successfully');
+        } catch (error) {
+          console.error('Error adding experiences:', error);
+        }
 
         await refreshAllLists();
-        await refreshExperienceList();
         uiManager.showFeedbackMessage('Resume analysis applied successfully!');
         modal.remove();
       } catch (error) {

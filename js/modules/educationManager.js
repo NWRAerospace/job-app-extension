@@ -73,22 +73,104 @@ export class EducationManager {
 
   async addExtractedEducation(selectedEducation, replaceExisting = false) {
     try {
+      console.log('Adding extracted education:', selectedEducation);
+      
+      // Validate and format each education item before adding
+      const validatedEducation = selectedEducation.map(edu => {
+        console.log('Validating education item:', edu);
+        
+        // Ensure dates are in correct format
+        const startDate = this.formatDate(edu.startDate);
+        const endDate = edu.inProgress ? null : this.formatDate(edu.endDate);
+        
+        console.log('Formatted dates:', { startDate, endDate });
+        
+        if (!startDate) {
+          throw new Error(`Invalid start date for education: ${edu.title}`);
+        }
+        
+        if (!edu.inProgress && !endDate) {
+          throw new Error(`Invalid end date for education: ${edu.title}`);
+        }
+
+        const validatedItem = {
+          type: edu.type || 'degree', // Default to degree if not specified
+          title: edu.title.trim(),
+          institution: edu.institution.trim(),
+          startDate,
+          endDate,
+          inProgress: Boolean(edu.inProgress),
+          description: edu.description?.trim() || '',
+          gpa: edu.gpa || null,
+          url: edu.url || null,
+          expiryDate: edu.expiryDate ? this.formatDate(edu.expiryDate) : null
+        };
+        
+        console.log('Validated education item:', validatedItem);
+        return validatedItem;
+      });
+
+      console.log('All education items validated:', validatedEducation);
+
       if (replaceExisting) {
-        await this.databaseManager.updateField('education', selectedEducation);
+        console.log('Replacing existing education');
+        const updateSuccess = await this.databaseManager.updateField('education', validatedEducation);
+        console.log('Update success:', updateSuccess);
+        if (!updateSuccess) {
+          throw new Error('Database update failed');
+        }
       } else {
+        console.log('Adding to existing education');
         const currentEducation = await this.getAllEducation();
+        console.log('Current education:', currentEducation);
+        
         const newEducation = [...currentEducation];
         
-        for (const edu of selectedEducation) {
+        for (const edu of validatedEducation) {
           if (!this.isDuplicateEducation(edu, currentEducation)) {
+            console.log('Adding new education item:', edu);
             newEducation.push(edu);
+          } else {
+            console.log('Skipping duplicate education item:', edu);
           }
         }
         
-        await this.databaseManager.updateField('education', newEducation);
+        console.log('Final education array:', newEducation);
+        const updateSuccess = await this.databaseManager.updateField('education', newEducation);
+        console.log('Update success:', updateSuccess);
+        if (!updateSuccess) {
+          throw new Error('Database update failed');
+        }
       }
     } catch (error) {
+      console.error('Error in addExtractedEducation:', error);
       throw new Error(`Failed to add education: ${error.message}`);
+    }
+  }
+
+  formatDate(dateString) {
+    if (!dateString) return null;
+    
+    try {
+      // Handle various date formats
+      let date;
+      if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        // Already in YYYY-MM-DD format
+        date = new Date(dateString);
+      } else {
+        // Try to parse other formats
+        date = new Date(dateString);
+      }
+      
+      if (isNaN(date.getTime())) {
+        return null;
+      }
+      
+      // Return in YYYY-MM-DD format
+      return date.toISOString().split('T')[0];
+    } catch (error) {
+      console.error('Date formatting error:', error);
+      return null;
     }
   }
 
