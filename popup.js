@@ -118,15 +118,45 @@ document.addEventListener('DOMContentLoaded', async function() {
     const savedJobs = await DatabaseManager.getField('savedJobs') || [];
     console.log('Retrieved saved jobs for initial load:', savedJobs);
     await uiManager.updateJobsList(savedJobs);
-    const [skills, education, limitations] = await Promise.all([
+    const [skills, education, limitations, experiences] = await Promise.all([
       DatabaseManager.getField('skills') || [],
       DatabaseManager.getField('education') || [],
-      DatabaseManager.getField('limitations') || []
+      DatabaseManager.getField('limitations') || [],
+      DatabaseManager.getField('experiences') || []
     ]);
 
-    uiManager.updateSkillsList(skills);
-    uiManager.updateEducationList(education);
-    uiManager.updateLimitationsList(limitations);
+    // Clear current displays
+    const resumeContent = document.getElementById('resumeContent');
+    const coverLetterContent = document.getElementById('coverLetterContent');
+    const currentJobName = document.getElementById('currentJobName');
+    if (resumeContent) resumeContent.value = '';
+    if (coverLetterContent) coverLetterContent.value = '';
+    if (currentJobName) {
+      currentJobName.textContent = 'None selected';
+      // Force a DOM update
+      currentJobName.style.display = 'none';
+      currentJobName.offsetHeight; // Force a reflow
+      currentJobName.style.display = ''; // Restore original display
+    }
+
+    // Clear window state
+    window.currentAssessment = null;
+
+    // Update all lists and displays
+    await Promise.all([
+      uiManager.updateSkillsList(skills),
+      uiManager.updateEducationList(education),
+      uiManager.updateLimitationsList(limitations),
+      refreshExperienceList(),
+      loadResumes({ DatabaseManager }),
+      loadCoverLetters({ DatabaseManager }),
+      uiManager.updateCurrentJobDisplay(),
+      uiManager.updateCurrentResumeDisplay(),
+      loadSavedDocuments(),
+      DatabaseManager.updateField('activeJobId', null),  // Clear current job selection
+      DatabaseManager.updateField('currentAssessment', null)  // Clear current assessment
+    ]);
+
     console.log('All lists refreshed');
   }
 
