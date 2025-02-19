@@ -9,57 +9,257 @@
   <script type="module" src="popup.js"></script>
 </head>
 <body>
-  <div class="app-header">
-    <h1>Job Djinni</h1>
+  <!-- New Wrapper for the popup UI -->
+  <div class="popup-wrapper">
+    <div class="app-header">
+      <h1>Job Djinni</h1>
+      
+      <div class="header-controls">
+        <div class="control-item">
+          <span class="label">Profile:</span>
+          <span id="currentProfileName" class="value">Profile 1</span>
+        </div>
+        <div class="control-item">
+          <span class="label">Current Resume:</span>
+          <span id="currentResumeName" class="value">None selected</span>
+        </div>
+        <div class="control-item">
+          <span class="label">Selected Job:</span>
+          <span id="currentJobName" class="value">None selected</span>
+        </div>
+      </div>
+    </div>
     
-    <div class="header-controls">
-      <div class="control-item">
-        <span class="label">Profile:</span>
-        <span id="currentProfileName" class="value">Profile 1</span>
-      </div>
-      <div class="control-item">
-        <span class="label">Current Resume:</span>
-        <span id="currentResumeName" class="value">None selected</span>
-      </div>
-      <div class="control-item">
-        <span class="label">Selected Job:</span>
-        <span id="currentJobName" class="value">None selected</span>
-      </div>
-    </div>
-  </div>
-  
-  <div class="tabs">
-    <button class="tab-button active" data-tab="assess">Assess Job</button>
-    <button class="tab-button" data-tab="jobs">Jobs</button>
-    <button class="tab-button" data-tab="applied">Applied</button>
-    <button class="tab-button" data-tab="cv">CV</button>
-    <button class="tab-button" data-tab="cover">Cover Letter</button>
-    <button class="tab-button" data-tab="skills">Skills</button>
-    <button class="tab-button" data-tab="experience">Experience</button>
-    <button class="tab-button" data-tab="education">Education</button>
-    <button class="tab-button" data-tab="limits">Limits</button>
-    <button class="tab-button" data-tab="qa">Q&A</button>
-    <button class="tab-button" data-tab="export">Export</button>
-    <button class="tab-button" data-tab="settings">Settings</button>
-    <button class="tab-button" data-tab="help">Help</button>
-  </div>
-
-  <div id="assess" class="tab-content active">
-    <div class="instructions">
-      <p>1. Select the job posting text on the webpage</p>
-      <p>2. Click "Assess Job Posting" below</p>
+    <div class="tabs">
+      <button class="tab-button active" data-tab="assess">Assess Job</button>
+      <button class="tab-button" data-tab="jobs">Jobs</button>
+      <button class="tab-button" data-tab="applied">Applied</button>
+      <button class="tab-button" data-tab="cv">CV</button>
+      <button class="tab-button" data-tab="cover">Cover Letter</button>
+      <button class="tab-button" data-tab="skills">Skills</button>
+      <button class="tab-button" data-tab="experience">Experience</button>
+      <button class="tab-button" data-tab="education">Education</button>
+      <button class="tab-button" data-tab="limits">Limits</button>
+      <button class="tab-button" data-tab="qa">Q&A</button>
+      <button class="tab-button" data-tab="export">Export</button>
+      <button class="tab-button" data-tab="settings">Settings</button>
+      <button class="tab-button" data-tab="help">Help</button>
     </div>
 
-    <button id="assessJobButton" class="primary-button">Assess Job Posting</button>
+    <div id="assess" class="tab-content active">
+      <div class="instructions">
+        <p>1. Select the job posting text on the webpage</p>
+        <p>2. Click "Assess Job Posting" below</p>
+      </div>
 
-    <div id="assessmentResults" style="display: none;">
-      <div id="jobRating">
-        <strong>Job Fit Rating:</strong> <span id="ratingValue">--</span> / 10
+      <button id="assessJobButton" class="primary-button">Assess Job Posting</button>
+
+      <div id="assessmentResults" style="display: none;">
+        <div id="jobRating">
+          <strong>Job Fit Rating:</strong> <span id="ratingValue">--</span> / 10
+        </div>
+        <div id="jobKeywords">
+          <strong>Key Keywords:</strong>
+          <ul id="keywordList"></ul>
+        </div>
+        <div class="keyword-match-controls">
+          <span>Match Keywords Against:</span>
+          <div class="toggle-group">
+            <label class="toggle-option">
+              <input type="radio" name="matchType" value="resume" checked>
+              Resume Text
+            </label>
+            <label class="toggle-option">
+              <input type="radio" name="matchType" value="skills">
+              Skills
+            </label>
+            <label class="toggle-option">
+              <input type="radio" name="matchType" value="both">
+              Both
+            </label>
+          </div>
+        </div>
+        <button id="saveJobButton" class="primary-button" style="display: none;">Save Job</button>
       </div>
-      <div id="jobKeywords">
-        <strong>Key Keywords:</strong>
-        <ul id="keywordList"></ul>
+
+      <div id="assessmentError" style="display: none;">
+        <strong>Error:</strong> <span id="errorMessage"></span>
       </div>
+    </div>
+
+    <div id="cv" class="tab-content">
+      <div class="resume-section">
+        <h2>Resume Management</h2>
+
+        <div class="upload-controls">
+          <select id="resumeSelect" class="document-select">
+            <option value="">Select a resume...</option>
+          </select>
+          <button id="uploadResumeButton" class="secondary-button">Upload Resume</button>
+          <button id="removeResumeButton" class="danger-button" style="display: none;">Remove</button>
+        </div>
+
+        <input type="file" id="resumeFileInput" accept=".docx" style="display: none;">
+        
+        <div class="document-preview">
+          <textarea id="resumeContent" class="document-content" readonly placeholder="Select a resume to view its content..."></textarea>
+        </div>
+
+        <div class="generation-controls">
+          <button id="extractSkillsButton" class="secondary-button" style="display: none;">
+            Extract Skills, Education & Experience
+          </button>
+          
+          <div class="resume-enhancement-section">
+            <h3>AI Resume Enhancement</h3>
+            
+            <div class="enhancement-options">
+              <div class="enhancement-mode">
+                <h4>Enhancement Mode</h4>
+                <div class="radio-group">
+                  <label>
+                    <input type="radio" name="enhancementMode" value="minor" checked>
+                    Minor Rewrites
+                    <small>(Conservative improvements, minimal keyword additions)</small>
+                  </label>
+                  <label>
+                    <input type="radio" name="enhancementMode" value="major">
+                    Major Rewrite
+                    <small>(Comprehensive restructuring using your experience)</small>
+                  </label>
+                </div>
+              </div>
+
+              <div class="resume-length">
+                <h4>Target Length</h4>
+                <div class="radio-group">
+                  <label>
+                    <input type="radio" name="resumeLength" value="one" checked>
+                    One Page (450-650 words)
+                  </label>
+                  <label>
+                    <input type="radio" name="resumeLength" value="two">
+                    Two Pages (800-1200 words)
+                  </label>
+                </div>
+              </div>
+
+              <div class="include-sections">
+                <h4>Include Sections</h4>
+                <div class="checkbox-group">
+                  <label>
+                    <input type="checkbox" name="includeSkills" checked>
+                    Skills
+                  </label>
+                  <label>
+                    <input type="checkbox" name="includeEducation" checked>
+                    Education
+                  </label>
+                  <label>
+                    <input type="checkbox" name="includeExperience" checked>
+                    Experience
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <button id="enhanceResumeButton" class="primary-button">
+              Enhance Resume
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="education" class="tab-content">
+      <div class="education-section">
+        <h2>Education & Certifications</h2>
+        
+        <div id="educationList" class="education-list">
+          <!-- Education items will be listed here -->
+        </div>
+
+        <div class="add-education-form">
+          <h3>Add New Education/Certification</h3>
+          <select id="educationType" class="education-select">
+            <option value="degree">Degree</option>
+            <option value="certification">Certification</option>
+            <option value="course">Course</option>
+          </select>
+
+          <input type="text" id="educationTitle" placeholder="Title/Degree Name" class="education-input">
+          <input type="text" id="educationInstitution" placeholder="Institution" class="education-input">
+          
+          <div class="date-group">
+            <div class="date-input">
+              <label>Start Date:</label>
+              <input type="date" id="educationStartDate">
+            </div>
+            <div class="date-input">
+              <label>End Date:</label>
+              <input type="date" id="educationEndDate">
+            </div>
+            <label class="checkbox-label">
+              <input type="checkbox" id="educationInProgress"> In Progress
+            </label>
+          </div>
+
+          <div class="optional-fields">
+            <input type="text" id="educationGPA" placeholder="GPA (optional)" class="education-input">
+            <input type="text" id="educationURL" placeholder="Certificate URL (optional)" class="education-input">
+            <input type="date" id="educationExpiry" placeholder="Expiry Date (optional)">
+          </div>
+
+          <textarea id="educationDescription" placeholder="Description or relevant coursework" class="education-textarea"></textarea>
+          
+          <button id="addEducationButton" class="primary-button">Add Education/Certification</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="limits" class="tab-content">
+      <div class="limitations-section">
+        <h2>Limitations & Restrictions</h2>
+        
+        <div class="add-limitation-form">
+          <select id="limitationCategory" class="limitation-select">
+            <option value="legal">Legal/Visa</option>
+            <option value="physical">Physical/Health</option>
+            <option value="technical">Technical</option>
+            <option value="other">Other</option>
+          </select>
+
+          <input type="text" id="limitationText" placeholder="Limitation or Restriction" class="limitation-input">
+          <textarea id="limitationDetails" placeholder="Additional details (optional)" class="limitation-textarea"></textarea>
+          
+          <div class="temporary-group">
+            <label class="checkbox-label">
+              <input type="checkbox" id="isTemporary"> Temporary Limitation
+            </label>
+            <div class="end-date-input" style="display: none;">
+              <label>End Date:</label>
+              <input type="date" id="limitationEndDate">
+            </div>
+          </div>
+
+          <button id="addLimitationButton" class="primary-button">Add Limitation</button>
+        </div>
+
+        <div class="limitations-filters">
+          <button class="filter-button active" data-category="all">All</button>
+          <button class="filter-button" data-category="legal">Legal</button>
+          <button class="filter-button" data-category="physical">Physical</button>
+          <button class="filter-button" data-category="technical">Technical</button>
+          <button class="filter-button" data-category="other">Other</button>
+        </div>
+
+        <div id="limitationsList" class="limitations-list">
+          <!-- Limitations will be listed here -->
+        </div>
+      </div>
+    </div>
+
+    <div id="jobs" class="tab-content">
       <div class="keyword-match-controls">
         <span>Match Keywords Against:</span>
         <div class="toggle-group">
@@ -77,775 +277,579 @@
           </label>
         </div>
       </div>
-      <button id="saveJobButton" class="primary-button" style="display: none;">Save Job</button>
+      <div id="jobsList"></div>
     </div>
 
-    <div id="assessmentError" style="display: none;">
-      <strong>Error:</strong> <span id="errorMessage"></span>
-    </div>
-  </div>
-
-  <div id="cv" class="tab-content">
-    <div class="resume-section">
-      <h2>Resume Management</h2>
-
-      <div class="upload-controls">
-        <select id="resumeSelect" class="document-select">
-          <option value="">Select a resume...</option>
-        </select>
-        <button id="uploadResumeButton" class="secondary-button">Upload Resume</button>
-        <button id="removeResumeButton" class="danger-button" style="display: none;">Remove</button>
-      </div>
-
-      <input type="file" id="resumeFileInput" accept=".docx" style="display: none;">
-      
-      <div class="document-preview">
-        <textarea id="resumeContent" class="document-content" readonly placeholder="Select a resume to view its content..."></textarea>
-      </div>
-
-      <div class="generation-controls">
-        <button id="extractSkillsButton" class="secondary-button" style="display: none;">
-          Extract Skills, Education & Experience
-        </button>
+    <div id="cover" class="tab-content">
+      <div class="cover-letter-section">
+        <h2>AI Cover Letter Generator</h2>
         
-        <div class="resume-enhancement-section">
-          <h3>AI Resume Enhancement</h3>
+        <div class="ai-cover-letter-controls">
+          <div class="warning-message" id="noCoverLetterWarning" style="display: none;">
+            Please select a job posting first to generate a cover letter.
+          </div>
           
-          <div class="enhancement-options">
-            <div class="enhancement-mode">
-              <h4>Enhancement Mode</h4>
-              <div class="radio-group">
-                <label>
-                  <input type="radio" name="enhancementMode" value="minor" checked>
-                  Minor Rewrites
-                  <small>(Conservative improvements, minimal keyword additions)</small>
-                </label>
-                <label>
-                  <input type="radio" name="enhancementMode" value="major">
-                  Major Rewrite
-                  <small>(Comprehensive restructuring using your experience)</small>
-                </label>
+          <div class="generation-controls">
+            <button id="generateFreshCoverLetter" class="primary-button">Generate Fresh Cover Letter</button>
+            <button id="modifyCurrentCoverLetter" class="secondary-button" style="display: none;">
+              Modify Current Cover Letter
+            </button>
+            
+            <div class="cover-letter-options">
+              <div class="option-group">
+                <label>Number of Body Paragraphs:</label>
+                <div class="radio-group">
+                  <label><input type="radio" name="paragraphCount" value="2" checked> 2</label>
+                  <label><input type="radio" name="paragraphCount" value="3"> 3</label>
+                  <label><input type="radio" name="paragraphCount" value="4"> 4</label>
+                </div>
               </div>
-            </div>
-
-            <div class="resume-length">
-              <h4>Target Length</h4>
-              <div class="radio-group">
-                <label>
-                  <input type="radio" name="resumeLength" value="one" checked>
-                  One Page (450-650 words)
-                </label>
-                <label>
-                  <input type="radio" name="resumeLength" value="two">
-                  Two Pages (800-1200 words)
-                </label>
+              <div class="option-group">
+                <label>Tone:</label>
+                <div class="radio-group">
+                  <label><input type="radio" name="letterTone" value="eager" checked> Eager</label>
+                  <label><input type="radio" name="letterTone" value="professional"> Seasoned Professional</label>
+                  <label><input type="radio" name="letterTone" value="expressive"> Expressive</label>
+                </div>
               </div>
-            </div>
-
-            <div class="include-sections">
-              <h4>Include Sections</h4>
-              <div class="checkbox-group">
-                <label>
-                  <input type="checkbox" name="includeSkills" checked>
-                  Skills
-                </label>
-                <label>
-                  <input type="checkbox" name="includeEducation" checked>
-                  Education
-                </label>
-                <label>
-                  <input type="checkbox" name="includeExperience" checked>
-                  Experience
-                </label>
+              <div class="option-group">
+                <label>Include in Letter:</label>
+                <div class="checkbox-group">
+                  <label><input type="checkbox" name="includeResume" checked> Resume</label>
+                  <label><input type="checkbox" name="includeExperience" checked> Experience</label>
+                  <label><input type="checkbox" name="includeEducation" checked> Education</label>
+                  <label><input type="checkbox" name="includeSkills" checked> Skills List</label>
+                </div>
               </div>
             </div>
           </div>
 
-          <button id="enhanceResumeButton" class="primary-button">
-            Enhance Resume
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div id="education" class="tab-content">
-    <div class="education-section">
-      <h2>Education & Certifications</h2>
-      
-      <div id="educationList" class="education-list">
-        <!-- Education items will be listed here -->
-      </div>
-
-      <div class="add-education-form">
-        <h3>Add New Education/Certification</h3>
-        <select id="educationType" class="education-select">
-          <option value="degree">Degree</option>
-          <option value="certification">Certification</option>
-          <option value="course">Course</option>
-        </select>
-
-        <input type="text" id="educationTitle" placeholder="Title/Degree Name" class="education-input">
-        <input type="text" id="educationInstitution" placeholder="Institution" class="education-input">
-        
-        <div class="date-group">
-          <div class="date-input">
-            <label>Start Date:</label>
-            <input type="date" id="educationStartDate">
-          </div>
-          <div class="date-input">
-            <label>End Date:</label>
-            <input type="date" id="educationEndDate">
-          </div>
-          <label class="checkbox-label">
-            <input type="checkbox" id="educationInProgress"> In Progress
-          </label>
-        </div>
-
-        <div class="optional-fields">
-          <input type="text" id="educationGPA" placeholder="GPA (optional)" class="education-input">
-          <input type="text" id="educationURL" placeholder="Certificate URL (optional)" class="education-input">
-          <input type="date" id="educationExpiry" placeholder="Expiry Date (optional)">
-        </div>
-
-        <textarea id="educationDescription" placeholder="Description or relevant coursework" class="education-textarea"></textarea>
-        
-        <button id="addEducationButton" class="primary-button">Add Education/Certification</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="limits" class="tab-content">
-    <div class="limitations-section">
-      <h2>Limitations & Restrictions</h2>
-      
-      <div class="add-limitation-form">
-        <select id="limitationCategory" class="limitation-select">
-          <option value="legal">Legal/Visa</option>
-          <option value="physical">Physical/Health</option>
-          <option value="technical">Technical</option>
-          <option value="other">Other</option>
-        </select>
-
-        <input type="text" id="limitationText" placeholder="Limitation or Restriction" class="limitation-input">
-        <textarea id="limitationDetails" placeholder="Additional details (optional)" class="limitation-textarea"></textarea>
-        
-        <div class="temporary-group">
-          <label class="checkbox-label">
-            <input type="checkbox" id="isTemporary"> Temporary Limitation
-          </label>
-          <div class="end-date-input" style="display: none;">
-            <label>End Date:</label>
-            <input type="date" id="limitationEndDate">
-          </div>
-        </div>
-
-        <button id="addLimitationButton" class="primary-button">Add Limitation</button>
-      </div>
-
-      <div class="limitations-filters">
-        <button class="filter-button active" data-category="all">All</button>
-        <button class="filter-button" data-category="legal">Legal</button>
-        <button class="filter-button" data-category="physical">Physical</button>
-        <button class="filter-button" data-category="technical">Technical</button>
-        <button class="filter-button" data-category="other">Other</button>
-      </div>
-
-      <div id="limitationsList" class="limitations-list">
-        <!-- Limitations will be listed here -->
-      </div>
-    </div>
-  </div>
-
-  <div id="jobs" class="tab-content">
-    <div class="keyword-match-controls">
-      <span>Match Keywords Against:</span>
-      <div class="toggle-group">
-        <label class="toggle-option">
-          <input type="radio" name="matchType" value="resume" checked>
-          Resume Text
-        </label>
-        <label class="toggle-option">
-          <input type="radio" name="matchType" value="skills">
-          Skills
-        </label>
-        <label class="toggle-option">
-          <input type="radio" name="matchType" value="both">
-          Both
-        </label>
-      </div>
-    </div>
-    <div id="jobsList"></div>
-  </div>
-
-  <div id="cover" class="tab-content">
-    <div class="cover-letter-section">
-      <h2>AI Cover Letter Generator</h2>
-      
-      <div class="ai-cover-letter-controls">
-        <div class="warning-message" id="noCoverLetterWarning" style="display: none;">
-          Please select a job posting first to generate a cover letter.
-        </div>
-        
-        <div class="generation-controls">
-          <button id="generateFreshCoverLetter" class="primary-button">Generate Fresh Cover Letter</button>
-          <button id="modifyCurrentCoverLetter" class="secondary-button" style="display: none;">
-            Modify Current Cover Letter
-          </button>
-          
-          <div class="cover-letter-options">
-            <div class="option-group">
-              <label>Number of Body Paragraphs:</label>
-              <div class="radio-group">
-                <label><input type="radio" name="paragraphCount" value="2" checked> 2</label>
-                <label><input type="radio" name="paragraphCount" value="3"> 3</label>
-                <label><input type="radio" name="paragraphCount" value="4"> 4</label>
-              </div>
+          <div class="generated-cover-letter" style="display: none;">
+            <h3>Generated Cover Letter</h3>
+            <div class="explanation-box">
+              <strong>AI Explanation:</strong>
+              <p id="aiExplanation"></p>
             </div>
-            <div class="option-group">
-              <label>Tone:</label>
-              <div class="radio-group">
-                <label><input type="radio" name="letterTone" value="eager" checked> Eager</label>
-                <label><input type="radio" name="letterTone" value="professional"> Seasoned Professional</label>
-                <label><input type="radio" name="letterTone" value="expressive"> Expressive</label>
-              </div>
+            <div class="document-preview">
+              <textarea id="generatedCoverLetterContent" class="document-content" readonly></textarea>
             </div>
-            <div class="option-group">
-              <label>Include in Letter:</label>
-              <div class="checkbox-group">
-                <label><input type="checkbox" name="includeResume" checked> Resume</label>
-                <label><input type="checkbox" name="includeExperience" checked> Experience</label>
-                <label><input type="checkbox" name="includeEducation" checked> Education</label>
-                <label><input type="checkbox" name="includeSkills" checked> Skills List</label>
-              </div>
+            <div class="action-buttons">
+              <button id="copyToClipboard" class="secondary-button">Copy to Clipboard</button>
+              <button id="saveCoverLetter" class="primary-button">Save Cover Letter</button>
+              <button id="cancelCoverLetter" class="danger-button">Cancel</button>
             </div>
           </div>
         </div>
 
-        <div class="generated-cover-letter" style="display: none;">
-          <h3>Generated Cover Letter</h3>
-          <div class="explanation-box">
-            <strong>AI Explanation:</strong>
-            <p id="aiExplanation"></p>
-          </div>
-          <div class="document-preview">
-            <textarea id="generatedCoverLetterContent" class="document-content" readonly></textarea>
-          </div>
-          <div class="action-buttons">
-            <button id="copyToClipboard" class="secondary-button">Copy to Clipboard</button>
-            <button id="saveCoverLetter" class="primary-button">Save Cover Letter</button>
-            <button id="cancelCoverLetter" class="danger-button">Cancel</button>
-          </div>
-        </div>
-      </div>
-
-      <hr class="section-divider">
-
-      <h2>Cover Letter Management</h2>
-      
-      <div class="document-controls">
-        <div class="document-selector">
-          <select id="coverLetterSelect" class="document-select">
-            <option value="">Select a cover letter...</option>
-          </select>
-          <button id="uploadCoverLetterButton" class="secondary-button">Upload Cover Letter</button>
-          <button id="removeCoverLetterButton" class="danger-button" style="display: none;">Remove</button>
-        </div>
-      </div>
-
-      <input type="file" id="coverLetterFileInput" accept=".docx" style="display: none;">
-      
-      <div class="document-preview">
-        <textarea id="coverLetterContent" class="document-content" readonly placeholder="Select a cover letter to view its content..."></textarea>
-        <button id="copyCoverLetterButton" class="secondary-button">Copy to Clipboard</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Add modal for document upload -->
-  <div id="uploadModal" class="modal" style="display: none;">
-    <div class="modal-content">
-      <h2>Upload Document</h2>
-      <div class="upload-form">
-        <div class="form-group">
-          <label for="documentTitle">Document Title:</label>
-          <input type="text" id="documentTitle" class="form-input" placeholder="Enter a title for this document">
-        </div>
-        <div class="selected-file">
-          <span id="selectedFileName">No file selected</span>
-        </div>
-      </div>
-      <div class="modal-actions">
-        <button id="cancelUploadButton" class="secondary-button">Cancel</button>
-        <button id="confirmUploadButton" class="primary-button">Upload</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="settings" class="tab-content">
-    <div class="settings-section">
-      <h2>Profile Management</h2>
-      <div class="profile-section">
-        <div class="profile-selector">
-          <label for="profileSelect">Active Profile:</label>
-          <select id="profileSelect" class="profile-select">
-            <!-- Profiles will be populated here -->
-          </select>
-        </div>
-        <div class="profile-name-editor">
-          <label for="profileName">Profile Name:</label>
-          <input type="text" id="profileName" class="profile-name-input" placeholder="Enter profile name">
-          <button id="saveProfileNameButton" class="secondary-button">Save Name</button>
-        </div>
-      </div>
-
-      <h2>AI Configuration</h2>
-      <div class="api-key-section">
-        <label for="geminiModel">Gemini Model:</label>
-        <select id="geminiModel" class="model-select">
-          <option value="gemini-2.0-flash">Gemini 2.0 Flash (Best)</option>
-          <option value="gemini-1.5-pro">Gemini 1.5 Pro (Medium)</option>
-          <option value="gemini-1.5 flash">Gemini 1.5 Flash fastest (Fast)</option>
-        </select>
-        <p class="help-text">
-          Select the Gemini model to use. Models vary in cost and performance.
-        </p>
-
-        <label for="geminiApiKey">Google Gemini API Key:</label>
-        <input type="password" id="geminiApiKey" size="30" placeholder="Enter your Gemini API Key">
-        <button id="saveApiKeyButton" class="primary-button">Save API Key</button>
-        <p class="help-text">
-          The Google Gemini API key is required for job assessment functionality. 
-          <a href="https://makersuite.google.com/app/apikey" target="_blank">Get your API key here</a>
-        </p>
-      </div>
-    </div>
-
-    <div class="settings-section">
-      <h2>Data Management</h2>
-      <p class="help-text">Warning: These actions cannot be undone. Please be careful when removing data.</p>
-      <div class="data-management-buttons">
-        <button id="clearCoverLetters" class="danger-button">Delete All Cover Letters</button>
-        <button id="clearResumes" class="danger-button">Delete All Resumes</button>
-        <button id="clearSkills" class="danger-button">Delete All Skills</button>
-        <button id="clearQA" class="danger-button">Delete All Q&A</button>
-        <button id="clearEducation" class="danger-button">Delete All Education</button>
-        <button id="clearExperience" class="danger-button">Delete All Experience</button>
         <hr class="section-divider">
-        <button id="deleteAllJobs" class="danger-button">Delete All Saved Jobs</button>
-        <button id="deleteAllAppliedJobs" class="danger-button">Delete All Applied Jobs</button>
-        <hr class="section-divider">
-        <button id="wipeProfile" class="danger-button">Wipe Entire Profile</button>
-      </div>
-    </div>
-  </div>
 
-  <div id="skills" class="tab-content">
-    <div id="skillInputArea">
-      <label for="skillName">Add a Skill:</label>
-      <div class="skill-input-group">
-        <input type="text" id="skillName" placeholder="Skill name (e.g., Python)" class="skill-input">
-        <select id="skillLevel" class="skill-select">
-          <option value="Beginner">Beginner</option>
-          <option value="Intermediate" selected>Intermediate</option>
-          <option value="Expert">Expert</option>
-        </select>
-        <input type="number" id="skillYears" placeholder="Years" class="skill-years" min="0" max="50">
-        <button id="addSkillButton">Add Skill</button>
-      </div>
-      <div id="skillsList" class="skills-list">
-        <!-- Skills will be listed here -->
-      </div>
-    </div>
-  </div>
-
-  <div id="experience" class="tab-content">
-    <div class="experience-section">
-      <h2>Work & Volunteer Experience</h2>
-      
-      <div class="experience-list">
-        <div id="experienceItems"></div>
-        <button id="addExperienceButton" class="primary-button">Add Experience</button>
-      </div>
-
-      <!-- Add/Edit Experience Modal -->
-      <div id="experienceModal" class="modal" style="display: none;">
-        <div class="modal-content">
-          <h2 id="experienceModalTitle">Add Experience</h2>
-          <div class="experience-form">
-            <div class="form-group">
-              <label for="experienceType">Type:</label>
-              <select id="experienceType" class="form-input">
-                <option value="job">Job</option>
-                <option value="volunteer">Volunteer</option>
-                <option value="internship">Internship</option>
-                <option value="project">Project</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="experienceTitle">Title:</label>
-              <input type="text" id="experienceTitle" class="form-input" placeholder="Job/Position Title">
-            </div>
-            <div class="form-group">
-              <label for="experienceCompany">Company/Organization:</label>
-              <input type="text" id="experienceCompany" class="form-input" placeholder="Company or Organization Name">
-            </div>
-            <div class="form-group">
-              <label for="experienceLocation">Location:</label>
-              <input type="text" id="experienceLocation" class="form-input" placeholder="City, State/Country">
-            </div>
-            <div class="form-group">
-              <label for="experienceStartDate">Start Date:</label>
-              <input type="date" id="experienceStartDate" class="form-input">
-            </div>
-            <div class="form-group">
-              <label for="experienceEndDate">End Date:</label>
-              <input type="date" id="experienceEndDate" class="form-input">
-              <div class="checkbox-group">
-                <label>
-                  <input type="checkbox" id="experienceInProgress"> Currently working here
-                </label>
-              </div>
-            </div>
-            <div class="form-group">
-              <label for="experienceDescription">Description:</label>
-              <textarea id="experienceDescription" class="form-input" rows="4" placeholder="Describe your responsibilities and achievements"></textarea>
-            </div>
-            <div class="form-group">
-              <label>Linked Skills:</label>
-              <div id="experienceSkillsList" class="skills-list">
-                <!-- Skills will be populated here -->
-              </div>
-            </div>
-          </div>
-          <div class="modal-actions">
-            <button id="cancelExperienceButton" class="secondary-button">Cancel</button>
-            <button id="saveExperienceButton" class="primary-button">Save</button>
+        <h2>Cover Letter Management</h2>
+        
+        <div class="document-controls">
+          <div class="document-selector">
+            <select id="coverLetterSelect" class="document-select">
+              <option value="">Select a cover letter...</option>
+            </select>
+            <button id="uploadCoverLetterButton" class="secondary-button">Upload Cover Letter</button>
+            <button id="removeCoverLetterButton" class="danger-button" style="display: none;">Remove</button>
           </div>
         </div>
-      </div>
-    </div>
-  </div>
 
-  <div id="qa" class="tab-content">
-    <div class="qa-section">
-      <div class="qa-header">
-        <h2>Questions & Answers</h2>
-      </div>
-
-      <div class="qa-search">
-        <label for="qaSearchInput">Search:</label>
-        <input type="text" id="qaSearchInput" placeholder="Search questions..." class="qa-search-input">
-        <div id="qaSearchResults" class="qa-search-results"></div>
-      </div>
-
-      <div class="qa-display">
-        <div class="qa-content">
-          <div id="selectedQuestion" class="selected-question"></div>
-          <div id="selectedAnswer" class="selected-answer"></div>
+        <input type="file" id="coverLetterFileInput" accept=".docx" style="display: none;">
+        
+        <div class="document-preview">
+          <textarea id="coverLetterContent" class="document-content" readonly placeholder="Select a cover letter to view its content..."></textarea>
+          <button id="copyCoverLetterButton" class="secondary-button">Copy to Clipboard</button>
         </div>
-        <div class="qa-actions">
-          <button id="copyAnswerButton" class="secondary-button" style="display: none;">Copy Answer</button>
-          <button id="copyQAButton" class="secondary-button" style="display: none;">Copy Q&A</button>
-          <button id="editAnswerButton" class="secondary-button" style="display: none;">Edit</button>
-          <button id="deleteQAButton" class="secondary-button" style="display: none;">Delete</button>
-          <button id="generateAIAnswerButton" class="primary-button" style="display: none;">Generate Answer</button>
-        </div>
-      </div>
-
-      <div class="qa-editor" style="display: none;">
-        <textarea id="questionInput" placeholder="Enter question..."></textarea>
-        <div class="limit-options">
-          <label>
-            <input type="radio" name="limitType" value="none" checked>
-            No limit
-          </label>
-          <label>
-            <input type="radio" name="limitType" value="words">
-            Word limit:
-            <input type="number" id="wordLimit" min="1" max="1000" value="250" disabled>
-          </label>
-          <label>
-            <input type="radio" name="limitType" value="characters">
-            Character limit:
-            <input type="number" id="charLimit" min="1" max="5000" value="500" disabled>
-          </label>
-        </div>
-        <textarea id="answerInput" placeholder="Enter answer..."></textarea>
-        <div class="answer-counter">
-          <span class="word-count">Words: <span id="wordCount">0</span></span>
-          <span class="char-count">Characters: <span id="charCount">0</span></span>
-        </div>
-        <div class="editor-actions">
-          <button id="generateAIAnswerEditorButton" class="primary-button">Generate Answer</button>
-          <button id="saveQAButton" class="secondary-button">Save</button>
-          <button id="cancelQAButton" class="secondary-button">Cancel</button>
-        </div>
-      </div>
-
-      <div class="qa-stats">
-        <span>Total Q&A Pairs: <span id="qaPairCount">0</span></span>
-        <button id="addNewQAButton" class="primary-button">Add New Q&A</button>
-      </div>
-
-      <div class="qa-import-section">
-        <div class="qa-separator">
-          <span>Or Import From Document</span>
-        </div>
-        <button id="importQAButton" class="secondary-button">Import Q&A Document</button>
       </div>
     </div>
 
-    <!-- Modal for Q&A Document Import -->
-    <div id="qaImportModal" class="modal" style="display: none;">
+    <!-- Add modal for document upload -->
+    <div id="uploadModal" class="modal" style="display: none;">
       <div class="modal-content">
-        <h2>Import Q&A Document</h2>
+        <h2>Upload Document</h2>
         <div class="upload-form">
-          <p class="help-text">Upload a document containing questions and answers. Supported format: .docx</p>
-          <div class="selected-file">
-            <span id="qaSelectedFileName">No file selected</span>
+          <div class="form-group">
+            <label for="documentTitle">Document Title:</label>
+            <input type="text" id="documentTitle" class="form-input" placeholder="Enter a title for this document">
           </div>
-          <input type="file" id="qaFileInput" accept=".docx" style="display: none;">
+          <div class="selected-file">
+            <span id="selectedFileName">No file selected</span>
+          </div>
         </div>
         <div class="modal-actions">
-          <button id="selectQAFileButton" class="secondary-button">Select File</button>
-          <button id="confirmQAImportButton" class="primary-button" disabled>Import</button>
-          <button id="cancelQAImportButton" class="secondary-button">Cancel</button>
+          <button id="cancelUploadButton" class="secondary-button">Cancel</button>
+          <button id="confirmUploadButton" class="primary-button">Upload</button>
         </div>
       </div>
     </div>
-  </div>
 
-  <div id="applied" class="tab-content">
-    <div class="applied-jobs-container">
-      <h2>Applied Jobs</h2>
-      <div id="appliedJobsList" class="applied-jobs-list">
-        <!-- Applied jobs will be populated here -->
-      </div>
-    </div>
-  </div>
-
-  <div id="export" class="tab-content">
-    <div class="export-section">
-      <h2>Export Data</h2>
-      
-      <div class="export-options">
-        <div class="export-group">
-          <h3>Resume & Cover Letters</h3>
-          <button class="secondary-button" data-export="resumes">Export Resumes</button>
-          <button class="secondary-button" data-export="coverLetters">Export Cover Letters</button>
-        </div>
-
-        <div class="export-group">
-          <h3>Job Information</h3>
-          <button class="secondary-button" data-export="savedJobs">Export Saved Jobs</button>
-          <button class="secondary-button" data-export="appliedJobs">Export Applied Jobs</button>
-        </div>
-
-        <div class="export-group">
-          <h3>Profile Data</h3>
-          <button class="secondary-button" data-export="skills">Export Skills</button>
-          <button class="secondary-button" data-export="experience">Export Experience</button>
-          <button class="secondary-button" data-export="education">Export Education</button>
-          <button class="secondary-button" data-export="qa">Export Q&A</button>
-        </div>
-
-        <div class="export-group profile-backup">
-          <h3>Profile Backup</h3>
-          <p class="help-text">Save or load your entire profile data. Use this to transfer your profile between browsers or after reinstalling.</p>
-          <div class="profile-backup-buttons">
-            <button class="primary-button" data-export="all">Export Profile</button>
-            <button class="primary-button" id="importProfileButton">Import Profile</button>
+    <div id="settings" class="tab-content">
+      <div class="settings-section">
+        <h2>Profile Management</h2>
+        <div class="profile-section">
+          <div class="profile-selector">
+            <label for="profileSelect">Active Profile:</label>
+            <select id="profileSelect" class="profile-select">
+              <!-- Profiles will be populated here -->
+            </select>
+          </div>
+          <div class="profile-name-editor">
+            <label for="profileName">Profile Name:</label>
+            <input type="text" id="profileName" class="profile-name-input" placeholder="Enter profile name">
+            <button id="saveProfileNameButton" class="secondary-button">Save Name</button>
           </div>
         </div>
+
+        <h2>AI Configuration</h2>
+        <div class="api-key-section">
+          <label for="geminiModel">Gemini Model:</label>
+          <select id="geminiModel" class="model-select">
+            <option value="gemini-2.0-flash">Gemini 2.0 Flash (Best)</option>
+            <option value="gemini-1.5-pro">Gemini 1.5 Pro (Medium)</option>
+            <option value="gemini-1.5 flash">Gemini 1.5 Flash fastest (Fast)</option>
+          </select>
+          <p class="help-text">
+            Select the Gemini model to use. Models vary in cost and performance.
+          </p>
+
+          <label for="geminiApiKey">Google Gemini API Key:</label>
+          <input type="password" id="geminiApiKey" size="30" placeholder="Enter your Gemini API Key">
+          <button id="saveApiKeyButton" class="primary-button">Save API Key</button>
+          <p class="help-text">
+            The Google Gemini API key is required for job assessment functionality. 
+            <a href="https://makersuite.google.com/app/apikey" target="_blank">Get your API key here</a>
+          </p>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h2>Data Management</h2>
+        <p class="help-text">Warning: These actions cannot be undone. Please be careful when removing data.</p>
+        <div class="data-management-buttons">
+          <button id="clearCoverLetters" class="danger-button">Delete All Cover Letters</button>
+          <button id="clearResumes" class="danger-button">Delete All Resumes</button>
+          <button id="clearSkills" class="danger-button">Delete All Skills</button>
+          <button id="clearQA" class="danger-button">Delete All Q&A</button>
+          <button id="clearEducation" class="danger-button">Delete All Education</button>
+          <button id="clearExperience" class="danger-button">Delete All Experience</button>
+          <hr class="section-divider">
+          <button id="deleteAllJobs" class="danger-button">Delete All Saved Jobs</button>
+          <button id="deleteAllAppliedJobs" class="danger-button">Delete All Applied Jobs</button>
+          <hr class="section-divider">
+          <button id="wipeProfile" class="danger-button">Wipe Entire Profile</button>
+        </div>
       </div>
     </div>
-  </div>
 
-  <div id="help" class="tab-content">
-    <div class="help-section">
-      <div class="help-collapsible active">
-        <div class="help-collapsible-header">
-          <span class="help-collapsible-title">
-            <span class="help-collapsible-icon">></span>
-            Overview
-          </span>
+    <div id="skills" class="tab-content">
+      <div id="skillInputArea">
+        <label for="skillName">Add a Skill:</label>
+        <div class="skill-input-group">
+          <input type="text" id="skillName" placeholder="Skill name (e.g., Python)" class="skill-input">
+          <select id="skillLevel" class="skill-select">
+            <option value="Beginner">Beginner</option>
+            <option value="Intermediate" selected>Intermediate</option>
+            <option value="Expert">Expert</option>
+          </select>
+          <input type="number" id="skillYears" placeholder="Years" class="skill-years" min="0" max="50">
+          <button id="addSkillButton">Add Skill</button>
         </div>
-        <div class="help-collapsible-content">
-          <div class="help-collapsible-body">
-            <p>Job Djinni is a powerful browser extension designed to streamline and enhance your job application process. It helps you:</p>
-            <ul>
-              <li>Analyze job postings for fit and skill matches</li>
-              <li>Manage multiple versions of your resume and cover letters</li>
-              <li>Track your skills, experience, and education</li>
-              <li>Generate AI-powered cover letters</li>
-              <li>Store and manage common application Q&As</li>
-              <li>Track your job applications and progress</li>
-            </ul>
-            <div class="feature-highlight">
-              <strong>Pro Tip:</strong> Start by setting up your profile in the Settings tab and uploading your resume to get the most out of the extension.
+        <div id="skillsList" class="skills-list">
+          <!-- Skills will be listed here -->
+        </div>
+      </div>
+    </div>
+
+    <div id="experience" class="tab-content">
+      <div class="experience-section">
+        <h2>Work & Volunteer Experience</h2>
+        
+        <div class="experience-list">
+          <div id="experienceItems"></div>
+          <button id="addExperienceButton" class="primary-button">Add Experience</button>
+        </div>
+
+        <!-- Add/Edit Experience Modal -->
+        <div id="experienceModal" class="modal" style="display: none;">
+          <div class="modal-content">
+            <h2 id="experienceModalTitle">Add Experience</h2>
+            <div class="experience-form">
+              <div class="form-group">
+                <label for="experienceType">Type:</label>
+                <select id="experienceType" class="form-input">
+                  <option value="job">Job</option>
+                  <option value="volunteer">Volunteer</option>
+                  <option value="internship">Internship</option>
+                  <option value="project">Project</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="experienceTitle">Title:</label>
+                <input type="text" id="experienceTitle" class="form-input" placeholder="Job/Position Title">
+              </div>
+              <div class="form-group">
+                <label for="experienceCompany">Company/Organization:</label>
+                <input type="text" id="experienceCompany" class="form-input" placeholder="Company or Organization Name">
+              </div>
+              <div class="form-group">
+                <label for="experienceLocation">Location:</label>
+                <input type="text" id="experienceLocation" class="form-input" placeholder="City, State/Country">
+              </div>
+              <div class="form-group">
+                <label for="experienceStartDate">Start Date:</label>
+                <input type="date" id="experienceStartDate" class="form-input">
+              </div>
+              <div class="form-group">
+                <label for="experienceEndDate">End Date:</label>
+                <input type="date" id="experienceEndDate" class="form-input">
+                <div class="checkbox-group">
+                  <label>
+                    <input type="checkbox" id="experienceInProgress"> Currently working here
+                  </label>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="experienceDescription">Description:</label>
+                <textarea id="experienceDescription" class="form-input" rows="4" placeholder="Describe your responsibilities and achievements"></textarea>
+              </div>
+              <div class="form-group">
+                <label>Linked Skills:</label>
+                <div id="experienceSkillsList" class="skills-list">
+                  <!-- Skills will be populated here -->
+                </div>
+              </div>
+            </div>
+            <div class="modal-actions">
+              <button id="cancelExperienceButton" class="secondary-button">Cancel</button>
+              <button id="saveExperienceButton" class="primary-button">Save</button>
             </div>
           </div>
         </div>
       </div>
+    </div>
 
-      <div class="help-collapsible">
-        <div class="help-collapsible-header">
-          <span class="help-collapsible-title">
-            <span class="help-collapsible-icon">></span>
-            Assess Job Tab
-          </span>
+    <div id="qa" class="tab-content">
+      <div class="qa-section">
+        <div class="qa-header">
+          <h2>Questions & Answers</h2>
         </div>
-        <div class="help-collapsible-content">
-          <div class="help-collapsible-body">
-            <p>The Assess Job tab helps you evaluate job postings for fit:</p>
-            <ol>
-              <li>Select the job posting text on the webpage</li>
-              <li>Click "Assess Job Posting" to analyze</li>
-              <li>Review the job fit rating and keyword matches</li>
-              <li>Save interesting jobs for later review</li>
-            </ol>
-            <div class="feature-highlight">
-              <strong>Key Feature:</strong> The keyword matching system shows which skills you have (green), partially match (orange), or are missing (red).
+
+        <div class="qa-search">
+          <label for="qaSearchInput">Search:</label>
+          <input type="text" id="qaSearchInput" placeholder="Search questions..." class="qa-search-input">
+          <div id="qaSearchResults" class="qa-search-results"></div>
+        </div>
+
+        <div class="qa-display">
+          <div class="qa-content">
+            <div id="selectedQuestion" class="selected-question"></div>
+            <div id="selectedAnswer" class="selected-answer"></div>
+          </div>
+          <div class="qa-actions">
+            <button id="copyAnswerButton" class="secondary-button" style="display: none;">Copy Answer</button>
+            <button id="copyQAButton" class="secondary-button" style="display: none;">Copy Q&A</button>
+            <button id="editAnswerButton" class="secondary-button" style="display: none;">Edit</button>
+            <button id="deleteQAButton" class="secondary-button" style="display: none;">Delete</button>
+            <button id="generateAIAnswerButton" class="primary-button" style="display: none;">Generate Answer</button>
+          </div>
+        </div>
+
+        <div class="qa-editor" style="display: none;">
+          <textarea id="questionInput" placeholder="Enter question..."></textarea>
+          <div class="limit-options">
+            <label>
+              <input type="radio" name="limitType" value="none" checked>
+              No limit
+            </label>
+            <label>
+              <input type="radio" name="limitType" value="words">
+              Word limit:
+              <input type="number" id="wordLimit" min="1" max="1000" value="250" disabled>
+            </label>
+            <label>
+              <input type="radio" name="limitType" value="characters">
+              Character limit:
+              <input type="number" id="charLimit" min="1" max="5000" value="500" disabled>
+            </label>
+          </div>
+          <textarea id="answerInput" placeholder="Enter answer..."></textarea>
+          <div class="answer-counter">
+            <span class="word-count">Words: <span id="wordCount">0</span></span>
+            <span class="char-count">Characters: <span id="charCount">0</span></span>
+          </div>
+          <div class="editor-actions">
+            <button id="generateAIAnswerEditorButton" class="primary-button">Generate Answer</button>
+            <button id="saveQAButton" class="secondary-button">Save</button>
+            <button id="cancelQAButton" class="secondary-button">Cancel</button>
+          </div>
+        </div>
+
+        <div class="qa-stats">
+          <span>Total Q&A Pairs: <span id="qaPairCount">0</span></span>
+          <button id="addNewQAButton" class="primary-button">Add New Q&A</button>
+        </div>
+
+        <div class="qa-import-section">
+          <div class="qa-separator">
+            <span>Or Import From Document</span>
+          </div>
+          <button id="importQAButton" class="secondary-button">Import Q&A Document</button>
+        </div>
+      </div>
+
+      <!-- Modal for Q&A Document Import -->
+      <div id="qaImportModal" class="modal" style="display: none;">
+        <div class="modal-content">
+          <h2>Import Q&A Document</h2>
+          <div class="upload-form">
+            <p class="help-text">Upload a document containing questions and answers. Supported format: .docx</p>
+            <div class="selected-file">
+              <span id="qaSelectedFileName">No file selected</span>
+            </div>
+            <input type="file" id="qaFileInput" accept=".docx" style="display: none;">
+          </div>
+          <div class="modal-actions">
+            <button id="selectQAFileButton" class="secondary-button">Select File</button>
+            <button id="confirmQAImportButton" class="primary-button" disabled>Import</button>
+            <button id="cancelQAImportButton" class="secondary-button">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="applied" class="tab-content">
+      <div class="applied-jobs-container">
+        <h2>Applied Jobs</h2>
+        <div id="appliedJobsList" class="applied-jobs-list">
+          <!-- Applied jobs will be populated here -->
+        </div>
+      </div>
+    </div>
+
+    <div id="export" class="tab-content">
+      <div class="export-section">
+        <h2>Export Data</h2>
+        
+        <div class="export-options">
+          <div class="export-group">
+            <h3>Resume & Cover Letters</h3>
+            <button class="secondary-button" data-export="resumes">Export Resumes</button>
+            <button class="secondary-button" data-export="coverLetters">Export Cover Letters</button>
+          </div>
+
+          <div class="export-group">
+            <h3>Job Information</h3>
+            <button class="secondary-button" data-export="savedJobs">Export Saved Jobs</button>
+            <button class="secondary-button" data-export="appliedJobs">Export Applied Jobs</button>
+          </div>
+
+          <div class="export-group">
+            <h3>Profile Data</h3>
+            <button class="secondary-button" data-export="skills">Export Skills</button>
+            <button class="secondary-button" data-export="experience">Export Experience</button>
+            <button class="secondary-button" data-export="education">Export Education</button>
+            <button class="secondary-button" data-export="qa">Export Q&A</button>
+          </div>
+
+          <div class="export-group profile-backup">
+            <h3>Profile Backup</h3>
+            <p class="help-text">Save or load your entire profile data. Use this to transfer your profile between browsers or after reinstalling.</p>
+            <div class="profile-backup-buttons">
+              <button class="primary-button" data-export="all">Export Profile</button>
+              <button class="primary-button" id="importProfileButton">Import Profile</button>
             </div>
           </div>
         </div>
       </div>
+    </div>
 
-      <div class="help-collapsible">
-        <div class="help-collapsible-header">
-          <span class="help-collapsible-title">
-            <span class="help-collapsible-icon">></span>
-            Jobs & Applied Tabs
-          </span>
-        </div>
-        <div class="help-collapsible-content">
-          <div class="help-collapsible-body">
-            <p>Manage your job opportunities and applications:</p>
-            <ul>
-              <li><strong>Jobs Tab:</strong> View and manage saved job postings</li>
-              <li><strong>Applied Tab:</strong> Track jobs you've applied to</li>
-              <li>Each job entry shows key information and allows you to:</li>
+    <div id="help" class="tab-content">
+      <div class="help-section">
+        <div class="help-collapsible active">
+          <div class="help-collapsible-header">
+            <span class="help-collapsible-title">
+              <span class="help-collapsible-icon">></span>
+              Overview
+            </span>
+          </div>
+          <div class="help-collapsible-content">
+            <div class="help-collapsible-body">
+              <p>Job Djinni is a powerful browser extension designed to streamline and enhance your job application process. It helps you:</p>
               <ul>
-                <li>View full job details</li>
-                <li>Generate cover letters</li>
-                <li>Track application status</li>
-                <li>Add notes and reminders</li>
+                <li>Analyze job postings for fit and skill matches</li>
+                <li>Manage multiple versions of your resume and cover letters</li>
+                <li>Track your skills, experience, and education</li>
+                <li>Generate AI-powered cover letters</li>
+                <li>Store and manage common application Q&As</li>
+                <li>Track your job applications and progress</li>
               </ul>
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      <div class="help-collapsible">
-        <div class="help-collapsible-header">
-          <span class="help-collapsible-title">
-            <span class="help-collapsible-icon">></span>
-            CV & Cover Letter Tabs
-          </span>
-        </div>
-        <div class="help-collapsible-content">
-          <div class="help-collapsible-body">
-            <p>Manage your application documents:</p>
-            <ul>
-              <li><strong>CV Tab:</strong></li>
-              <ul>
-                <li>Upload and manage multiple resumes</li>
-                <li>Extract skills and experience automatically</li>
-                <li>Use AI to enhance your resume</li>
-              </ul>
-              <li><strong>Cover Letter Tab:</strong></li>
-              <ul>
-                <li>Generate customized cover letters using AI</li>
-                <li>Choose tone and content preferences</li>
-                <li>Store and manage multiple versions</li>
-              </ul>
-            </ul>
-            <div class="feature-highlight">
-              <strong>Pro Tip:</strong> Use the AI enhancement feature to optimize your resume for specific job postings.
+              <div class="feature-highlight">
+                <strong>Pro Tip:</strong> Start by setting up your profile in the Settings tab and uploading your resume to get the most out of the extension.
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <div class="help-collapsible">
-        <div class="help-collapsible-header">
-          <span class="help-collapsible-title">
-            <span class="help-collapsible-icon">></span>
-            Skills, Experience & Education Tabs
-          </span>
-        </div>
-        <div class="help-collapsible-content">
-          <div class="help-collapsible-body">
-            <p>Build and manage your professional profile:</p>
-            <ul>
-              <li><strong>Skills Tab:</strong> Track technical and soft skills with proficiency levels</li>
-              <li><strong>Experience Tab:</strong> Document work history, projects, and achievements</li>
-              <li><strong>Education Tab:</strong> Manage degrees, certifications, and courses</li>
-            </ul>
-            <p>This information is used to:</p>
-            <ul>
-              <li>Match against job requirements</li>
-              <li>Generate tailored cover letters</li>
-              <li>Enhance your resume</li>
-            </ul>
+        <div class="help-collapsible">
+          <div class="help-collapsible-header">
+            <span class="help-collapsible-title">
+              <span class="help-collapsible-icon">></span>
+              Assess Job Tab
+            </span>
           </div>
-        </div>
-      </div>
-
-      <div class="help-collapsible">
-        <div class="help-collapsible-header">
-          <span class="help-collapsible-title">
-            <span class="help-collapsible-icon">></span>
-            Q&A Tab
-          </span>
-        </div>
-        <div class="help-collapsible-content">
-          <div class="help-collapsible-body">
-            <p>Manage common application questions and answers:</p>
-            <ul>
-              <li>Store frequently asked interview questions</li>
-              <li>Save your best answers for reuse</li>
-              <li>Use AI to generate and improve answers</li>
-              <li>Import Q&A pairs from documents</li>
-            </ul>
-            <div class="feature-highlight">
-              <strong>Pro Tip:</strong> Use the word/character limit options to ensure your answers meet application requirements.
+          <div class="help-collapsible-content">
+            <div class="help-collapsible-body">
+              <p>The Assess Job tab helps you evaluate job postings for fit:</p>
+              <ol>
+                <li>Select the job posting text on the webpage</li>
+                <li>Click "Assess Job Posting" to analyze</li>
+                <li>Review the job fit rating and keyword matches</li>
+                <li>Save interesting jobs for later review</li>
+              </ol>
+              <div class="feature-highlight">
+                <strong>Key Feature:</strong> The keyword matching system shows which skills you have (green), partially match (orange), or are missing (red).
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <div class="help-collapsible">
-        <div class="help-collapsible-header">
-          <span class="help-collapsible-title">
-            <span class="help-collapsible-icon">></span>
-            Export & Settings Tabs
-          </span>
+        <div class="help-collapsible">
+          <div class="help-collapsible-header">
+            <span class="help-collapsible-title">
+              <span class="help-collapsible-icon">></span>
+              Jobs & Applied Tabs
+            </span>
+          </div>
+          <div class="help-collapsible-content">
+            <div class="help-collapsible-body">
+              <p>Manage your job opportunities and applications:</p>
+              <ul>
+                <li><strong>Jobs Tab:</strong> View and manage saved job postings</li>
+                <li><strong>Applied Tab:</strong> Track jobs you've applied to</li>
+                <li>Each job entry shows key information and allows you to:</li>
+                <ul>
+                  <li>View full job details</li>
+                  <li>Generate cover letters</li>
+                  <li>Track application status</li>
+                  <li>Add notes and reminders</li>
+                </ul>
+              </ul>
+            </div>
+          </div>
         </div>
-        <div class="help-collapsible-content">
-          <div class="help-collapsible-body">
-            <p><strong>Export Tab:</strong></p>
-            <ul>
-              <li>Export resumes and cover letters</li>
-              <li>Backup job information</li>
-              <li>Save profile data</li>
-              <li>Export Q&A pairs</li>
-            </ul>
-            <p><strong>Settings Tab:</strong></p>
-            <ul>
-              <li>Manage profiles</li>
-              <li>Configure AI settings</li>
-              <li>Manage API keys</li>
-              <li>Data management options</li>
-            </ul>
-            <div class="feature-highlight">
-              <strong>Important:</strong> Regularly backup your data using the Export feature to prevent data loss.
+
+        <div class="help-collapsible">
+          <div class="help-collapsible-header">
+            <span class="help-collapsible-title">
+              <span class="help-collapsible-icon">></span>
+              CV & Cover Letter Tabs
+            </span>
+          </div>
+          <div class="help-collapsible-content">
+            <div class="help-collapsible-body">
+              <p>Manage your application documents:</p>
+              <ul>
+                <li><strong>CV Tab:</strong></li>
+                <ul>
+                  <li>Upload and manage multiple resumes</li>
+                  <li>Extract skills and experience automatically</li>
+                  <li>Use AI to enhance your resume</li>
+                </ul>
+                <li><strong>Cover Letter Tab:</strong></li>
+                <ul>
+                  <li>Generate customized cover letters using AI</li>
+                  <li>Choose tone and content preferences</li>
+                  <li>Store and manage multiple versions</li>
+                </ul>
+              </ul>
+              <div class="feature-highlight">
+                <strong>Pro Tip:</strong> Use the AI enhancement feature to optimize your resume for specific job postings.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="help-collapsible">
+          <div class="help-collapsible-header">
+            <span class="help-collapsible-title">
+              <span class="help-collapsible-icon">></span>
+              Skills, Experience & Education Tabs
+            </span>
+          </div>
+          <div class="help-collapsible-content">
+            <div class="help-collapsible-body">
+              <p>Build and manage your professional profile:</p>
+              <ul>
+                <li><strong>Skills Tab:</strong> Track technical and soft skills with proficiency levels</li>
+                <li><strong>Experience Tab:</strong> Document work history, projects, and achievements</li>
+                <li><strong>Education Tab:</strong> Manage degrees, certifications, and courses</li>
+              </ul>
+              <p>This information is used to:</p>
+              <ul>
+                <li>Match against job requirements</li>
+                <li>Generate tailored cover letters</li>
+                <li>Enhance your resume</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="help-collapsible">
+          <div class="help-collapsible-header">
+            <span class="help-collapsible-title">
+              <span class="help-collapsible-icon">></span>
+              Q&A Tab
+            </span>
+          </div>
+          <div class="help-collapsible-content">
+            <div class="help-collapsible-body">
+              <p>Manage common application questions and answers:</p>
+              <ul>
+                <li>Store frequently asked interview questions</li>
+                <li>Save your best answers for reuse</li>
+                <li>Use AI to generate and improve answers</li>
+                <li>Import Q&A pairs from documents</li>
+              </ul>
+              <div class="feature-highlight">
+                <strong>Pro Tip:</strong> Use the word/character limit options to ensure your answers meet application requirements.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="help-collapsible">
+          <div class="help-collapsible-header">
+            <span class="help-collapsible-title">
+              <span class="help-collapsible-icon">></span>
+              Export & Settings Tabs
+            </span>
+          </div>
+          <div class="help-collapsible-content">
+            <div class="help-collapsible-body">
+              <p><strong>Export Tab:</strong></p>
+              <ul>
+                <li>Export resumes and cover letters</li>
+                <li>Backup job information</li>
+                <li>Save profile data</li>
+                <li>Export Q&A pairs</li>
+              </ul>
+              <p><strong>Settings Tab:</strong></p>
+              <ul>
+                <li>Manage profiles</li>
+                <li>Configure AI settings</li>
+                <li>Manage API keys</li>
+                <li>Data management options</li>
+              </ul>
+              <div class="feature-highlight">
+                <strong>Important:</strong> Regularly backup your data using the Export feature to prevent data loss.
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
   </div>
+</div>
 </body>
 </html>

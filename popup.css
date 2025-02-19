@@ -1,4 +1,6 @@
 /* Add at the top of the file, after the body rule */
+@import url('https://fonts.googleapis.com/css2?family=El+Messiri:wght@600&display=swap');
+
 html {
   overflow-y: scroll; /* Force scrollbar to always show */
   scrollbar-gutter: stable; /* Reserve space for scrollbar */
@@ -9,6 +11,7 @@ body {
   padding: 12px;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   margin-right: 0; /* Ensure no extra margin is added */
+  background-color: #fcfaf1; /* Subtle parchment color */
 }
 
 /* Add styles for webkit browsers (Chrome, Safari, etc) */
@@ -34,9 +37,11 @@ body {
 }
 
 h1 {
-  font-size: 1.3em;
+  font-size: 1.5em;
   margin: 0 0 8px 0;
   color: #2c3e50;
+  font-family: 'El Messiri', sans-serif;
+  letter-spacing: 0.5px;
 }
 
 /* Header Controls */
