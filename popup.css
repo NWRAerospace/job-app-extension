@@ -984,11 +984,12 @@ button:disabled .loading-spinner {
   padding: 20px;
   border-radius: 8px;
   max-width: 90%;
-  max-height: 85vh;
+  max-height: 80vh;
   width: 600px;
   display: flex;
   flex-direction: column;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  overflow-y: auto;
 }
 
 .job-details-content {
@@ -999,14 +1000,47 @@ button:disabled .loading-spinner {
 }
 
 .modal-actions {
-  position: sticky;
-  bottom: 0;
-  background: white;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 10px;
   padding-top: 15px;
   border-top: 1px solid #eee;
+}
+
+.modal-actions button[data-action="apply"],
+.modal-actions .confirm-button,
+.modal-actions .primary-button {
+  order: 0;
+}
+
+.modal-actions button[data-action="cancel"],
+.modal-actions .cancel-button,
+.modal-actions .secondary-button {
+  order: 2;
+}
+
+.modal-actions .replace-toggle {
+  order: 1;
+  margin: 0;
+  padding: 0;
+  background: none;
+  border: none;
+}
+
+.modal-actions .replace-toggle label {
   display: flex;
-  justify-content: flex-end;
-  gap: 10px;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  color: #2c3e50;
+  margin: 0;
+  padding: 0;
+}
+
+.modal-actions .replace-toggle input[type="checkbox"] {
+  margin: 0;
+  cursor: pointer;
 }
 
 .skill-toggles,
