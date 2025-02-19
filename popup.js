@@ -273,8 +273,8 @@ document.addEventListener('DOMContentLoaded', async function() {
           await DatabaseManager.updateField('resumes', []);
           await DatabaseManager.updateField('skills', []);
           await DatabaseManager.updateField('education', []);
-          await DatabaseManager.updateField('experience', []);
-          await DatabaseManager.updateField('qa', []);
+          await DatabaseManager.updateField('experiences', []);
+          await DatabaseManager.updateField('qaPairs', []);
           await DatabaseManager.updateField('savedJobs', []);
           await DatabaseManager.updateField('appliedJobs', []);
           await DatabaseManager.updateField('activeCoverLetterId', null);
