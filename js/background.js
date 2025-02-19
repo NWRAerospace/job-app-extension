@@ -6,6 +6,20 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       .catch(error => sendResponse({ error: error.message }));
     return true; // Will respond asynchronously
   }
+
+  if (request.action === 'clearQA') {
+    clearQAData()
+      .then(() => sendResponse({ success: true }))
+      .catch((error) => sendResponse({ success: false, error: error.message }));
+    return true;
+  }
+
+  if (request.action === 'clearExperience') {
+    clearExperienceData()
+      .then(() => sendResponse({ success: true }))
+      .catch((error) => sendResponse({ success: false, error: error.message }));
+    return true;
+  }
 });
 
 // Handle connections from popup
@@ -235,4 +249,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     // Forward the message to the popup if it's open
     chrome.runtime.sendMessage(request);
   }
-}); 
+});
+
+async function clearQAData() {
+  // Clear QA data from storage
+  await chrome.storage.local.remove('qaPairs');
+}
+
+async function clearExperienceData() {
+  // Clear experience data from storage
+  await chrome.storage.local.remove('experienceEntries');
+} 

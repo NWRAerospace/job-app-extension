@@ -183,6 +183,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     const wipeProfileBtn = document.getElementById('wipeProfile');
     const deleteAllJobsBtn = document.getElementById('deleteAllJobs');
     const deleteAllAppliedJobsBtn = document.getElementById('deleteAllAppliedJobs');
+    const wipeAllButton = document.getElementById('wipeAllButton');
 
     clearCoverLettersBtn.addEventListener('click', async () => {
       if (confirm('Are you sure you want to delete all cover letters? This cannot be undone.')) {
@@ -227,15 +228,12 @@ document.addEventListener('DOMContentLoaded', async function() {
     });
 
     clearQABtn.addEventListener('click', async () => {
-      if (confirm('Are you sure you want to delete all Q&A pairs? This cannot be undone.')) {
-        try {
-          await DatabaseManager.updateField('qaPairs', []);
-          uiManager.showFeedbackMessage('All Q&A pairs cleared successfully');
-          await qaManager.updateQADisplay();
-        } catch (error) {
-          console.error('Error clearing Q&A pairs:', error);
-          uiManager.showFeedbackMessage('Failed to clear Q&A pairs', 'error');
-        }
+      try {
+        await chrome.runtime.sendMessage({ action: 'clearQA' });
+        // Update the QA display - we should refresh the list or clear it
+        await loadQAPairs(); // This should be the function that refreshes the QA display
+      } catch (error) {
+        console.error('Error clearing Q&A pairs:', error);
       }
     });
 
@@ -309,6 +307,30 @@ document.addEventListener('DOMContentLoaded', async function() {
           uiManager.showFeedbackMessage('All applied jobs deleted successfully');
         } catch (error) {
           uiManager.showError('Failed to delete applied jobs: ' + error.message);
+        }
+      }
+    });
+
+    wipeAllButton.addEventListener('click', async () => {
+      if (confirm('Are you sure you want to wipe all data? This cannot be undone.')) {
+        try {
+          // Clear chat history
+          await chrome.runtime.sendMessage({ action: 'clearHistory' });
+          
+          // Clear experience data
+          await chrome.runtime.sendMessage({ action: 'clearExperience' });
+          
+          // Clear QA data
+          await chrome.runtime.sendMessage({ action: 'clearQA' });
+          
+          // Refresh displays
+          await loadQAPairs();
+          await loadExperienceEntries();
+          
+          alert('All data has been cleared successfully.');
+        } catch (error) {
+          console.error('Error wiping all data:', error);
+          alert('Error wiping all data. Please try again.');
         }
       }
     });
