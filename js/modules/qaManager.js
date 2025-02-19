@@ -156,9 +156,12 @@ export class QAManager {
 
   displaySearchResults(results) {
     this.searchResults.innerHTML = '';
+
+    // Take only the top 5 results
+    const topResults = results.slice(0, 5);
     
     // Add search results
-    results.forEach(result => {
+    topResults.forEach(result => {
       const div = document.createElement('div');
       div.className = 'qa-search-item';
       div.textContent = result.question;
