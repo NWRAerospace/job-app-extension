@@ -236,22 +236,7 @@ export class UIManager {
 
     if (generateFreshBtn) {
       generateFreshBtn.addEventListener('click', async () => {
-        // Repoll the DOM immediately on click to get the latest value.
-        const specialInstructionsEl = document.getElementById('specialInstructions');
-        const specialInstructions = specialInstructionsEl?.value?.trim() || '';
-        
-        const options = {
-          paragraphCount: document.querySelector('input[name="paragraphCount"]:checked')?.value || '3',
-          tone: document.querySelector('input[name="letterTone"]:checked')?.value || 'eager',
-          includeResume: document.querySelector('input[name="includeResume"]')?.checked || false,
-          includeExperience: document.querySelector('input[name="includeExperience"]')?.checked || false,
-          includeEducation: document.querySelector('input[name="includeEducation"]')?.checked || false,
-          includeSkills: document.querySelector('input[name="includeSkills"]')?.checked || false,
-          specialInstructions
-        };
-
-        console.log("Cover letter options:", options);
-        // ... proceed to generate cover letter with the options.
+        console.log('Generate fresh cover letter button clicked');
       });
     }
 
@@ -273,10 +258,7 @@ export class UIManager {
           warningDiv.style.display = 'none';
         }
 
-        // Get the latest value of special instructions right before generating
-        const specialInstructions = document.getElementById('specialInstructions')?.value?.trim() || '';
-
-        // ... rest of the modify cover letter logic ...
+        console.log('Modify current cover letter button clicked');
       });
     }
   }

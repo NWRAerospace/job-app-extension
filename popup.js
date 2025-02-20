@@ -692,22 +692,19 @@ document.addEventListener('DOMContentLoaded', async function() {
           return;
         }
 
-        // Get selected options
-        const paragraphCount = document.querySelector('input[name="paragraphCount"]:checked').value;
-        const tone = document.querySelector('input[name="letterTone"]:checked').value;
-        const includeResume = document.querySelector('input[name="includeResume"]').checked;
-        const includeExperience = document.querySelector('input[name="includeExperience"]').checked;
-        const includeEducation = document.querySelector('input[name="includeEducation"]').checked;
-        const includeSkills = document.querySelector('input[name="includeSkills"]').checked;
-
+        // Get selected options - poll for special instructions right before generating
+        const specialInstructions = document.getElementById('specialInstructions')?.value?.trim() || '';
         const options = {
-          paragraphCount: parseInt(paragraphCount),
-          tone: tone,
-          includeResume: includeResume,
-          includeExperience: includeExperience,
-          includeEducation: includeEducation,
-          includeSkills: includeSkills
+          paragraphCount: document.querySelector('input[name="paragraphCount"]:checked')?.value || '3',
+          tone: document.querySelector('input[name="letterTone"]:checked')?.value || 'eager',
+          includeResume: document.querySelector('input[name="includeResume"]')?.checked || false,
+          includeExperience: document.querySelector('input[name="includeExperience"]')?.checked || false,
+          includeEducation: document.querySelector('input[name="includeEducation"]')?.checked || false,
+          includeSkills: document.querySelector('input[name="includeSkills"]')?.checked || false,
+          specialInstructions
         };
+
+        console.log("Cover letter options:", options);
 
         const result = await coverLetterManager.generateCoverLetter(currentJob.jobText, skills, options, resumeText);
         
@@ -743,22 +740,19 @@ document.addEventListener('DOMContentLoaded', async function() {
         const resumeText = await DatabaseManager.getField('resumeText');
         const currentCoverLetter = document.getElementById('generatedCoverLetterContent').value;
 
-        // Get selected options
-        const paragraphCount = document.querySelector('input[name="paragraphCount"]:checked').value;
-        const tone = document.querySelector('input[name="letterTone"]:checked').value;
-        const includeResume = document.querySelector('input[name="includeResume"]').checked;
-        const includeExperience = document.querySelector('input[name="includeExperience"]').checked;
-        const includeEducation = document.querySelector('input[name="includeEducation"]').checked;
-        const includeSkills = document.querySelector('input[name="includeSkills"]').checked;
-
+        // Get selected options - poll for special instructions right before modifying
+        const specialInstructions = document.getElementById('specialInstructions')?.value?.trim() || '';
         const options = {
-          paragraphCount: parseInt(paragraphCount),
-          tone: tone,
-          includeResume: includeResume,
-          includeExperience: includeExperience,
-          includeEducation: includeEducation,
-          includeSkills: includeSkills
+          paragraphCount: document.querySelector('input[name="paragraphCount"]:checked')?.value || '3',
+          tone: document.querySelector('input[name="letterTone"]:checked')?.value || 'eager',
+          includeResume: document.querySelector('input[name="includeResume"]')?.checked || false,
+          includeExperience: document.querySelector('input[name="includeExperience"]')?.checked || false,
+          includeEducation: document.querySelector('input[name="includeEducation"]')?.checked || false,
+          includeSkills: document.querySelector('input[name="includeSkills"]')?.checked || false,
+          specialInstructions
         };
+
+        console.log("Cover letter options:", options);
 
         const result = await coverLetterManager.generateCoverLetter(
           currentJob.jobText, 
